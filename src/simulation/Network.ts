@@ -20,6 +20,18 @@ export default class Network {
     this.pins = this.paths.filter(p => p instanceof PinNode) as PinNode[];
   }
 
+  public getPins(): readonly PinNode[] {
+    return this.pins;
+  }
+
+  public getPaths(): readonly PathNode[] {
+    return this.paths;
+  }
+
+  public getGates(): readonly GateNode[] {
+    return this.gates;
+  }
+
   public reset() {
     for (const path of this.paths) {
       path.state = false;
@@ -67,4 +79,5 @@ export default class Network {
       gate.active = gate.switchingPaths.some(p => p.state);
     }
   }
+
 }
