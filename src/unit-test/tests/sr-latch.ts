@@ -38,13 +38,13 @@ export default async function() {
   network.step();
   assertEqual(pinQ.state, false);
 
-  console.log('step: pinS active')
+  // pinS active
   pinS.active = true;
   network.step();
   assertEqual(pinVCC.state, true);
   assertEqual(pinQ.state, true);
 
-  console.log('step: pinS unactive but high path connected')
+  // pinS unactive but high path connected
   pinS.active = false;
   network.step();
   network.step();
@@ -52,18 +52,18 @@ export default async function() {
   assertEqual(pinQ.state, true);
   assertEqual(pinS.state, true); // S should still be high, as its connected to VCC
 
-  console.log('step: pinR active')
+  // pinR active
   pinR.active = true;
   network.step();
   assertEqual(pinS.state, true); // S is still high, should be low next step when pnp closes
   assertEqual(pinQ.state, true);
 
-  console.log('step: pinR unactive, S should now be low')
+  // pinR unactive, S should now be low
   pinR.active = false;
   network.step();
   assertEqual(pinQ.state, true); // Q is still high, show be low next step when npn closes
 
-  console.log('step: npn should now be closed, Q should be low')
+  // npn should now be closed, Q should be low
   network.step();
   assertEqual(pinVCC.state, true);
   assertEqual(pinS.state, false);

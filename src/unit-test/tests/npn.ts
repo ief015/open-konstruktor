@@ -27,7 +27,7 @@ export default async function() {
     [pinVCC, pinA, pinY],
   );
 
-  console.log('inactivity');
+  // Inactivity
   network.step();
   assertEqual(pathVCC.state, true);
   assertEqual(pinY.state, false);
@@ -37,7 +37,7 @@ export default async function() {
   assertEqual(pinY.state, false);
   assertEqual(pathY.state, false);
 
-  console.log('pinA active');
+  // pinA active
   pinA.active = true;
   network.step();
   assertEqual(pinVCC.state, true);
@@ -47,7 +47,7 @@ export default async function() {
   assertEqual(pinY.state, false);
   assertEqual(pathY.state, false);
 
-  console.log('npn opens');
+  // npn opens
   network.step();
   assertEqual(pinVCC.state, true);
   assertEqual(pathVCC.state, true);
@@ -56,7 +56,7 @@ export default async function() {
   assertEqual(pinY.state, true);
   assertEqual(pathY.state, true);
 
-  console.log('step 3x');
+  // step 3x
   network.step();
   network.step();
   network.step();
@@ -67,7 +67,7 @@ export default async function() {
   assertEqual(pinY.state, true);
   assertEqual(pathY.state, true);
 
-  console.log('pinA unactive');
+  // pinA unactive
   pinA.active = false;
   network.step();
   assertEqual(pinVCC.state, true);
@@ -77,7 +77,7 @@ export default async function() {
   assertEqual(pinY.state, true);
   assertEqual(pathY.state, true);
 
-  console.log('npn closes');
+  // npn closes
   network.step();
   assertEqual(pinVCC.state, true);
   assertEqual(pathVCC.state, true);
@@ -86,7 +86,7 @@ export default async function() {
   assertEqual(pinY.state, false);
   assertEqual(pathY.state, false);
 
-  console.log('step 3x');
+  // step 3x
   network.step();
   network.step();
   network.step();
