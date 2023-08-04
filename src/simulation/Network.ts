@@ -21,6 +21,18 @@ export default class Network {
     this.pins = pins;
   }
 
+  public reset() {
+    for (const path of this.paths) {
+      path.state = false;
+    }
+    for (const gate of this.gates) {
+      gate.active = false;
+    }
+    for (const pin of this.pins) {
+      pin.state = pin.active;
+    }
+  }
+
   public step() {
     // Reset state of all paths
     for (const path of this.paths) {
