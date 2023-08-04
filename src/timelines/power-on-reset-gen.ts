@@ -4,9 +4,9 @@ const stateStr = (state: boolean) => state ? '1' : '·';
 
 export default function play() {
 
-  const pinVCC = new PinNode(true);
-  const pinRST = new PinNode();
-  const pinRRST = new PinNode();
+  const pinVCC = new PinNode('VCC', true);
+  const pinRST = new PinNode('RST');
+  const pinRRST = new PinNode('/RST');
 
   const firstNPN = new GateNode('npn');
   firstNPN.gatedPaths.push(pinVCC);
@@ -42,11 +42,8 @@ export default function play() {
   );
 
   const tl = new Timeline(network);
-
-  console.log('\tVCC\tRST\t/RST');
-  tl.play(16, (frame) => {
-    console.log(`${frame}\t${stateStr(pinVCC.state)}\t${stateStr(pinRST.state)}\t${stateStr(pinRRST.state)}`);
-  });
-  console.log('');
+  tl.run(16);
+  tl.printHistory();
+  console.log();
 
 }

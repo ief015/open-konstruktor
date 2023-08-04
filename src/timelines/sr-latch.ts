@@ -4,10 +4,10 @@ const stateStr = (state: boolean) => state ? '1' : '·';
 
 export default function play() {
 
-  const pinVCC = new PinNode(true);
-  const pinS = new PinNode();
-  const pinR = new PinNode();
-  const pinQ = new PinNode();
+  const pinVCC = new PinNode('VCC', true);
+  const pinS = new PinNode('S');
+  const pinR = new PinNode('R');
+  const pinQ = new PinNode('Q');
 
   const pathCell = new PathNode();
 
@@ -30,39 +30,35 @@ export default function play() {
 
   const tl = new Timeline(network);
 
-  tl.addKeyframe(2, pinS, true);
-  tl.addKeyframe(7, pinS, false);
-  tl.addKeyframe(6, pinR, true);
-  tl.addKeyframe(7, pinR, false);
-  tl.addKeyframe(10, pinR, true);
-  tl.addKeyframe(11, pinR, false);
-  tl.addKeyframe(13, pinS, true);
-  tl.addKeyframe(14, pinS, false);
-  tl.addKeyframe(17, pinR, true);
-  tl.addKeyframe(18, pinR, false);
-  tl.addKeyframe(21, pinS, true);
-  tl.addKeyframe(22, pinS, false);
+  tl.addKeyFrame(2, pinS, true);
+  tl.addKeyFrame(7, pinS, false);
+  tl.addKeyFrame(6, pinR, true);
+  tl.addKeyFrame(7, pinR, false);
+  tl.addKeyFrame(10, pinR, true);
+  tl.addKeyFrame(11, pinR, false);
+  tl.addKeyFrame(13, pinS, true);
+  tl.addKeyFrame(14, pinS, false);
+  tl.addKeyFrame(17, pinR, true);
+  tl.addKeyFrame(18, pinR, false);
+  tl.addKeyFrame(21, pinS, true);
+  tl.addKeyFrame(22, pinS, false);
 
-  console.log('\tVCC\tS\tR\tQ');
-  tl.play(25, (frame) => {
-    console.log(`${frame}\t${stateStr(pinVCC.state)}\t${stateStr(pinS.state)}\t${stateStr(pinR.state)}\t${stateStr(pinQ.state)}`);
-  });
-  console.log('');
+  tl.run(25);
+  tl.printHistory();
+  console.log();
 
   const tl2 = new Timeline(network);
 
-  tl2.addKeyframe(4, pinS, true);
-  tl2.addKeyframe(8, pinS, false);
-  tl2.addKeyframe(12, pinS, true);
-  tl2.addKeyframe(16, pinS, false);
+  tl2.addKeyFrame(4, pinS, true);
+  tl2.addKeyFrame(8, pinS, false);
+  tl2.addKeyFrame(12, pinS, true);
+  tl2.addKeyFrame(16, pinS, false);
 
-  tl2.addKeyframe(4, pinR, true);
-  tl2.addKeyframe(16, pinR, false);
+  tl2.addKeyFrame(4, pinR, true);
+  tl2.addKeyFrame(16, pinR, false);
 
-  console.log('\tVCC\tS\tR\tQ');
-  tl2.play(20, (frame) => {
-    console.log(`${frame}\t${stateStr(pinVCC.state)}\t${stateStr(pinS.state)}\t${stateStr(pinR.state)}\t${stateStr(pinQ.state)}`);
-  });
-  console.log('');
+  tl2.run(20);
+  tl2.printHistory();
+  console.log();
 
 }
