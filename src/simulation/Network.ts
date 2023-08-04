@@ -45,6 +45,8 @@ export default class Network {
       let anyChange = false;
       // Propagate path states from gates
       for (const gate of this.gates) {
+        // TODO: Gates that have already passed current could be skipped for performance?
+        // Needs investigation after more unit tests are written.
         const open = gate.type === 'npn' ? gate.active : !gate.active;
         if (open && gate.gatedPaths.some(p => p.state)) {
           for (const path of gate.gatedPaths) {
