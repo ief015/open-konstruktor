@@ -1,6 +1,6 @@
 import { PathNode, GateNode, PinNode, Network, Timeline } from "../simulation";
 
-const stateStr = (state: boolean) => state ? '1' : '-';
+const stateStr = (state: boolean) => state ? '1' : '.';
 
 export default function play() {
 
@@ -57,6 +57,7 @@ export default function play() {
   tl.play(25, (frame) => {
     console.log(`${frame}\t${stateStr(pinVCC.state)}\t${stateStr(pinS.state)}\t${stateStr(pinR.state)}\t${stateStr(pinQ.state)}`);
   });
+  console.log('');
 
   const tl2 = new Timeline(network);
 
@@ -68,10 +69,10 @@ export default function play() {
   tl2.addKeyframe(4, pinR, true);
   tl2.addKeyframe(16, pinR, false);
 
-  console.log('');
   console.log('\tVCC\tS\tR\tQ');
   tl2.play(20, (frame) => {
     console.log(`${frame}\t${stateStr(pinVCC.state)}\t${stateStr(pinS.state)}\t${stateStr(pinR.state)}\t${stateStr(pinQ.state)}`);
   });
+  console.log('');
 
 }
