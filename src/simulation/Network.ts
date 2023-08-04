@@ -29,7 +29,7 @@ export default class Network {
       gate.active = false;
     }
     for (const pin of this.pins) {
-      pin.state = pin.active;
+      pin.state = false;
     }
   }
 
