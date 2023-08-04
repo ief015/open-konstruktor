@@ -5,9 +5,8 @@ import PinNode from "./PinNode";
 export function networkFromGraph(graph: any) {
   const paths: PathNode[] = [];
   const gates: GateNode[] = [];
-  const pins: PinNode[] = [];
   // TODO: Build the network from the graph
-  return new Network(paths, gates, pins);
+  return new Network(paths, gates);
 }
 
 export default class Network {
@@ -15,10 +14,10 @@ export default class Network {
   private gates: GateNode[] = [];
   private pins: PinNode[] = [];
 
-  constructor(paths: PathNode[], gates: GateNode[], pins: PinNode[]) {
+  constructor(paths: PathNode[], gates: GateNode[]) {
     this.paths = paths;
     this.gates = gates;
-    this.pins = pins;
+    this.pins = this.paths.filter(p => p instanceof PinNode) as PinNode[];
   }
 
   public reset() {
@@ -34,7 +33,7 @@ export default class Network {
   }
 
   public step() {
-    // Reset state of all paths
+    // Reset state of all paths and pins
     for (const path of this.paths) {
       path.state = false;
     }
@@ -44,26 +43,6 @@ export default class Network {
 
     while (true) {
       let anyChange = false;
-      // Propagate path states from active pins
-      for (const pin of this.pins) {
-        if (!pin.state) {
-          // Check if state should be high due to connected high paths
-          for (const path of pin.connectedPaths) {
-            if (path.state) {
-              pin.state = true;
-            }
-          }
-        }
-        if (pin.state) {
-          // Set connected paths to high
-          for (const path of pin.connectedPaths) {
-            if (!path.state) {
-              path.state = true;
-              anyChange = true;
-            }
-          }
-        }
-      }
       // Propagate path states from gates
       for (const gate of this.gates) {
         const open = gate.type === 'npn' ? gate.active : !gate.active;

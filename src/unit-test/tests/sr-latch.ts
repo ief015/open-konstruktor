@@ -8,32 +8,21 @@ export default async function() {
   const pinR = new PinNode();
   const pinQ = new PinNode();
 
-  const pathVCC = new PathNode();
-  const pathS = new PathNode();
-  const pathR = new PathNode();
-  const pathQ = new PathNode();
-
   const pnp = new GateNode('pnp');
   const npn = new GateNode('npn');
 
   const network = new Network(
-    [pathVCC, pathS, pathR, pathQ],
-    [pnp, npn],
     [pinVCC, pinS, pinR, pinQ],
+    [pnp, npn],
   );
 
-  pinVCC.connectedPaths.push(pathVCC);
-  pinS.connectedPaths.push(pathS);
-  pinR.connectedPaths.push(pathR);
-  pinQ.connectedPaths.push(pathQ);
+  npn.gatedPaths.push(pinVCC);
+  npn.gatedPaths.push(pinQ);
+  npn.switchingPaths.push(pinS);
 
-  npn.gatedPaths.push(pathVCC);
-  npn.gatedPaths.push(pathQ);
-  npn.switchingPaths.push(pathS);
-
-  pnp.gatedPaths.push(pathS);
-  pnp.gatedPaths.push(pathQ);
-  pnp.switchingPaths.push(pathR);
+  pnp.gatedPaths.push(pinS);
+  pnp.gatedPaths.push(pinQ);
+  pnp.switchingPaths.push(pinR);
 
   network.step();
   assertEqual(pinQ.state, false);

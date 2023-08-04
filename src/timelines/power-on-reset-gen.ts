@@ -8,19 +8,12 @@ export default function play() {
   const pinRST = new PinNode();
   const pinRRST = new PinNode();
 
-  const pathVCC = new PathNode();
-  pinVCC.connectedPaths.push(pathVCC);
-  const pathRST = new PathNode();
-  pinRST.connectedPaths.push(pathRST);
-  const pathRRST = new PathNode();
-  pinRRST.connectedPaths.push(pathRRST);
-
   const firstNPN = new GateNode('npn');
-  firstNPN.gatedPaths.push(pathVCC);
-  firstNPN.switchingPaths.push(pathVCC);
+  firstNPN.gatedPaths.push(pinVCC);
+  firstNPN.switchingPaths.push(pinVCC);
 
   const chainPaths: PathNode[] = [
-    pathVCC,
+    pinVCC,
   ];
   const chainNPN: GateNode[] = [
     firstNPN,
@@ -36,17 +29,16 @@ export default function play() {
   }
 
   const lastNPN = chainNPN[chainNPN.length - 1];
-  lastNPN.gatedPaths.push(pathRRST);
+  lastNPN.gatedPaths.push(pinRRST);
 
   const rPNP = new GateNode('pnp');
-  rPNP.gatedPaths.push(pathVCC);
-  rPNP.gatedPaths.push(pathRST);
-  rPNP.switchingPaths.push(pathRRST);
+  rPNP.gatedPaths.push(pinVCC);
+  rPNP.gatedPaths.push(pinRST);
+  rPNP.switchingPaths.push(pinRRST);
 
   const network = new Network(
-    [...chainPaths, pathRST, pathRRST],
+    [...chainPaths, pinRST, pinRRST],
     [...chainNPN, rPNP],
-    [pinVCC, pinRST, pinRRST],
   );
 
   const tl = new Timeline(network);

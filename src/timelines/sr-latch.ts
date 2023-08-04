@@ -9,34 +9,24 @@ export default function play() {
   const pinR = new PinNode();
   const pinQ = new PinNode();
 
-  const pathVCC = new PathNode();
-  const pathS = new PathNode();
-  const pathS2 = new PathNode();
-  const pathR = new PathNode();
-  const pathQ = new PathNode();
+  const pathCell = new PathNode();
 
   const pnp = new GateNode('pnp');
   const npn = new GateNode('npn');
 
   const network = new Network(
-    [pathVCC, pathS, pathS2, pathR, pathQ],
+    [pinVCC, pinS, pinR, pinQ, pathCell],
     [pnp, npn],
-    [pinVCC, pinS, pinR, pinQ],
   );
 
-  pinVCC.connectedPaths.push(pathVCC);
-  pinS.connectedPaths.push(pathS2);
-  pinR.connectedPaths.push(pathR);
-  pinQ.connectedPaths.push(pathQ);
+  npn.gatedPaths.push(pinVCC);
+  npn.gatedPaths.push(pinQ);
+  npn.switchingPaths.push(pathCell);
+  npn.switchingPaths.push(pinS);
 
-  npn.gatedPaths.push(pathVCC);
-  npn.gatedPaths.push(pathQ);
-  npn.switchingPaths.push(pathS);
-  npn.switchingPaths.push(pathS2);
-
-  pnp.gatedPaths.push(pathS);
-  pnp.gatedPaths.push(pathQ);
-  pnp.switchingPaths.push(pathR);
+  pnp.gatedPaths.push(pathCell);
+  pnp.gatedPaths.push(pinQ);
+  pnp.switchingPaths.push(pinR);
 
   const tl = new Timeline(network);
 
