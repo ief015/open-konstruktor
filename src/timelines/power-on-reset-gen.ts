@@ -52,7 +52,7 @@ export default function play() {
   const tl = new Timeline(network);
 
   console.log('\tVCC\tRST\t/RST');
-  tl.play(15, (frame) => {
+  tl.play(16, (frame) => {
     console.log(`${frame}\t${stateStr(pinVCC.state)}\t${stateStr(pinRST.state)}\t${stateStr(pinRRST.state)}`);
   });
 
