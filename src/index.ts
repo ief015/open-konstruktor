@@ -1,5 +1,7 @@
 import { PathNode, GateNode, PinNode, Network, Timeline } from "./simulation";
 
+const stateStr = (state: boolean) => state ? '1' : '-';
+
 const pinVCC = new PinNode(true);
 const pinS = new PinNode();
 const pinR = new PinNode();
@@ -35,14 +37,14 @@ pnp.switchingPaths.push(pathR);
 const tl = new Timeline();
 
 tl.addKeyframe(2, pinS, true);
-tl.addKeyframe(4, pinS, false);
+tl.addKeyframe(3, pinS, false);
 
 tl.addKeyframe(6, pinR, true);
-tl.addKeyframe(8, pinR, false);
+tl.addKeyframe(7, pinR, false);
 
 tl.addKeyframe(10, pinVCC, false);
 
 console.log('VCC\tS\tR\tQ');
 tl.play(network, (frame) => {
-  console.log(`${Number(pinVCC.state)}\t${Number(pinS.state)}\t${Number(pinR.state)}\t${Number(pinQ.state)}`);
+  console.log(`${stateStr(pinVCC.state)}\t${stateStr(pinS.state)}\t${stateStr(pinR.state)}\t${stateStr(pinQ.state)}`);
 });
