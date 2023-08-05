@@ -134,7 +134,6 @@ export default async function() {
         assertPin(pinX, false);
         assertPin(pinY, false);
         break;
-        break;
       case 12:
         assertPin(pinX, false);
         assertPin(pinY, true);
