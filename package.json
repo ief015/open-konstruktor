@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node build/index.js",
-    "test": "npm run build && node build/unit-test/index.js"
+    "test": "npm run build && node build/unit-test/index.js",
+    "decode": "npm run build && node build/decodeSave.js"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +14,8 @@
   "devDependencies": {
     "@types/node": "^20.4.1",
     "typescript": "^5.1.6"
+  },
+  "engines" : {
+    "node" : ">=18.0.0"
   }
 }
