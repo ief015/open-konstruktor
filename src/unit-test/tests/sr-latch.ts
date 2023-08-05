@@ -11,10 +11,10 @@ export default async function() {
   const pnp = new GateNode('pnp');
   const npn = new GateNode('npn');
 
-  const network = new Network(
-    [pinVCC, pinS, pinR, pinQ],
-    [pnp, npn],
-  );
+  const network = new Network([
+    pinVCC, pinS, pinR, pinQ,
+    pnp, npn,
+  ]);
 
   npn.gatedPaths.push(pinVCC);
   npn.gatedPaths.push(pinQ);

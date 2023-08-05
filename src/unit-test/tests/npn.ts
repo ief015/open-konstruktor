@@ -13,10 +13,10 @@ export default async function() {
   npn.gatedPaths.push(pinY);
   npn.switchingPaths.push(pinA);
 
-  const network = new Network(
-    [pinVCC, pinA, pinY],
-    [npn],
-  );
+  const network = new Network([
+    pinVCC, pinA, pinY,
+    npn,
+  ]);
 
   // Inactivity
   network.step();

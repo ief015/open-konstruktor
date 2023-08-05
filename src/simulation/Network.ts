@@ -1,12 +1,10 @@
-import GateNode from "./GateNode";
-import PathNode from "./PathNode";
-import PinNode from "./PinNode";
+import { GateNode, PathNode, PinNode } from ".";
 
 export function networkFromGraph(graph: any) {
   const paths: PathNode[] = [];
   const gates: GateNode[] = [];
   // TODO: Build the network from the graph
-  return new Network(paths, gates);
+  return new Network([ ...paths, ...gates ]);
 }
 
 export default class Network {
@@ -14,10 +12,10 @@ export default class Network {
   private gates: GateNode[] = [];
   private pins: PinNode[] = [];
 
-  constructor(paths: PathNode[], gates: GateNode[]) {
-    this.paths = paths;
-    this.gates = gates;
-    this.pins = this.paths.filter(p => p instanceof PinNode) as PinNode[];
+  constructor(nodes: (PathNode|PinNode|GateNode)[]) {
+    this.paths = nodes.filter(n => n instanceof PathNode) as PathNode[];
+    this.gates = nodes.filter(n => n instanceof GateNode) as GateNode[];
+    this.pins = nodes.filter(n => n instanceof PinNode) as PinNode[];
   }
 
   public getPins(): readonly PinNode[] {

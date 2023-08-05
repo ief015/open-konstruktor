@@ -36,10 +36,10 @@ export default function play() {
   rPNP.gatedPaths.push(pinRST);
   rPNP.switchingPaths.push(pinRRST);
 
-  const network = new Network(
-    [...chainPaths, pinRST, pinRRST],
-    [...chainNPN, rPNP],
-  );
+  const network = new Network([
+    ...chainPaths, pinRST, pinRRST,
+    ...chainNPN, rPNP,
+  ]);
 
   const tl = new Timeline(network);
   tl.run(16);

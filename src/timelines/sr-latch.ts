@@ -14,10 +14,10 @@ export default function play() {
   const pnp = new GateNode('pnp');
   const npn = new GateNode('npn');
 
-  const network = new Network(
-    [pinVCC, pinS, pinR, pinQ, pathCell],
-    [pnp, npn],
-  );
+  const network = new Network([
+    pinVCC, pinS, pinR, pinQ, pathCell,
+    pnp, npn,
+  ]);
 
   npn.gatedPaths.push(pinVCC);
   npn.gatedPaths.push(pinQ);

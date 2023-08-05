@@ -53,10 +53,10 @@ export default async function() {
   gn2.gatedPaths.push(pinA, pinY3);
   gn2.switchingPaths.push(pinB);
 
-  const network = new Network(
-    [ pinVCC, pinA, pinB, pinY0, pinY1, pinY2, pinY3, p1, p2 ],
-    [ gp1, gp2, gp3, gp4, gn1, gn2 ],
-  );
+  const network = new Network([
+    pinVCC, pinA, pinB, pinY0, pinY1, pinY2, pinY3, p1, p2,
+    gp1, gp2, gp3, gp4, gn1, gn2,
+  ]);
 
   const tl = new Timeline(network);
 
