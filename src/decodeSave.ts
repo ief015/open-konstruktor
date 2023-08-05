@@ -34,8 +34,11 @@ async function main() {
   const fileName = await readline.question(
     'Enter output file name\n(will be saved to ./output/, leave empty to use date): '
   );
-  const defaultFileName = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, '') + '.bin';
-  const filePath = `.\\output\\${fileName || defaultFileName}`;
+  const defaultFileName = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, '');
+  let filePath = `.\\output\\${fileName || defaultFileName}`;
+  if (!filePath.endsWith('.bin')) {
+    filePath += '.bin';
+  }
 
   console.log('Decoding...');
   await decode(saveData, filePath);
