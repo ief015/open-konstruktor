@@ -9,3 +9,6 @@ Run prototype:
 
 Run unit tests:
 `npm test`
+
+Run save string decode utility:
+`npm run decoder`
