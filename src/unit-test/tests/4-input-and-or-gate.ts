@@ -125,51 +125,51 @@ export default async function() {
     // Probe various frames for expected values
     switch (frame) {
       case 0:
-        assertPin(pinX, false);
-        assertPin(pinY, true);
+        assertPin(pinX, 0);
+        assertPin(pinY, 1);
         break;
       case 1:
       case 10:
       case 11:
-        assertPin(pinX, false);
-        assertPin(pinY, false);
+        assertPin(pinX, 0);
+        assertPin(pinY, 0);
         break;
       case 12:
-        assertPin(pinX, false);
-        assertPin(pinY, true);
+        assertPin(pinX, 0);
+        assertPin(pinY, 1);
         break;
       case 30:
-        assertPin(pinX, false);
-        assertPin(pinY, true);
+        assertPin(pinX, 0);
+        assertPin(pinY, 1);
         break;
       case 31:
-        assertPin(pinX, true);
-        assertPin(pinY, true);
+        assertPin(pinX, 1);
+        assertPin(pinY, 1);
         break;
       case 30:
-        assertPin(pinX, false);
-        assertPin(pinY, false);
+        assertPin(pinX, 0);
+        assertPin(pinY, 0);
         break;
       case 90:
-        assertPin(pinX, false);
-        assertPin(pinY, true);
+        assertPin(pinX, 0);
+        assertPin(pinY, 1);
         break;
       case 91:
-        assertPin(pinX, true);
-        assertPin(pinY, true);
+        assertPin(pinX, 1);
+        assertPin(pinY, 1);
         break;
       case 100:
-        assertPin(pinX, false);
-        assertPin(pinY, true);
+        assertPin(pinX, 0);
+        assertPin(pinY, 1);
         break;
       case 160:
       case 161:
-        assertPin(pinX, false);
-        assertPin(pinY, true);
+        assertPin(pinX, 0);
+        assertPin(pinY, 1);
         break;
       case 162:
-        assertPin(pinX, false);
-        assertPin(pinY, false);
+        assertPin(pinX, 0);
+        assertPin(pinY, 0);
         break;
     }
   });
