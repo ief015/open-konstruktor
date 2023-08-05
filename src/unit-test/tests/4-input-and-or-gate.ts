@@ -159,7 +159,15 @@ export default async function() {
         assertPin(pinY, 1);
         break;
       case 100:
+      case 119:
+      case 120:
+      case 149:
         assertPin(pinX, 0);
+        assertPin(pinY, 1);
+        break;
+      case 150:
+      case 159:
+        assertPin(pinX, 1);
         assertPin(pinY, 1);
         break;
       case 160:
