@@ -6,7 +6,8 @@ All values formatted as `code` are hexidecimal. Data is little-endian.
 
 Save data is compressed with zlib and encoded to base64.
 
-Uncompressed data length is varied, but not by much. Position of EOF in an empty save is `332B`.
+Uncompressed data length is varied ([possibly due to a bug](#layer-2-metal)) when exported by the
+game, but not by much. Position of EOF in an empty save is `332B`.
 
 The first 4 bytes are dimensions of the layers.
 They are `04 2C 04 1B`, representing the 44 (`2C`) columns of 27 (`1B`) elements.
@@ -52,15 +53,20 @@ The purpose of the `04` bytes is currently unknown.
 ## Layer 2: Metal
 
 This layer has a length of at least `528` *((27 + 3 + n) * 44)* so far making this the only layer
-observed to have a varying size.
+observed to have a varying length.
 
 Columns have at least 27 1-byte elements:
 
 - `02` Empty
 - `03` Metal
 
-The cause of varying column size (*n*) is due to extra 2-byte elements of `04 00` being embedded
-into a column. The cause of this is currently unknown.
+The cause of varying column size (*n*) is due to some elements of empty metal being written as
+`04 00` instead of `02`. The cause of this is currently unknown. It may be caused by a bug when
+exporting some designs in the game.
+
+Instances of `04 00` in this layer can be safely replaced with `02`. Doing so will make all
+uncompressed designs uniform in size, and re-encoding these changes will load perfectly fine in the
+game.
 
 ## Layer 3: Vertical gate positions
 
