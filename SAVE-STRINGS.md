@@ -1,10 +1,10 @@
 # KOHCTPYKTOP Design save string format
 
-All values formatted as `code` are hexidecimal. Data is little-endian.
+All values formatted as `code` are hexidecimal.
 
 # Format
 
-Save data is compressed with zlib (deflate) and encoded to base64.
+Save data is compressed with zlib (deflate) and encoded to base64. Data is little-endian.
 
 Uncompressed data length is varied ([possibly due to a bug](#layer-2-metal)) when exported by the
 game, but not by much. Position of EOF in an empty save is `332B`.
