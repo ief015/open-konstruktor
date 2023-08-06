@@ -40,6 +40,8 @@ Each column starts with the following bytes: `09 37 01`.
 
 ## Layer 1: Silicon
 
+This layer represents the position of silicon tiles.
+
 This layer has a length of `9CC` *((27 * 2 + 3) * 44)*.
 
 Columns have 27 2-byte elements, making this layer at most twice as large as all other layers:
@@ -51,6 +53,8 @@ Columns have 27 2-byte elements, making this layer at most twice as large as all
 The purpose of the `04` bytes is currently unknown.
 
 ## Layer 2: Metal
+
+This layer represents the position of metal tiles.
 
 This layer has a length of at least `528` *((27 + 3 + n) * 44)*, making this the only layer
 observed to have a varying length.
@@ -69,6 +73,8 @@ uncompressed designs uniform in size, and re-encoding these changes will load pe
 game.
 
 ## Layer 3: Vertical gate positions
+
+This layer represents the position of gates with vertical connections.
 
 This layer has a length of `528` *((27 + 3) * 44)*.
 
@@ -98,6 +104,8 @@ There is no distiction between NPN and PNP gates.
 
 ## Layer 4: Horizontal gate positions
 
+This layer represents the position of gates with horizontal connections.
+
 This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
@@ -107,12 +115,27 @@ Columns have 27 1-byte elements:
 
 Similar to [Layer 3](#layer-3-vertical-gate-positions),
 the element with the connected value represents the position of the gate itself.
+For example:
+
+```
+- - - - -
+- N - P -
+P X - X N
+- N - P -
+- - - - -
+
+N = N silicon
+P = P silicon
+X = "Gate" value 0x03
+```
 
 The direction of connection is determined in the [silicon horizontal connection layer](#layer-6-silicon-horizontal-connections).
 
 There is no distiction between NPN and PNP gates.
 
 ## Layer 5: Vias
+
+This layer represents the position of vias.
 
 This layer has a length of `528` *((27 + 3) * 44)*.
 
@@ -122,6 +145,8 @@ Columns have 27 1-byte elements:
 - `03` Via
 
 ## Layer 6: Silicon horizontal connections
+
+This layer represents the horizontal connections silicon tiles.
 
 This layer has a length of `528` *((27 + 3) * 44)*.
 
@@ -135,6 +160,8 @@ silicon tile to the right of it.
 
 ## Layer 7: Silicon vertical connections
 
+This layer represents the vertical connections silicon tiles.
+
 This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
@@ -147,6 +174,8 @@ silicon tile underneath it.
 
 ## Layer 8: Metal horizontal connections
 
+This layer represents the horizontal connections metal tiles.
+
 This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
@@ -158,6 +187,8 @@ The position of the connection in the layer represents a metal tile with a conne
 metal tile to the right of it.
 
 ## Layer 9: Metal vertical connections
+
+This layer represents the vertical connections metal tiles.
 
 This layer has a length of `528` *((27 + 3) * 44)*.
 
