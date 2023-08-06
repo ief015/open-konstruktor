@@ -52,7 +52,7 @@ The purpose of the `04` bytes is currently unknown.
 
 ## Layer 2: Metal
 
-This layer has a length of at least `528` *((27 + 3 + n) * 44)* so far making this the only layer
+This layer has a length of at least `528` *((27 + 3 + n) * 44)*, making this the only layer
 observed to have a varying length.
 
 Columns have at least 27 1-byte elements:
