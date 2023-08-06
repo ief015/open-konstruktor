@@ -27,10 +27,10 @@ This appears to be the tile field for silicon.
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
 determined:
 
-- Top left:     `0x000000EF`
-- Bottom left:  `0x00000123`
-- Top right:    `0x000008BA`
-- Bottom right: `0x000008EE`
+- `0x000000EF` Top left
+- `0x00000123` Bottom left
+- `0x000008BA` Top right
+- `0x000008EE` Bottom right
 
 This suggests the following:
 
@@ -40,9 +40,9 @@ though they are never changed. The central 36 columns are user-editable.
 
 Columns have 2 byte elements, making this layer at most twice as large as all other layers:
 
-- `04 00`: Empty
-- `04 01`: N Silicon
-- `04 02`: P Silicon
+- `04 00` Empty
+- `04 01` N Silicon
+- `04 02` P Silicon
 
 The purpose of the `04` bytes is currently unknown.
 
@@ -55,8 +55,8 @@ It may have something to do with level pin terminals, but this speculation.
 
 Columns have 1 byte elements:
 
-- `02`: Empty
-- `03`: Metal
+- `02` Empty
+- `03` Metal
 
 ## Layer 3-4: Gate layers? (speculation)
 
@@ -71,8 +71,8 @@ This layers has a length of `0x528` ((27 + 3) * 44).
 
 Columns have 1 byte elements:
 
-- `02`: Empty
-- `03`: Via
+- `02` Empty
+- `03` Via
 
 ## Layer 6-9: Tile connectivity layers? (speculation)
 
