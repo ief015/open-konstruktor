@@ -158,6 +158,8 @@ Columns have 27 1-byte elements:
 The position of the connection in the layer represents a silicon tile with a connection to the
 silicon tile to the right of it.
 
+A gate is formed if this tile or the adjacent tile is marked in the [horizontal gate layer](#layer-4-horizontal-gate-positions).
+
 ## Layer 7: Silicon vertical connections
 
 This layer represents the vertical connections silicon tiles.
@@ -171,6 +173,8 @@ Columns have 27 1-byte elements:
 
 The position of the connection in the layer represents a silicon tile with a connection to the
 silicon tile underneath it.
+
+A gate is formed if this tile or the adjacent tile is marked in the [vertical gate layer](#layer-3-vertical-gate-positions).
 
 ## Layer 8: Metal horizontal connections
 
