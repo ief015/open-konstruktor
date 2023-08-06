@@ -26,16 +26,16 @@ determined:
 
 This suggests the following:
 
-- Tiles are written in vertical strokes: from top-left, to bottom, then from left to right.
+- Tiles are written in vertical strokes: from top-left, to bottom-left, from left to right.
 - The four user-uneditable columns on either side of the field are serialized in the design data,
-even though they are never changed (the only exception being the [metal horizontal connection layer](#layer-8-metal-horizontal-connections),
-4th column).
+even though they are never changed (the only exception being the [metal horizontal connection layer](#layer-8-metal-horizontal-connections), 4th column).
 - The central 36 columns are user-editable.
 
 # Layers
 
-Layers are split up by markers as mentioned in [Format](#format). There appears to always be
-9 layers in total. These layers include 2D data (in vertical columns top-bottom from left-right format).
+There are 9 layers in total.
+Each layer starts with a layer marker `09 59 01` as mentioned in [Format](#format).
+These layers include 2D data (in vertical columns top-bottom from left-right format).
 Each column starts with the following bytes: `09 37 01`.
 
 ## Layer 1: Silicon
