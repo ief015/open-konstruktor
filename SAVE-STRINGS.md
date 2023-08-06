@@ -70,7 +70,7 @@ game.
 
 ## Layer 3: Vertical gate positions
 
-These layers has a length of `528` *((27 + 3) * 44)*.
+This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
 
@@ -98,7 +98,7 @@ There is no distiction between NPN and PNP gates.
 
 ## Layer 4: Horizontal gate positions
 
-These layers has a length of `528` *((27 + 3) * 44)*.
+This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
 
@@ -114,7 +114,7 @@ There is no distiction between NPN and PNP gates.
 
 ## Layer 5: Vias
 
-This layers has a length of `528` *((27 + 3) * 44)*.
+This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
 
@@ -123,7 +123,7 @@ Columns have 27 1-byte elements:
 
 ## Layer 6: Silicon horizontal connections
 
-This layers has a length of `528` *((27 + 3) * 44)*.
+This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
 
@@ -135,7 +135,7 @@ silicon tile to the right of it.
 
 ## Layer 7: Silicon vertical connections
 
-This layers has a length of `528` *((27 + 3) * 44)*.
+This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
 
@@ -147,7 +147,7 @@ silicon tile underneath it.
 
 ## Layer 8: Metal horizontal connections
 
-This layers has a length of `528` *((27 + 3) * 44)*.
+This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
 
@@ -159,7 +159,7 @@ metal tile to the right of it.
 
 ## Layer 9: Metal vertical connections
 
-This layers has a length of `528` *((27 + 3) * 44)*.
+This layer has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 27 1-byte elements:
 
