@@ -1,6 +1,6 @@
 # KOHCTPYKTOP design save data findings
 
-All values formatted as `code` are hexidecimal.
+All values formatted as `code` are hexidecimal. Data is little-endian.
 
 # Format
 
@@ -53,13 +53,14 @@ The purpose of the `04` bytes is currently unknown.
 
 This layer has a length of at least `528` *((27 + 3 + n) * 44)* so far making this the only layer
 observed to have a varying size.
-The cause of varying column size (*n*) is currently unknown.
-It may have something to do with level pin terminals, but this speculation.
 
-Columns have 27 1-byte elements:
+Columns have at least 27 1-byte elements:
 
 - `02` Empty
 - `03` Metal
+
+The cause of varying column size (*n*) is due to extra 2-byte elements of `04 00` being embedded
+into a column. The cause of this is currently unknown.
 
 ## Layer 3: Vertical gate positions
 
