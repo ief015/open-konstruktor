@@ -92,7 +92,7 @@ P = P silicon
 X = "Gate" value 0x03
 ```
 
-The direction of connection is determined in the silicon vertical connection layer.
+The direction of connection is determined in the [silicon vertical connection layer](#layer-7-silicon-vertical-connections).
 
 There is no distiction between NPN and PNP gates.
 
@@ -108,7 +108,7 @@ Columns have 27 1-byte elements:
 Similar to [Layer 3](#layer-3-vertical-gate-positions),
 the element with the connected value represents the position of the gate itself.
 
-The direction of connection is determined in the silicon horizontal connection layer.
+The direction of connection is determined in the [silicon horizontal connection layer](#layer-6-silicon-horizontal-connections).
 
 There is no distiction between NPN and PNP gates.
 
