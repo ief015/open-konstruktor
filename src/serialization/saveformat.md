@@ -27,10 +27,10 @@ This appears to be the tile field for silicon.
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
 determined:
 
-- top left:     `0x000000EF`
-- bottom left:  `0x00000123`
-- top right:    `0x000008BA`
-- bottom right: `0x000008EE`
+- Top left:     `0x000000EF`
+- Bottom left:  `0x00000123`
+- Top right:    `0x000008BA`
+- Bottom right: `0x000008EE`
 
 This suggests the following:
 
