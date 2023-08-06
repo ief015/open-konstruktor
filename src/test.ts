@@ -15,10 +15,12 @@ const run = async (name: string, test: UnitTest) => {
   }
 }
 
-(async () => {
+const main = async () => {
   for (const name in tests) {
     const test = tests[name];
     await run(name, test);
   }
   console.log(`>>> Success: ${success}, Failure: ${failure}`);
-})();
+}
+
+main();
