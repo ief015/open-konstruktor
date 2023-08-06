@@ -1,13 +1,5 @@
 # KOHCTPYKTOP design save data findings
 
-For decoding design save strings:
-
-```js
-function decode(filename, saveData) {
-  fs.writeFileSync(filename, zlib.inflateSync(Buffer.from(saveData, 'base64')).toString('binary'));
-}
-```
-
 # Format
 
 Save data is compressed with zlib and encoded to base64.
@@ -27,7 +19,7 @@ Sections are split up by markers as mentioned in [Format](#format). There appear
 9 sections in total. These sections include 2D data (in vertical columns top-bottom from left-right format).
 Each column starts with the following bytes: `09 37 01`.
 
-## Section 1: Field Data
+## Section 1: Silicon layer
 
 This section has a length of `0x9CC` ((27 * 2 + 3) * 44 ).
 This appears to be the tile field for silicon.
@@ -47,17 +39,48 @@ This suggests the following:
 though they are never changed.
 - rows x columns : 27 x 44
 
-Columns have 2 byte elements, making this section at most twice as large as all other sections.
+Columns have 2 byte elements, making this section at most twice as large as all other sections:
 
-## Section 2: ???
+`04 01`: N Silicon
+`04 02`: P Silicon
+`00 00`: Metal
+`00 00`: N Silicon + Metal
+`00 00`: N Silicon + Via
+`00 00`: N Silicon + Metal + Via
+`00 00`: P Silicon + Metal
+`00 00`: P Silicon + Via
+`00 00`: P Silicon + Metal + Via
 
-Columns have 1 byte elements, but can sometimes be 2 bytes, so far making this the only section
-observed to have a varying size.
 
-This section has a length of at least `0x528` ((27 * n + 3) * 44).
-Currently unknown what this sections is.
+## Section 2: Metal layer
 
-## Section 3-9: ???
+This section has a length of at least `0x528` ((27 + 3 + n) * 44) so far making this the only section
+observed to have a varying size. The cause of varying column size (*n*) is currently unknown.
+
+It may have something to do with level pin terminals, but this speculation.
+
+Columns have 1 byte elements:
+
+`02`: No metal
+`03`: Metal
+
+## Section 3-4: Gate layers (?)
+
+Columns have 1 byte elements.
+
+These sections has a length of `0x528` ((27 * 1 + 3) * 44).
+Currently unknown what these sections are.
+
+## Second 5: Via layer
+
+This sections has a length of `0x528` ((27 * 1 + 3) * 44).
+
+Columns have 1 byte elements:
+
+`02`: No via
+`03`: Via
+
+## Section 6-9: Tile connection layers (?)
 
 Columns have 1 byte elements.
 
