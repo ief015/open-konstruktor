@@ -1,9 +1,8 @@
 import fs from 'fs';
 import zlib from 'zlib';
+import { Base64String } from '.';
 
-export type Base64String = string;
-
-export default async function decode(saveData: Base64String, outFile?: string): Promise<Buffer> {
+export async function decode(saveData: Base64String, outFile?: string): Promise<Buffer> {
   const saveBuffer = Buffer.from(saveData.replace(/\s/g, ''), 'base64');
   const inflated = await new Promise<Buffer>((resove, reject) => {
     zlib.inflate(saveBuffer, (err, res) => (err ? reject(err) : resove(res)));
