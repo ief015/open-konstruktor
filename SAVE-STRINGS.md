@@ -1,4 +1,4 @@
-# KOHCTPYKTOP design save data findings
+# KOHCTPYKTOP Design save string format
 
 All values formatted as `code` are hexidecimal. Data is little-endian.
 
