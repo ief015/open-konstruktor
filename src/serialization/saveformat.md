@@ -15,17 +15,6 @@ The next 3 bytes appear to be layer markers found throughout the design data. Th
 
 See [Layers](#layers).
 
-# Layers
-
-Layers are split up by markers as mentioned in [Format](#format). There appears to always be
-9 layers in total. These layers include 2D data (in vertical columns top-bottom from left-right format).
-Each column starts with the following bytes: `09 37 01`.
-
-## Layer 1: Silicon
-
-This layer has a length of `9CC` *((27 * 2 + 3) * 44)*.
-This appears to be the tile field for silicon.
-
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
 determined:
 
@@ -39,6 +28,16 @@ This suggests the following:
 - Tiles are written in vertical strokes: from top-left, to bottom, then from left to right.
 - The four blocked off columns on either side of the field are serialized in the design data, even
 though they are never changed. The central 36 columns are user-editable.
+
+# Layers
+
+Layers are split up by markers as mentioned in [Format](#format). There appears to always be
+9 layers in total. These layers include 2D data (in vertical columns top-bottom from left-right format).
+Each column starts with the following bytes: `09 37 01`.
+
+## Layer 1: Silicon
+
+This layer has a length of `9CC` *((27 * 2 + 3) * 44)*.
 
 Columns have 2 byte elements, making this layer at most twice as large as all other layers:
 
