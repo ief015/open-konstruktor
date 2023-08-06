@@ -21,7 +21,7 @@ Each column starts with the following bytes: `09 37 01`.
 
 ## Layer 1: Silicon
 
-This layer has a length of `0x9CC` ((27 * 2 + 3) * 44 ).
+This layer has a length of `0x9CC` ((27 * 2 + 3) * 44).
 This appears to be the tile field for silicon.
 
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
@@ -36,14 +36,15 @@ This suggests the following:
 
 - Tiles are written in vertical strokes: from top-left, to bottom, then from left to right.
 - The four blocked off columns on either side of the field are serialized in the design data, even
-though they are never changed.
-- rows x columns : 27 x 44
+though they are never changed. The central 36 columns are user-editable.
 
 Columns have 2 byte elements, making this layer at most twice as large as all other layers:
 
 - `04 00`: Empty
 - `04 01`: N Silicon
 - `04 02`: P Silicon
+
+The purpose of the `04` bytes is currently unknown.
 
 ## Layer 2: Metal
 
@@ -59,14 +60,14 @@ Columns have 1 byte elements:
 
 ## Layer 3-4: Gate layers? (speculation)
 
-These layers has a length of `0x528` ((27 * 1 + 3) * 44).
+These layers has a length of `0x528` ((27 + 3) * 44).
 Currently unknown what these layers are.
 
 Columns have 1 byte elements.
 
 ## Layer 5: Vias
 
-This layers has a length of `0x528` ((27 * 1 + 3) * 44).
+This layers has a length of `0x528` ((27 + 3) * 44).
 
 Columns have 1 byte elements:
 
@@ -75,7 +76,7 @@ Columns have 1 byte elements:
 
 ## Layer 6-9: Tile connectivity layers? (speculation)
 
-These layers has a length of `0x528` ((27 * 1 + 3) * 44).
+These layers has a length of `0x528` ((27 + 3) * 44).
 Currently unknown what these layers are.
 
 Columns have 1 byte elements.
