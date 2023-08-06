@@ -78,7 +78,7 @@ Columns have 27 1-byte elements:
 - `03` Gate
 
 The element with the connected value represents the position of the gate itself.
-Consider the following gates:
+For example:
 
 ```
 - - P - -
