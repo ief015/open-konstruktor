@@ -20,7 +20,6 @@ Layers are split up by markers as mentioned in [Format](#format). There appears 
 Each column starts with the following bytes: `09 37 01`.
 
 ## Layer 1: Silicon
----
 
 This layer has a length of `0x9CC` ((27 * 2 + 3) * 44 ).
 This appears to be the tile field for silicon.
@@ -47,11 +46,10 @@ Columns have 2 byte elements, making this layer at most twice as large as all ot
 `04 02`: P Silicon
 
 ## Layer 2: Metal
----
 
 This layer has a length of at least `0x528` ((27 + 3 + n) * 44) so far making this the only layer
-observed to have a varying size. The cause of varying column size (*n*) is currently unknown.
-
+observed to have a varying size.
+The cause of varying column size (*n*) is currently unknown.
 It may have something to do with level pin terminals, but this speculation.
 
 Columns have 1 byte elements:
@@ -60,15 +58,13 @@ Columns have 1 byte elements:
 `03`: Metal
 
 ## Layer 3-4: Gate layers? (speculation)
----
 
 These layers has a length of `0x528` ((27 * 1 + 3) * 44).
 Currently unknown what these layers are.
 
 Columns have 1 byte elements.
 
-## Second 5: Via layer
----
+## Layer 5: Vias
 
 This layers has a length of `0x528` ((27 * 1 + 3) * 44).
 
@@ -78,7 +74,6 @@ Columns have 1 byte elements:
 `03`: Via
 
 ## Layer 6-9: Tile connectivity layers? (speculation)
----
 
 These layers has a length of `0x528` ((27 * 1 + 3) * 44).
 Currently unknown what these layers are.
