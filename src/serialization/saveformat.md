@@ -9,20 +9,20 @@ Uncompressed data length is varied, but not by much. Position of EOF in an empty
 The first 4 bytes are dimensions of the layers.
 They are `04 2C 04 1B`, representing the 44 (`2C`) columns of 27 (`1B`) elements.
 
-The next 3 bytes appear to be section markers found throughout the design data. They are `09 59 01`.
+The next 3 bytes appear to be layer markers found throughout the design data. They are `09 59 01`.
 
-See [Sections](#sections).
+See [Layers](#layers).
 
-# Sections
+# Layers
 
-Sections are split up by markers as mentioned in [Format](#format). There appears to always be
-9 sections in total. These sections include 2D data (in vertical columns top-bottom from left-right format).
+Layers are split up by markers as mentioned in [Format](#format). There appears to always be
+9 layers in total. These layers include 2D data (in vertical columns top-bottom from left-right format).
 Each column starts with the following bytes: `09 37 01`.
 
-## Section 1: Silicon layer
+## Layer 1: Silicon
 ---
 
-This section has a length of `0x9CC` ((27 * 2 + 3) * 44 ).
+This layer has a length of `0x9CC` ((27 * 2 + 3) * 44 ).
 This appears to be the tile field for silicon.
 
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
@@ -40,16 +40,16 @@ This suggests the following:
 though they are never changed.
 - rows x columns : 27 x 44
 
-Columns have 2 byte elements, making this section at most twice as large as all other sections:
+Columns have 2 byte elements, making this layer at most twice as large as all other layers:
 
 `04 00`: Empty
 `04 01`: N Silicon
 `04 02`: P Silicon
 
-## Section 2: Metal layer
+## Layer 2: Metal
 ---
 
-This section has a length of at least `0x528` ((27 + 3 + n) * 44) so far making this the only section
+This layer has a length of at least `0x528` ((27 + 3 + n) * 44) so far making this the only layer
 observed to have a varying size. The cause of varying column size (*n*) is currently unknown.
 
 It may have something to do with level pin terminals, but this speculation.
@@ -59,28 +59,28 @@ Columns have 1 byte elements:
 `02`: Empty
 `03`: Metal
 
-## Section 3-4: Gate layers? (speculation)
+## Layer 3-4: Gate layers? (speculation)
 ---
 
-These sections has a length of `0x528` ((27 * 1 + 3) * 44).
-Currently unknown what these sections are.
+These layers has a length of `0x528` ((27 * 1 + 3) * 44).
+Currently unknown what these layers are.
 
 Columns have 1 byte elements.
 
 ## Second 5: Via layer
 ---
 
-This sections has a length of `0x528` ((27 * 1 + 3) * 44).
+This layers has a length of `0x528` ((27 * 1 + 3) * 44).
 
 Columns have 1 byte elements:
 
 `02`: Empty
 `03`: Via
 
-## Section 6-9: Tile connectivity layers? (speculation)
+## Layer 6-9: Tile connectivity layers? (speculation)
 ---
 
-These sections has a length of `0x528` ((27 * 1 + 3) * 44).
-Currently unknown what these sections are.
+These layers has a length of `0x528` ((27 * 1 + 3) * 44).
+Currently unknown what these layers are.
 
 Columns have 1 byte elements.
