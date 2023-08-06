@@ -91,18 +91,29 @@ export default class DesignData {
     const design = new DesignData({ columns: cols, rows: rows });
     for (let i = 0; i < NUM_LAYERS; i++) {
       const layer = design.layers[i];
-      const layerMarker = data.readUInt8(offset++) + data.readUInt8(offset++) + data.readUInt8(offset++);
-      if (layerMarker != 0x09 + 0x59 + 0x01) {
+      const layerMarker = data.readUInt8(offset++) - data.readUInt8(offset++) - data.readUInt8(offset++);
+      if (layerMarker != 0x09 - 0x59 - 0x01) {
         throw new Error("Malformed design data (invalid layer marker)");
       }
       for (let col = 0; col < cols; col++) {
         const column = layer[col];
-        const columnMarker = data.readUInt8(offset++) + data.readUInt8(offset++) + data.readUInt8(offset++);
-        if (columnMarker != 0x09 + 0x37 + 0x01) {
-          throw new Error("Malformed design data (invalid layer marker)");
+        const columnMarker = data.readUInt8(offset++) - data.readUInt8(offset++) - data.readUInt8(offset++);
+        if (columnMarker != 0x09 - 0x37 - 0x01) {
+          throw new Error("Malformed design data (invalid column marker)");
         }
         for (let row = 0; row < rows; row++) {
-          column[row] = data.readUInt8(offset + (i == 0 ? 1 : 0));
+          const val = data.readUInt8(offset + (i == Layer.Silicon ? 1 : 0))
+          if (i == Layer.Metal) {
+            if (val == 0x04) {
+              // Compensate possible bug with metal layer during export from original game.
+              // Replace `04 00` with `02`
+              // See SAVE-STRINGS.md#layer-2-metal
+              column[row] = 0x02;
+              offset += 2;
+              continue;
+            }
+          }
+          column[row] = val;
           offset += (i == 0 ? 2 : 1);
         }
       }
@@ -131,7 +142,7 @@ export default class DesignData {
         buf[offset++] = 0x37;
         buf[offset++] = 0x01;
         for (const row of column) {
-          if (i == 0) {
+          if (i == Layer.Silicon) {
             buf[offset++] = 0x04;
           }
           buf[offset++] = row;
