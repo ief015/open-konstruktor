@@ -41,9 +41,9 @@ though they are never changed.
 
 Columns have 2 byte elements, making this layer at most twice as large as all other layers:
 
-`04 00`: Empty
-`04 01`: N Silicon
-`04 02`: P Silicon
+- `04 00`: Empty
+- `04 01`: N Silicon
+- `04 02`: P Silicon
 
 ## Layer 2: Metal
 
@@ -54,8 +54,8 @@ It may have something to do with level pin terminals, but this speculation.
 
 Columns have 1 byte elements:
 
-`02`: Empty
-`03`: Metal
+- `02`: Empty
+- `03`: Metal
 
 ## Layer 3-4: Gate layers? (speculation)
 
@@ -70,8 +70,8 @@ This layers has a length of `0x528` ((27 * 1 + 3) * 44).
 
 Columns have 1 byte elements:
 
-`02`: Empty
-`03`: Via
+- `02`: Empty
+- `03`: Via
 
 ## Layer 6-9: Tile connectivity layers? (speculation)
 
