@@ -7,9 +7,10 @@ const readline = readLine.createInterface({
 });
 
 async function main() {
-  const filePath = await readline.question('Enter output file path: ');
+  const filePath = await readline.question('Enter input file path: ');
   const encoded = await encodeFromFile(filePath);
   console.log(encoded);
+  readline.close();
 }
 
 main();
