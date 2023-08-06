@@ -26,8 +26,10 @@ determined:
 This suggests the following:
 
 - Tiles are written in vertical strokes: from top-left, to bottom, then from left to right.
-- The four blocked off columns on either side of the field are serialized in the design data, even
-though they are never changed. The central 36 columns are user-editable.
+- The four user-uneditable columns on either side of the field are serialized in the design data,
+even though they are never changed (the only exception being the metal horizontal connection layer,
+4th column).
+- The central 36 columns are user-editable.
 
 # Layers
 
@@ -39,7 +41,7 @@ Each column starts with the following bytes: `09 37 01`.
 
 This layer has a length of `9CC` *((27 * 2 + 3) * 44)*.
 
-Columns have 2 byte elements, making this layer at most twice as large as all other layers:
+Columns have 27 2-byte elements, making this layer at most twice as large as all other layers:
 
 - `04 00` Empty
 - `04 01` N Silicon
@@ -54,30 +56,108 @@ observed to have a varying size.
 The cause of varying column size (*n*) is currently unknown.
 It may have something to do with level pin terminals, but this speculation.
 
-Columns have 1 byte elements:
+Columns have 27 1-byte elements:
 
 - `02` Empty
 - `03` Metal
 
-## Layer 3-4: Gate layers? (speculation)
+## Layer 3: Vertical gate positions
 
 These layers has a length of `528` *((27 + 3) * 44)*.
-Currently unknown what these layers are.
 
-Columns have 1 byte elements.
+Columns have 27 1-byte elements:
+
+- `02` No gate
+- `03` Gate
+
+The element with the connected value represents the position of the gate itself.
+Consider the following gates:
+
+```
+- - P - -
+- N X N -
+- - - - -
+- P X P -
+- - N - -
+
+N = N silicon
+P = P silicon
+X = "Gate" value 0x03
+```
+
+The direction of connection is determined in the silicon vertical connection layer.
+
+There is no distiction between NPN and PNP gates.
+
+## Layer 4: Horizontal gate positions
+
+These layers has a length of `528` *((27 + 3) * 44)*.
+
+Columns have 27 1-byte elements:
+
+- `02` Empty
+- `03` Gate
+
+Similar to [Layer 3](#layer-3-vertical-gate-positions),
+the element with the connected value represents the position of the gate itself.
+
+The direction of connection is determined in the silicon horizontal connection layer.
+
+There is no distiction between NPN and PNP gates.
 
 ## Layer 5: Vias
 
 This layers has a length of `528` *((27 + 3) * 44)*.
 
-Columns have 1 byte elements:
+Columns have 27 1-byte elements:
 
 - `02` Empty
 - `03` Via
 
-## Layer 6-9: Tile connectivity layers? (speculation)
+## Layer 6: Silicon horizontal connections
 
-These layers has a length of `528` *((27 + 3) * 44)*.
-Currently unknown what these layers are.
+This layers has a length of `528` *((27 + 3) * 44)*.
 
-Columns have 1 byte elements.
+Columns have 27 1-byte elements:
+
+- `02` No connection
+- `03` Connected
+
+The position of the connection in the layer represents a silicon tile with a connection to the
+silicon tile to the right of it.
+
+## Layer 7: Silicon vertical connections
+
+This layers has a length of `528` *((27 + 3) * 44)*.
+
+Columns have 27 1-byte elements:
+
+- `02` No connection
+- `03` Connected
+
+The position of the connection in the layer represents a silicon tile with a connection to the
+silicon tile underneath it.
+
+## Layer 8: Metal horizontal connections
+
+This layers has a length of `528` *((27 + 3) * 44)*.
+
+Columns have 27 1-byte elements:
+
+- `02` No connection
+- `03` Connected
+
+The position of the connection in the layer represents a metal tile with a connection to the
+metal tile to the right of it.
+
+## Layer 9: Metal vertical connections
+
+This layers has a length of `528` *((27 + 3) * 44)*.
+
+Columns have 27 1-byte elements:
+
+- `02` No connection
+- `03` Connected
+
+The position of the connection in the layer represents a metal tile with a connection to the
+metal tile underneath it.
