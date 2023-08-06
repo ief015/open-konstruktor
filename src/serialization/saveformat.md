@@ -1,10 +1,12 @@
 # KOHCTPYKTOP design save data findings
 
+All values formatted as `code` are hexidecimal.
+
 # Format
 
 Save data is compressed with zlib and encoded to base64.
 
-Uncompressed data length is varied, but not by much. Position of EOF in an empty save is `0x332B`.
+Uncompressed data length is varied, but not by much. Position of EOF in an empty save is `332B`.
 
 The first 4 bytes are dimensions of the layers.
 They are `04 2C 04 1B`, representing the 44 (`2C`) columns of 27 (`1B`) elements.
@@ -27,10 +29,10 @@ This appears to be the tile field for silicon.
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
 determined:
 
-- `0x000000EF` Top left
-- `0x00000123` Bottom left
-- `0x000008BA` Top right
-- `0x000008EE` Bottom right
+- `000000EF` Top left
+- `00000123` Bottom left
+- `000008BA` Top right
+- `000008EE` Bottom right
 
 This suggests the following:
 
