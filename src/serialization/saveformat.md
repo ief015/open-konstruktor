@@ -23,7 +23,7 @@ Each column starts with the following bytes: `09 37 01`.
 
 ## Layer 1: Silicon
 
-This layer has a length of `0x9CC` ((27 * 2 + 3) * 44).
+This layer has a length of `9CC` *((27 * 2 + 3) * 44)*.
 This appears to be the tile field for silicon.
 
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
@@ -50,7 +50,7 @@ The purpose of the `04` bytes is currently unknown.
 
 ## Layer 2: Metal
 
-This layer has a length of at least `0x528` ((27 + 3 + n) * 44) so far making this the only layer
+This layer has a length of at least `528` *((27 + 3 + n) * 44)* so far making this the only layer
 observed to have a varying size.
 The cause of varying column size (*n*) is currently unknown.
 It may have something to do with level pin terminals, but this speculation.
@@ -62,14 +62,14 @@ Columns have 1 byte elements:
 
 ## Layer 3-4: Gate layers? (speculation)
 
-These layers has a length of `0x528` ((27 + 3) * 44).
+These layers has a length of `528` *((27 + 3) * 44)*.
 Currently unknown what these layers are.
 
 Columns have 1 byte elements.
 
 ## Layer 5: Vias
 
-This layers has a length of `0x528` ((27 + 3) * 44).
+This layers has a length of `528` *((27 + 3) * 44)*.
 
 Columns have 1 byte elements:
 
@@ -78,7 +78,7 @@ Columns have 1 byte elements:
 
 ## Layer 6-9: Tile connectivity layers? (speculation)
 
-These layers has a length of `0x528` ((27 + 3) * 44).
+These layers has a length of `528` *((27 + 3) * 44)*.
 Currently unknown what these layers are.
 
 Columns have 1 byte elements.
