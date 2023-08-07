@@ -6,14 +6,14 @@ import DesignData from '@/serialization/DesignData';
 export async function encode(saveData: Buffer|DesignData): Promise<Base64String> {
   const buf = saveData instanceof DesignData ? saveData.toBuffer() : saveData;
   const deflated = await new Promise<Buffer>((resove, reject) => {
-    zlib.deflate(buf, (err, res) => (err ? reject(err) : resove(res)));
+    zlib.deflate(buf, { level: 9 }, (err, res) => (err ? reject(err) : resove(res)));
   });
   return deflated.toString('base64');
 }
 
 export function encodeSync(saveData: Buffer|DesignData): Base64String {
   const buf = saveData instanceof DesignData ? saveData.toBuffer() : saveData;
-  const deflated = zlib.deflateSync(buf);
+  const deflated = zlib.deflateSync(buf, { level: 9 });
   return deflated.toString('base64');
 }
 
