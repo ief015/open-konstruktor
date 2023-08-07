@@ -84,6 +84,14 @@ export default class DesignData {
     return this.layers;
   }
 
+  public get(layer: Layer|number, col: number, row: number): number {
+    return this.layers[layer][col][row];
+  }
+
+  public set(layer: Layer|number, col: number, row: number, value: number): void {
+    this.layers[layer][col][row] = value;
+  }
+
   public static from(data: Buffer): DesignData {
     const cols = data.readUInt8(1);
     const rows = data.readUInt8(3);
