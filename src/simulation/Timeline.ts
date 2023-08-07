@@ -85,7 +85,32 @@ export default class Timeline {
     }
   }
 
-  public printHistoryScope(showLabels: boolean = true) {
+  public printHistoryScope(showLabels: boolean = true, padding: number = 2) {
+    const pins = this.network.getPins();
+    const maxLengthName = Math.max(...pins.map(p => p.label.length), 2);
+    const sPadding = ' '.repeat(padding);
+    if (showLabels) {
+      const pinNames = pins.map(p => p.label.padEnd(maxLengthName));
+      console.log([' '.repeat(maxLengthName), ...pinNames].join(sPadding));
+    }
+    for (const { frame, states } of this.history) {
+      let line = '';
+      line += `${frame}`.padStart(maxLengthName) + sPadding;
+      for (const pin of pins) {
+        const pinId = pins.indexOf(pin);
+        const state = states[pinId].state;
+        const lastState = this.history[frame - 1]?.states[pinId].state ?? false;
+        if (state !== lastState) {
+          line += (state ? '└┐' : '┌┘').padEnd(maxLengthName) + sPadding;
+        } else {
+          line += (state ? '┆│' : '│ ').padEnd(maxLengthName) + sPadding;
+        }
+      }
+      console.log(line);
+    }
+  }
+
+  public printHistoryScopeHorizontal(showLabels: boolean = true) {
     const pins = this.network.getPins();
     const maxLengthName = Math.max(...pins.map(p => p.label.length));
     for (const pin of pins) {
