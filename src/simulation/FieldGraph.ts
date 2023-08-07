@@ -5,6 +5,7 @@ import { decodeSync, encodeSync } from '@/serialization';
 import { Point } from '@/simulation/Point';
 import { traceLine } from '@/utils/traceLine';
 
+export type SiliconType = 'p' | 'n';
 export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
 
 const drawTypeToLayer = {
@@ -50,58 +51,81 @@ export default class FieldGraph {
     this.data = new DesignData();
   }
 
-  public draw(type: DrawType, startPoint: Point, ...points: Point[]) {
+  public placeMetal(startPoint: Point, lastPoint?: Point) {
     const { data } = this;
+    const [ x, y ] = startPoint;
+    data.set(Layer.Metal, x, y, MetalValue.Metal);
+    if (lastPoint) {
+      const [ lastX, lastY ] = lastPoint;
+      if (x !== lastX) {
+        const minX = Math.min(x, lastX);
+        data.set(Layer.MetalConnectionsH, minX, y, ConnectionValue.Connected);
+      }
+      if (y !== lastY) {
+        const minY = Math.min(y, lastY);
+        data.set(Layer.MetalConnectionsV, x, minY, ConnectionValue.Connected);
+      }
+    }
+  }
+
+  public placeSilicon(type: SiliconType, startPoint: Point, lastPoint?: Point) {
+    const { data } = this;
+    const [ x, y ] = startPoint;
+    const val = type === 'p' ? SiliconValue.PSilicon : SiliconValue.NSilicon;
+    data.set(Layer.Silicon, x, y, val);
+    if (lastPoint) {
+      const [ lastX, lastY ] = lastPoint;
+      if (x !== lastX) {
+        const minX = Math.min(x, lastX);
+        data.set(Layer.SiliconConnectionsH, minX, y, ConnectionValue.Connected);
+      }
+      if (y !== lastY) {
+        const minY = Math.min(y, lastY);
+        data.set(Layer.SiliconConnectionsV, x, minY, ConnectionValue.Connected);
+      }
+    }
+  }
+
+  public placeVia(point: Point) {
+    const { data } = this;
+    const [ x, y ] = point;
+    const onSilicon = data.get(Layer.Silicon, x, y) !== SiliconValue.None;
+    const onGateH = data.get(Layer.GatesH, x, y) !== GateValue.None;
+    const onGateV = data.get(Layer.GatesV, x, y) !== GateValue.None;
+    if (onSilicon && !onGateH && !onGateV) {
+      data.set(Layer.Vias, x, y, ViaValue.Via);
+    }
+  }
+
+  public draw(type: DrawType, startPoint: Point, ...points: Point[]) {
     const trace = traceLine(startPoint, ...points);
     const layer = drawTypeToLayer[type];
     if (layer === null) {
       throw new Error('Invalid draw type');
     }
+    if (type === 'metal') {
+      let lastPoint: Point|undefined = undefined;
+      for (const point of trace) {
+        this.placeMetal(point, lastPoint);
+        lastPoint = point;
+      }
+    } else if (type === 'p-silicon' || type === 'n-silicon') {
+      let lastPoint: Point|undefined = undefined;
+      for (const point of trace) {
+        this.placeSilicon(type === 'p-silicon' ? 'p' : 'n', point, lastPoint);
+        lastPoint = point;
+      }
+    } else {
+      for (const point of trace) {
+        this.placeVia(point);
+      }
+    }
+
+/*
     const val = drawTypeToValue[type];
     const valEmpty = drawTypeToValueNone[type];
     const layerConnH = drawTypeToConnectionLayerH[type];
     const layerConnV = drawTypeToConnectionLayerV[type];
-
-    // TODO: metal and silicon if-blocks are fairly similar. could be refactored.
-    if (type === 'metal') {
-
-      let lastPoint: Point|null = null;
-      for (const point of trace) {
-        const [ x, y ] = point;
-        data.set(layer, x, y, MetalValue.Metal);
-        if (lastPoint) {
-          const [ lastX, lastY ] = lastPoint;
-          if (x !== lastX) {
-            const minX = Math.min(x, lastX);
-            data.set(layerConnH!, minX, y, ConnectionValue.Connected);
-          }
-          if (y !== lastY) {
-            const minY = Math.min(y, lastY);
-            data.set(layerConnV!, x, minY, ConnectionValue.Connected);
-          }
-        }
-        lastPoint = point;
-      }
-
-    } else if (type === 'p-silicon' || type === 'n-silicon') {
-
-    
-
-    } else {
-
-      for (const point of trace) {
-        const [ x, y ] = point;
-        const onSilicon = data.get(Layer.Silicon, x, y) !== SiliconValue.None;
-        const onGateH = data.get(Layer.GatesH, x, y) !== GateValue.None;
-        const onGateV = data.get(Layer.GatesV, x, y) !== GateValue.None;
-        if (onSilicon && !onGateH && !onGateV) {
-          data.set(layer, x, y, ViaValue.Via);
-        }
-      }
-
-    }
-
-/*
     let lastPoint: Point|null = null;
     for (const point of trace) {
       const [ col, row ] = point;
