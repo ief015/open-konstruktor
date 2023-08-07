@@ -1,6 +1,5 @@
-import { assertPin } from "..";
-import { PathNode, GateNode, PinNode, Network, Timeline } from "../../simulation";
-import pnp from "./pnp";
+import { assertPin } from "@/unit-test";
+import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
 
 // Based on KO223 - DUAL FIXED FREQUENCY OSCILLATOR design:
 /*

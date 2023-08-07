@@ -1,5 +1,5 @@
-import { assertPin } from "..";
-import { PathNode, GateNode, PinNode, Network, Timeline } from "../../simulation";
+import { assertPin } from "@/unit-test";
+import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
 
 // Based on KD124 - 2-TO-4 LINE DECODER design:
 /*

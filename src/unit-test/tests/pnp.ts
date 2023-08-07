@@ -1,5 +1,5 @@
-import { assertEqual } from "..";
-import { PathNode, GateNode, PinNode, Network } from "../../simulation";
+import { assertEqual } from "@/unit-test";
+import { GateNode, PinNode, Network } from "@/simulation";
 
 export default async function() {
 

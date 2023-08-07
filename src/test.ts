@@ -1,5 +1,5 @@
-import { UnitTest } from "./unit-test";
-import tests from "./unit-test/tests";
+import { UnitTest } from "@/unit-test";
+import tests from "@/unit-test/tests";
 
 let success = 0;
 let failure = 0;

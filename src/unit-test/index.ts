@@ -1,4 +1,4 @@
-import { PinNode } from "../simulation";
+import { PinNode } from "@/simulation";
 
 export type UnitTest = () => Promise<void>;
 

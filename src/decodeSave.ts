@@ -1,4 +1,4 @@
-import { decode } from "./serialization";
+import { decode } from "@/serialization";
 import readLine from 'readline/promises';
 
 const readline = readLine.createInterface({

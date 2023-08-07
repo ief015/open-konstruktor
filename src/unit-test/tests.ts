@@ -1,4 +1,4 @@
-import { UnitTest } from ".";
+import { UnitTest } from "@/unit-test";
 
 import npn from "./tests/npn";
 import pnp from "./tests/pnp";

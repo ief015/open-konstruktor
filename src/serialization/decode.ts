@@ -1,6 +1,6 @@
 import fs from 'fs';
 import zlib from 'zlib';
-import { Base64String } from '.';
+import { Base64String } from '@/serialization';
 
 export async function decode(saveData: Base64String, outFile?: string): Promise<Buffer> {
   const saveBuffer = Buffer.from(saveData.replace(/\s/g, ''), 'base64');

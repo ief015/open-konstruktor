@@ -1,4 +1,4 @@
-import { PathNode, GateNode, PinNode, Network, Timeline } from "../simulation";
+import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
 
 const stateStr = (state: boolean) => state ? '1' : '·';
 

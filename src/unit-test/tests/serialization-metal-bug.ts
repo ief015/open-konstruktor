@@ -1,5 +1,5 @@
-import { assertEqual } from "..";
-import { DesignData, decode, encode } from "../../serialization";
+import { assertEqual } from "@/unit-test";
+import { DesignData, decode, encode } from "@/serialization";
 
 // This source design includes many instances of the 0x0400 metal bug from the original game.
 // This test verifies that the serialization compensates for it and spits out a clean design.
