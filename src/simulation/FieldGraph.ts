@@ -72,9 +72,17 @@ export default class FieldGraph {
     const { data } = this;
     const [ x, y ] = startPoint;
     const val = type === 'p' ? SiliconValue.PSilicon : SiliconValue.NSilicon;
+    const existing = data.get(Layer.Silicon, x, y);
+    if (existing !== SiliconValue.None && existing !== val) {
+      return;
+    }
     data.set(Layer.Silicon, x, y, val);
     if (lastPoint) {
       const [ lastX, lastY ] = lastPoint;
+      const lastValue = data.get(Layer.Silicon, lastX, lastY);
+      if (lastValue !== SiliconValue.None && lastValue !== val) {
+        return;
+      }
       if (x !== lastX) {
         const minX = Math.min(x, lastX);
         data.set(Layer.SiliconConnectionsH, minX, y, ConnectionValue.Connected);
@@ -84,6 +92,7 @@ export default class FieldGraph {
         data.set(Layer.SiliconConnectionsV, x, minY, ConnectionValue.Connected);
       }
     }
+    // TODO gates
   }
 
   public placeVia(point: Point) {
