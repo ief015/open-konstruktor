@@ -120,7 +120,8 @@ export default class DesignData {
   }
 
   public isKOHCTPYKTOPCompatible(): boolean {
-    return this.dimensions.columns == DEFAULT_NUM_COLUMNS
+    return this.layers.length == NUM_LAYERS
+      && this.dimensions.columns == DEFAULT_NUM_COLUMNS
       && this.dimensions.rows == DEFAULT_NUM_ROWS
       && this.pinCount === 12;
   }
@@ -163,10 +164,11 @@ export default class DesignData {
   }
 
   public toBuffer(): Buffer {
+    const numLayers = this.layers.length;
     const { columns, rows } = this.dimensions;
     const szDimensions = 4;
-    const szLayerMarkers = 3 * this.layers.length;
-    const szLayer = (this.layers.length - 1) * columns * (rows + 3);
+    const szLayerMarkers = 3 * numLayers;
+    const szLayer = (numLayers - 1) * columns * (rows + 3);
     const szLayerSilicon = columns * (rows * 2 + 3);
     const buf = Buffer.alloc(szDimensions + szLayerMarkers + szLayer + szLayerSilicon);
     let offset = 0;
@@ -174,7 +176,7 @@ export default class DesignData {
     buf[offset++] = columns;
     buf[offset++] = 0x04;
     buf[offset++] = rows;
-    for (let i = 0; i < this.layers.length; i++) {
+    for (let i = 0; i < numLayers; i++) {
       const layer = this.layers[i];
       buf[offset++] = 0x09;
       buf[offset++] = 0x59;
