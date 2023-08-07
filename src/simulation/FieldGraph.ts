@@ -73,9 +73,8 @@ export default class FieldGraph {
     const [ x, y ] = startPoint;
     const val = type === 'p' ? SiliconValue.PSilicon : SiliconValue.NSilicon;
     const existing = data.get(Layer.Silicon, x, y);
-    if (existing !== SiliconValue.None && existing !== val) {
-      // TODO gates (and remove vias if gate is placed on top of them)
-    } else {
+    const isGate = existing !== SiliconValue.None && existing !== val;
+    if (existing === SiliconValue.None) {
       data.set(Layer.Silicon, x, y, val);
     }
     if (lastPoint) {
@@ -85,10 +84,31 @@ export default class FieldGraph {
         return;
       }
       if (x !== lastX) {
+        if (isGate) {
+          // Horizontal gate
+          const prev = data.get(Layer.Silicon, x, y - 1);
+          const center = data.get(Layer.Silicon, x, y);
+          const next = data.get(Layer.Silicon, x, y + 1);
+          if (prev === center && center === next) {
+            data.set(Layer.GatesH, x, y, GateValue.Gate);
+          } else {
+            return;
+          }
+        }
         const minX = Math.min(x, lastX);
         data.set(Layer.SiliconConnectionsH, minX, y, ConnectionValue.Connected);
-      }
-      if (y !== lastY) {
+      } else if (y !== lastY) {
+        if (isGate) {
+          // Vertical gate
+          const prev = data.get(Layer.Silicon, x - 1, y);
+          const center = data.get(Layer.Silicon, x, y);
+          const next = data.get(Layer.Silicon, x + 1, y);
+          if (prev === center && center === next) {
+            data.set(Layer.GatesV, x, y, GateValue.Gate);
+          } else {
+            return;
+          }
+        }
         const minY = Math.min(y, lastY);
         data.set(Layer.SiliconConnectionsV, x, minY, ConnectionValue.Connected);
       }
@@ -129,56 +149,6 @@ export default class FieldGraph {
         this.placeVia(point);
       }
     }
-
-/*
-    const val = drawTypeToValue[type];
-    const valEmpty = drawTypeToValueNone[type];
-    const layerConnH = drawTypeToConnectionLayerH[type];
-    const layerConnV = drawTypeToConnectionLayerV[type];
-    let lastPoint: Point|null = null;
-    for (const point of trace) {
-      const [ col, row ] = point;
-      const curVal = data.get(layer, col, row);
-      if (curVal === valEmpty) {
-        data.set(layer, col, row, val);
-      }
-      do {
-        if (lastPoint) {
-          const [ lastCol, lastRow ] = lastPoint;
-          if (layerConnH && col !== lastCol) {
-            const minCol = Math.min(col, lastCol);
-            if (layer === Layer.Silicon && curVal !== valEmpty && curVal !== val) {
-              const prev = data.get(layerConnH, minCol - 1, row);
-              const center = data.get(layerConnH, minCol, row);
-              const next = data.get(layerConnH, minCol + 1, row);
-              if (prev === center && center === next) {
-                data.set(Layer.GatesH, lastCol, row, GateValue.Gate);
-              } else {
-                break;
-              }
-            }
-            data.set(layerConnH, minCol, row, ConnectionValue.Connected);
-          }
-          if (layerConnV && row !== lastRow) {
-            const minRow = Math.min(row, lastRow);
-            if (layer === Layer.Silicon && curVal !== valEmpty && curVal !== val) {
-              const prev = data.get(layerConnV, col, minRow - 1);
-              const center = data.get(layerConnV, col, minRow);
-              const next = data.get(layerConnV, col, minRow + 1);
-              if (prev === center && center === next) {
-                data.set(Layer.GatesV, col, lastRow, GateValue.Gate);
-              } else {
-                break;
-              }
-            }
-            data.set(layerConnV, col, minRow, ConnectionValue.Connected);
-          }
-        }
-      } while (false);
-      lastPoint = point;
-    }
-*/
-
   }
 
   public erase(types: DrawType|DrawType[], startPoint: Point, ...points: Point[]) {
