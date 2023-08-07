@@ -4,43 +4,17 @@ import DesignData, {
 import { decodeSync, encodeSync } from '@/serialization';
 import { Point } from '@/simulation/Point';
 import { traceLine } from '@/utils/traceLine';
+import { adjacentPoints } from '@/utils/adjacentPoints';
 
 export type SiliconType = 'p' | 'n';
 export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
+export type EraseType = 'metal' | 'silicon' | 'via';
 
 const drawTypeToLayer = {
   'metal': Layer.Metal,
   'p-silicon': Layer.Silicon,
   'n-silicon': Layer.Silicon,
   'via': Layer.Vias,
-};
-
-const drawTypeToConnectionLayerH = {
-  'metal': Layer.MetalConnectionsH,
-  'p-silicon': Layer.SiliconConnectionsH,
-  'n-silicon': Layer.SiliconConnectionsH,
-  'via': null,
-};
-
-const drawTypeToConnectionLayerV = {
-  'metal': Layer.MetalConnectionsV,
-  'p-silicon': Layer.SiliconConnectionsV,
-  'n-silicon': Layer.SiliconConnectionsV,
-  'via': null,
-};
-
-const drawTypeToValue = {
-  'metal': MetalValue.Metal,
-  'p-silicon': SiliconValue.PSilicon,
-  'n-silicon': SiliconValue.NSilicon,
-  'via': ViaValue.Via,
-};
-
-const drawTypeToValueNone = {
-  'metal': MetalValue.None,
-  'p-silicon': SiliconValue.None,
-  'n-silicon': SiliconValue.None,
-  'via': ViaValue.None,
 };
 
 export default class FieldGraph {
@@ -150,19 +124,56 @@ export default class FieldGraph {
     }
   }
 
-  public removeMetal(startPoint: Point) {
-
+  public removeMetal(point: Point) {
+    const { data } = this;
+    const [ x, y ] = point;
+    if (data.get(Layer.Metal, x, y) === MetalValue.None) {
+      return;
+    }
+    data.set(Layer.Metal, x, y, MetalValue.None);
+    data.set(Layer.MetalConnectionsH, x, y, ConnectionValue.None);
+    data.set(Layer.MetalConnectionsV, x, y, ConnectionValue.None);
+    data.set(Layer.MetalConnectionsH, x - 1, y, ConnectionValue.None);
+    data.set(Layer.MetalConnectionsV, x, y - 1, ConnectionValue.None);
   }
 
-  public removeSilicon(startPoint: Point) {
-
+  public removeSilicon(point: Point) {
+    const { data } = this;
+    const [ x, y ] = point;
+    if (data.get(Layer.Silicon, x, y) === SiliconValue.None) {
+      return;
+    }
+    data.set(Layer.Silicon, x, y, SiliconValue.None);
+    data.set(Layer.Vias, x, y, ViaValue.None);
+    data.set(Layer.SiliconConnectionsH, x, y, ConnectionValue.None);
+    data.set(Layer.SiliconConnectionsV, x, y, ConnectionValue.None);
+    data.set(Layer.SiliconConnectionsH, x - 1, y, ConnectionValue.None);
+    data.set(Layer.SiliconConnectionsV, x, y - 1, ConnectionValue.None);
+    data.set(Layer.GatesH, x, y, GateValue.None);
+    data.set(Layer.GatesV, x, y, GateValue.None);
+    // Remove adjacent gates
+    for (const adjacent of adjacentPoints(point)) {
+      const [ ax, ay ] = adjacent;
+      if (data.get(Layer.GatesH, ax, ay) === GateValue.Gate) {
+        data.set(Layer.GatesH, ax, ay, GateValue.None);
+        data.set(Layer.SiliconConnectionsH, ax, ay, ConnectionValue.None);
+        data.set(Layer.SiliconConnectionsH, ax - 1, ay, ConnectionValue.None);
+      }
+      if (data.get(Layer.GatesV, ax, ay) === GateValue.Gate) {
+        data.set(Layer.GatesV, ax, ay, GateValue.None);
+        data.set(Layer.SiliconConnectionsV, ax, ay, ConnectionValue.None);
+        data.set(Layer.SiliconConnectionsV, ax, ay - 1, ConnectionValue.None);
+      }
+    }
   }
 
   public removeVia(point: Point) {
-
+    const { data } = this;
+    const [ x, y ] = point;
+    data.set(Layer.Vias, x, y, ViaValue.None);
   }
 
-  public erase(types: DrawType|DrawType[], startPoint: Point, ...points: Point[]) {
+  public erase(types: EraseType|EraseType[], startPoint: Point, ...points: Point[]) {
     if (Array.isArray(types)) {
       types = Array.from(new Set(types));
     } else {
@@ -177,8 +188,7 @@ export default class FieldGraph {
           case 'metal':
             this.removeMetal(point);
             break;
-          case 'p-silicon':
-          case 'n-silicon':
+          case 'silicon':
             this.removeSilicon(point);
             break;
           case 'via':
