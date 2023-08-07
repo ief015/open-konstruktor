@@ -14,3 +14,12 @@ export async function decode(saveData: Base64String, outFile?: string): Promise<
   }
   return inflated;
 }
+
+export function decodeSync(saveData: Base64String, outFile?: string): Buffer {
+  const saveBuffer = Buffer.from(saveData.replace(/\s/g, ''), 'base64');
+  const inflated = zlib.inflateSync(saveBuffer);
+  if (outFile) {
+    fs.writeFileSync(outFile, inflated);
+  }
+  return inflated;
+}

@@ -11,6 +11,12 @@ export async function encode(saveData: Buffer|DesignData): Promise<Base64String>
   return deflated.toString('base64');
 }
 
+export function encodeSync(saveData: Buffer|DesignData): Base64String {
+  const buf = saveData instanceof DesignData ? saveData.toBuffer() : saveData;
+  const deflated = zlib.deflateSync(buf);
+  return deflated.toString('base64');
+}
+
 export async function encodeFromFile(filePath: string): Promise<Base64String> {
   const saveData = await new Promise<Buffer>((resolve, reject) => {
     fs.readFile(filePath, (err, res) => (err ? reject(err) : resolve(res)));
