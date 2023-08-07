@@ -132,23 +132,34 @@ export default class FieldGraph {
     if (layer === null) {
       throw new Error('Invalid draw type');
     }
-    if (type === 'metal') {
-      let lastPoint: Point|undefined = undefined;
-      for (const point of trace) {
-        this.placeMetal(point, lastPoint);
-        lastPoint = point;
+    let lastPoint: Point|undefined = undefined;
+    for (const point of trace) {
+      switch (type) {
+        case 'metal':
+          this.placeMetal(point, lastPoint);
+          break;
+        case 'p-silicon':
+        case 'n-silicon':
+          this.placeSilicon(type === 'p-silicon' ? 'p' : 'n', point, lastPoint);
+          break;
+        case 'via':
+          this.placeVia(point);
+          break;
       }
-    } else if (type === 'p-silicon' || type === 'n-silicon') {
-      let lastPoint: Point|undefined = undefined;
-      for (const point of trace) {
-        this.placeSilicon(type === 'p-silicon' ? 'p' : 'n', point, lastPoint);
-        lastPoint = point;
-      }
-    } else {
-      for (const point of trace) {
-        this.placeVia(point);
-      }
+      lastPoint = point;
     }
+  }
+
+  public removeMetal(startPoint: Point) {
+
+  }
+
+  public removeSilicon(startPoint: Point) {
+
+  }
+
+  public removeVia(point: Point) {
+
   }
 
   public erase(types: DrawType|DrawType[], startPoint: Point, ...points: Point[]) {
@@ -160,7 +171,22 @@ export default class FieldGraph {
     if (types.length === 0)
       return;
     const trace = traceLine(startPoint, ...points);
-    // TODO
+    for (const point of trace) {
+      for (const type of types) {
+        switch (type) {
+          case 'metal':
+            this.removeMetal(point);
+            break;
+          case 'p-silicon':
+          case 'n-silicon':
+            this.removeSilicon(point);
+            break;
+          case 'via':
+            this.removeVia(point);
+            break;
+        }
+      }
+    }
   }
 
   public toSaveString(): string {
