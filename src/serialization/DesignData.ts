@@ -51,6 +51,7 @@ const DEFAULT_NUM_ROWS = 27;
 export default class DesignData {
   private layers: DesignDataLayer[] = [];
   private dimensions: LayerDimensions;
+  private pinCount: number;
 
   constructor(
     dimensions: LayerDimensions = {
@@ -61,6 +62,7 @@ export default class DesignData {
   ) {
     const { columns, rows } = dimensions;
     this.dimensions = { columns, rows };
+    this.pinCount = numPinRows * 2;
     for (let i = 0; i < NUM_LAYERS; i++) {
       const layer: DesignDataLayer = [];
       for (let col = 0; col < columns; col++) {
@@ -115,6 +117,12 @@ export default class DesignData {
 
   public set(layer: Layer|number, col: number, row: number, value: number): void {
     this.layers[layer][col][row] = value;
+  }
+
+  public isKOHCTPYKTOPCompatible(): boolean {
+    return this.dimensions.columns == DEFAULT_NUM_COLUMNS
+      && this.dimensions.rows == DEFAULT_NUM_ROWS
+      && this.pinCount === 12;
   }
 
   public static from(data: Buffer): DesignData {
