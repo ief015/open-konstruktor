@@ -163,26 +163,29 @@ export default class DesignData {
   }
 
   public toBuffer(): Buffer {
+    const { columns, rows } = this.dimensions;
     const szDimensions = 4;
     const szLayerMarkers = 3 * this.layers.length;
-    const szLayer = (this.layers.length - 1) * this.dimensions.columns * (this.dimensions.rows + 3);
-    const szLayerSilicon = this.dimensions.columns * (this.dimensions.rows * 2 + 3);
+    const szLayer = (this.layers.length - 1) * columns * (rows + 3);
+    const szLayerSilicon = columns * (rows * 2 + 3);
     const buf = Buffer.alloc(szDimensions + szLayerMarkers + szLayer + szLayerSilicon);
     let offset = 0;
     buf[offset++] = 0x04;
-    buf[offset++] = this.dimensions.columns;
+    buf[offset++] = columns;
     buf[offset++] = 0x04;
-    buf[offset++] = this.dimensions.rows;
+    buf[offset++] = rows;
     for (let i = 0; i < this.layers.length; i++) {
       const layer = this.layers[i];
       buf[offset++] = 0x09;
       buf[offset++] = 0x59;
       buf[offset++] = 0x01;
-      for (const column of layer) {
+      for (let x = 0; x < columns; x++) {
+        const column = layer[x];
         buf[offset++] = 0x09;
         buf[offset++] = 0x37;
         buf[offset++] = 0x01;
-        for (const row of column) {
+        for (let y = 0; y < rows; y++) {
+          const row = column[y];
           if (i == Layer.Silicon) {
             buf[offset++] = 0x04;
           }
