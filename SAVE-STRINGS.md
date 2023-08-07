@@ -72,6 +72,10 @@ Instances of `04 00` in this layer can be safely replaced with `02`. Doing so wi
 uncompressed designs uniform in size, and re-encoding these changes will load perfectly fine in the
 game.
 
+The bytes the pins in-game would occupy are assigned `03`. The same is true with it's
+[connections](#layer-8-metal-horizontal-connections).
+
+
 ## Layer 3: Vertical gate positions
 
 This layer represents the position of gates with vertical connections.
@@ -190,6 +194,8 @@ Columns have 27 1-byte elements:
 The position of the connection in the layer represents a metal tile with a connection to the
 metal tile to the right of it.
 
+The bytes the pins in-game would occupy are assigned `03`.
+
 ## Layer 9: Metal vertical connections
 
 This layer represents the vertical connections metal tiles.
@@ -203,3 +209,5 @@ Columns have 27 1-byte elements:
 
 The position of the connection in the layer represents a metal tile with a connection to the
 metal tile underneath it.
+
+The bytes the pins in-game would occupy are assigned `03`.
