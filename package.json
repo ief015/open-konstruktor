@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "start": "npm run build && node build/index.js",
     "test": "npm run build && node build/test.js",
     "decoder": "npm run build && node build/decodeSave.js",
@@ -16,7 +16,10 @@
     "@types/node": "^20.4.1",
     "typescript": "^5.1.6"
   },
-  "engines" : {
-    "node" : ">=18.0.0"
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "tsc-alias": "^1.8.7"
   }
 }
