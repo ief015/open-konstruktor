@@ -1,5 +1,5 @@
-import { decode } from "@/serialization/decode";
-import { encode, encodeFromFile } from "@/serialization/encode";
+import { decode, decodeSync } from "@/serialization/decode";
+import { encode, encodeSync, encodeFromFile } from "@/serialization/encode";
 import DesignData, {
   DesignDataLayer,
   Layer,
@@ -15,8 +15,10 @@ import DesignData, {
 export type Base64String = string;
 export {
   encode,
+  encodeSync,
   encodeFromFile,
   decode,
+  decodeSync,
   DesignData,
   DesignDataLayer,
   Layer,
