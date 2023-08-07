@@ -65,4 +65,19 @@ export default class Timeline {
     }
   }
 
+  public printHistoryHorizontal(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true) {
+    const pins = this.network.getPins();
+    for (const pin of pins) {
+      let line = '';
+      if (showLabels) {
+        line += pin.label + '\t';
+      }
+      for (const { frame, states } of this.history) {
+        const state = states[pins.indexOf(pin)].state;
+        line += state ? highSymbol : lowSymbol;
+      }
+      console.log(line);
+    }
+  }
+
 }
