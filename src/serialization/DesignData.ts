@@ -56,19 +56,44 @@ export default class DesignData {
     dimensions: LayerDimensions = {
       columns: DEFAULT_NUM_COLUMNS,
       rows: DEFAULT_NUM_ROWS,
-    }
+    },
+    numPinRows: number = 6,
   ) {
-    this.dimensions = dimensions;
+    const { columns, rows } = dimensions;
+    this.dimensions = { columns, rows };
     for (let i = 0; i < NUM_LAYERS; i++) {
       const layer: DesignDataLayer = [];
-      for (let col = 0; col < dimensions.columns; col++) {
+      for (let col = 0; col < columns; col++) {
         const column: LayerColumn = [];
-        for (let row = 0; row < dimensions.rows; row++) {
+        for (let row = 0; row < rows; row++) {
           column.push(i == 0 ? 0x00 : 0x02);
         }
         layer.push(column);
       }
       this.layers.push(layer);
+    }
+    // Set the default values for the pins
+    const metalLayer = this.layers[Layer.Metal];
+    const metalConnectionsHLayer = this.layers[Layer.MetalConnectionsH];
+    const metalConnectionsVLayer = this.layers[Layer.MetalConnectionsV];
+    for (let pin = 0; pin < numPinRows; pin++) {
+      const row = (pin * 3) + (pin * 1) + 2;
+      for (let x = 0; x < 3; x++) {
+        for (let y = 0; y < 3; y++) {
+          const left = 1;
+          const right = columns - 4;
+          metalLayer[left+x][row+y] = MetalValue.Metal;
+          metalLayer[right+x][row+y] = MetalValue.Metal;
+          if (x < 2) {
+            metalConnectionsHLayer[left+x][row+y] = ConnectionValue.Connected;
+            metalConnectionsHLayer[right+x][row+y] = ConnectionValue.Connected;
+          }
+          if (y < 2) {
+            metalConnectionsVLayer[left+x][row+y] = ConnectionValue.Connected;
+            metalConnectionsVLayer[right+x][row+y] = ConnectionValue.Connected;
+          }
+        }
+      }
     }
   }
 
