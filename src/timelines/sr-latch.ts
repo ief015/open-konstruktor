@@ -1,7 +1,5 @@
 import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
 
-const stateStr = (state: boolean) => state ? '1' : '·';
-
 export default function play() {
 
   const pinVCC = new PinNode('VCC', true);

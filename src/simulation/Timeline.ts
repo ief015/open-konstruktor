@@ -1,5 +1,5 @@
-import Network from "./Network";
-import PinNode from "./PinNode";
+import Network from "@/simulation/Network";
+import PinNode from "@/simulation/PinNode";
 
 export type PinState = {
   pin: PinNode;

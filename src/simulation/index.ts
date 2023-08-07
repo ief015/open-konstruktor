@@ -1,12 +1,11 @@
-import Network, { networkFromGraph } from "./Network";
-import PathNode from "./PathNode";
-import PinNode from "./PinNode";
-import GateNode from "./GateNode";
-import Timeline from "./Timeline";
+import Network from "@/simulation/Network";
+import PathNode from "@/simulation/PathNode";
+import PinNode from "@/simulation/PinNode";
+import GateNode from "@/simulation/GateNode";
+import Timeline from "@/simulation/Timeline";
 
 export {
   Network,
-  networkFromGraph,
   PathNode,
   PinNode,
   GateNode,

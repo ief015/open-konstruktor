@@ -1,5 +1,5 @@
-import { decode } from "./decode";
-import { encode, encodeFromFile } from "./encode";
+import { decode } from "@/serialization/decode";
+import { encode, encodeFromFile } from "@/serialization/encode";
 import DesignData, {
   DesignDataLayer,
   Layer,

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import zlib from 'zlib';
 import { Base64String } from '@/serialization';
-import DesignData from './DesignData';
+import DesignData from '@/serialization/DesignData';
 
 export async function encode(saveData: Buffer|DesignData): Promise<Base64String> {
   const buf = saveData instanceof DesignData ? saveData.toBuffer() : saveData;

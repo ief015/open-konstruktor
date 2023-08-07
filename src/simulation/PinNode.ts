@@ -1,4 +1,4 @@
-import PathNode from "./PathNode";
+import PathNode from "@/simulation/PathNode";
 
 export default class PinNode extends PathNode {
   public active: boolean;

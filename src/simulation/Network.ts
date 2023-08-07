@@ -1,11 +1,5 @@
-import { GateNode, PathNode, PinNode } from ".";
-
-export function networkFromGraph(graph: any) {
-  const paths: PathNode[] = [];
-  const gates: GateNode[] = [];
-  // TODO: Build the network from the graph
-  return new Network([ ...paths, ...gates ]);
-}
+import FieldGraph from "@/simulation/FieldGraph";
+import { GateNode, PathNode, PinNode } from "@/simulation";
 
 export default class Network {
   private paths: PathNode[] = [];
@@ -76,6 +70,13 @@ export default class Network {
     for (const gate of this.gates) {
       gate.active = gate.switchingPaths.some(p => p.state);
     }
+  }
+
+  public static from(graph: FieldGraph): Network {
+    const paths: PathNode[] = [];
+    const gates: GateNode[] = [];
+    // TODO: Build the network from the graph
+    return new Network([ ...paths, ...gates ]);
   }
 
 }
