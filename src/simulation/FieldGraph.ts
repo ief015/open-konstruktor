@@ -1,6 +1,7 @@
-import DesignData, { ConnectionValue, GateValue, Layer, MetalValue, SiliconValue, ViaValue } from '@/serialization/DesignData';
-import { decodeSync } from '@/serialization/decode';
-import { encodeSync } from '@/serialization/encode';
+import DesignData, {
+  ConnectionValue, GateValue, Layer, MetalValue, SiliconValue, ViaValue
+} from '@/serialization/DesignData';
+import { decodeSync, encodeSync } from '@/serialization';
 import { Point } from '@/simulation/Point';
 import { traceLine } from '@/utils/traceLine';
 
@@ -50,51 +51,101 @@ export default class FieldGraph {
   }
 
   public draw(type: DrawType, startPoint: Point, ...points: Point[]) {
+    const { data } = this;
     const trace = traceLine(startPoint, ...points);
     const layer = drawTypeToLayer[type];
     if (layer === null) {
       throw new Error('Invalid draw type');
     }
     const val = drawTypeToValue[type];
-    const nonVal = drawTypeToValueNone[type];
-    const connectionLayerH = drawTypeToConnectionLayerH[type];
-    const connectionLayerV = drawTypeToConnectionLayerV[type];
+    const valEmpty = drawTypeToValueNone[type];
+    const layerConnH = drawTypeToConnectionLayerH[type];
+    const layerConnV = drawTypeToConnectionLayerV[type];
+
+    // TODO: metal and silicon if-blocks are fairly similar. could be refactored.
+    if (type === 'metal') {
+
+      let lastPoint: Point|null = null;
+      for (const point of trace) {
+        const [ x, y ] = point;
+        data.set(layer, x, y, MetalValue.Metal);
+        if (lastPoint) {
+          const [ lastX, lastY ] = lastPoint;
+          if (x !== lastX) {
+            const minX = Math.min(x, lastX);
+            data.set(layerConnH!, minX, y, ConnectionValue.Connected);
+          }
+          if (y !== lastY) {
+            const minY = Math.min(y, lastY);
+            data.set(layerConnV!, x, minY, ConnectionValue.Connected);
+          }
+        }
+        lastPoint = point;
+      }
+
+    } else if (type === 'p-silicon' || type === 'n-silicon') {
+
+    
+
+    } else {
+
+      for (const point of trace) {
+        const [ x, y ] = point;
+        const onSilicon = data.get(Layer.Silicon, x, y) !== SiliconValue.None;
+        const onGateH = data.get(Layer.GatesH, x, y) !== GateValue.None;
+        const onGateV = data.get(Layer.GatesV, x, y) !== GateValue.None;
+        if (onSilicon && !onGateH && !onGateV) {
+          data.set(layer, x, y, ViaValue.Via);
+        }
+      }
+
+    }
+
+/*
     let lastPoint: Point|null = null;
     for (const point of trace) {
       const [ col, row ] = point;
-      const curVal = this.data.get(layer, col, row);
-      if (curVal === nonVal) {
-        this.data.set(layer, col, row, val);
+      const curVal = data.get(layer, col, row);
+      if (curVal === valEmpty) {
+        data.set(layer, col, row, val);
       }
-      if (lastPoint) {
-        const [ lastCol, lastRow ] = lastPoint;
-        if (connectionLayerH && col !== lastCol) {
-          const minCol = Math.min(col, lastCol);
-          if (layer === Layer.Silicon && curVal !== nonVal && curVal !== val) {
-            const prev = this.data.get(connectionLayerH, minCol - 1, row);
-            const center = this.data.get(connectionLayerH, minCol, row);
-            const next = this.data.get(connectionLayerH, minCol + 1, row);
-            if (prev === center && center === next) {
-              this.data.set(Layer.GatesH, lastCol, row, GateValue.Gate);
+      do {
+        if (lastPoint) {
+          const [ lastCol, lastRow ] = lastPoint;
+          if (layerConnH && col !== lastCol) {
+            const minCol = Math.min(col, lastCol);
+            if (layer === Layer.Silicon && curVal !== valEmpty && curVal !== val) {
+              const prev = data.get(layerConnH, minCol - 1, row);
+              const center = data.get(layerConnH, minCol, row);
+              const next = data.get(layerConnH, minCol + 1, row);
+              if (prev === center && center === next) {
+                data.set(Layer.GatesH, lastCol, row, GateValue.Gate);
+              } else {
+                break;
+              }
             }
+            data.set(layerConnH, minCol, row, ConnectionValue.Connected);
           }
-          this.data.set(connectionLayerH, minCol, row, ConnectionValue.Connected);
-        }
-        if (connectionLayerV && row !== lastRow) {
-          const minRow = Math.min(row, lastRow);
-          if (layer === Layer.Silicon && curVal !== nonVal && curVal !== val) {
-            const prev = this.data.get(connectionLayerV, col, minRow - 1);
-            const center = this.data.get(connectionLayerV, col, minRow);
-            const next = this.data.get(connectionLayerV, col, minRow + 1);
-            if (prev === center && center === next) {
-              this.data.set(Layer.GatesH, col, lastRow, GateValue.Gate);
+          if (layerConnV && row !== lastRow) {
+            const minRow = Math.min(row, lastRow);
+            if (layer === Layer.Silicon && curVal !== valEmpty && curVal !== val) {
+              const prev = data.get(layerConnV, col, minRow - 1);
+              const center = data.get(layerConnV, col, minRow);
+              const next = data.get(layerConnV, col, minRow + 1);
+              if (prev === center && center === next) {
+                data.set(Layer.GatesV, col, lastRow, GateValue.Gate);
+              } else {
+                break;
+              }
             }
+            data.set(layerConnV, col, minRow, ConnectionValue.Connected);
           }
-          this.data.set(connectionLayerV, col, minRow, ConnectionValue.Connected);
         }
-      }
+      } while (false);
       lastPoint = point;
     }
+*/
+
   }
 
   public erase(types: DrawType|DrawType[], startPoint: Point, ...points: Point[]) {
