@@ -55,28 +55,66 @@ export default class Timeline {
 
   public printHistory(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true) {
     const pins = this.network.getPins();
+    const maxLengthName = Math.max(...pins.map(p => p.label.length), String(this.history.length).length);
     if (showLabels) {
-      const pinNames = pins.map(p => p.label);
-      console.log('\t' + pinNames.join('\t'));
+      const pinNames = pins.map(p => p.label.padStart(maxLengthName));
+      console.log([' '.repeat(maxLengthName), ...pinNames].join(' '));
     }
     for (const { frame, states } of this.history) {
       const pinStates = states.map(s => s.state);
-      console.log(`${frame}\t` + pinStates.map(s => s ? highSymbol : lowSymbol).join('\t'));
+      const sFrame = `${frame}`.padStart(maxLengthName);
+      const sLine = pinStates.map(s => (s ? highSymbol : lowSymbol).padStart(maxLengthName)).join(' ');
+      console.log(`${sFrame} ${sLine}`);
     }
   }
 
   public printHistoryHorizontal(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true) {
     const pins = this.network.getPins();
+    const maxLengthName = Math.max(...pins.map(p => p.label.length));
     for (const pin of pins) {
+      const pinId = pins.indexOf(pin);
       let line = '';
       if (showLabels) {
-        line += pin.label + '\t';
+        line += pin.label.padStart(maxLengthName) + ' ';
       }
       for (const { frame, states } of this.history) {
-        const state = states[pins.indexOf(pin)].state;
+        const state = states[pinId].state;
         line += state ? highSymbol : lowSymbol;
       }
       console.log(line);
+    }
+  }
+
+  public printHistoryScope(showLabels: boolean = true) {
+    const pins = this.network.getPins();
+    const maxLengthName = Math.max(...pins.map(p => p.label.length));
+    for (const pin of pins) {
+      const pinId = pins.indexOf(pin);
+      for (const isTop of [ true, false ]) {
+        let line = '';
+        if (showLabels) {
+          if (!isTop) {
+            line += pin.label.padStart(maxLengthName) + ' ';
+          } else {
+            line += ' '.repeat(maxLengthName) + ' ';
+          }
+        }
+        let lastState = false;
+        for (const { frame, states } of this.history) {
+          const state = states[pinId].state;
+          if (state !== lastState) {
+            line += isTop ? (state ? '┌' : '┐') : (state ? '┘' : '└');
+            lastState = state;
+          } else {
+            if ((state && isTop) || (!state && !isTop)) {
+              line += '─';
+            } else {
+              line += ' ';
+            }
+          }
+        }
+        console.log(line);
+      }
     }
   }
 
