@@ -260,7 +260,7 @@ export default class FieldGraph {
           throw new Error('Metal connection to none');
         }
         connections.push({
-          direction: 'h',
+          direction: dir,
           point: [ ax, ay ],
         });
       }
@@ -295,7 +295,7 @@ export default class FieldGraph {
           throw new Error('Silicon connection to none');
         }
         connections.push({
-          direction: 'h',
+          direction: dir,
           type: val === SiliconValue.PSilicon ? 'p' : 'n',
           point: [ ax, ay ],
         });
