@@ -23,11 +23,11 @@ export interface QuerySiliconResult {
 
 export interface QueryResult {
   metal: boolean;
-  metalConnections: Point[];
+  metalConnections: QueryMetalResult[];
   silicon: SiliconType | false;
   siliconConnections: QuerySiliconResult[];
   via: boolean;
-  gate: boolean;
+  gate: Direction | false;
 }
 
 const drawTypeToLayer = {
@@ -313,8 +313,9 @@ export default class FieldGraph {
       siliconRaw === SiliconValue.NSilicon ? 'n' :
       false;
     const via = data.get(Layer.Vias, x, y) === ViaValue.Via;
-    const gate = data.get(Layer.GatesH, x, y) === GateValue.Gate ||
-      data.get(Layer.GatesV, x, y) === GateValue.Gate;
+    const gate = data.get(Layer.GatesH, x, y) === GateValue.Gate ? 'h' :
+      data.get(Layer.GatesV, x, y) === GateValue.Gate ? 'v' :
+      false;
     const metalConnections = this.queryMetalConnections(point);
     const siliconConnections = this.querySiliconConnections(point);
     return {
