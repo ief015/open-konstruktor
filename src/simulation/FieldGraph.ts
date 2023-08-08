@@ -237,45 +237,33 @@ export default class FieldGraph {
     const { data } = this;
     const [ x, y ] = point;
     const connections: QueryMetalResult[] = [];
-    if (data.get(Layer.MetalConnectionsH, x, y) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Metal, x + 1, y);
-      if (val === MetalValue.None) {
-        throw new Error('Metal connection to none');
+    const offsets: {
+      dir: Direction,
+      cx: number,
+      cy: number,
+      dx: number,
+      dy: number,
+    }[] = [
+      { cx: 0,  cy: 0,  dx: 1,  dy: 0,  dir: 'h' },
+      { cx: 0,  cy: 0,  dx: 0,  dy: 1,  dir: 'v' },
+      { cx: -1, cy: 0,  dx: -1, dy: 0,  dir: 'h' },
+      { cx: 0,  cy: -1, dx: 0,  dy: -1, dir: 'v' },
+    ];
+    for (const offset of offsets) {
+      const { cx, cy, dx, dy, dir } = offset;
+      const layer = dir === 'h' ? Layer.MetalConnectionsH : Layer.MetalConnectionsV;
+      if (data.get(layer, x + cx, y + cy) === ConnectionValue.Connected) {
+        const ax = x + dx;
+        const ay = y + dy;
+        const val = data.get(Layer.Metal, ax, ay);
+        if (val === MetalValue.None) {
+          throw new Error('Metal connection to none');
+        }
+        connections.push({
+          direction: 'h',
+          point: [ ax, ay ],
+        });
       }
-      connections.push({
-        direction: 'h',
-        point: [ x, y ],
-      });
-    }
-    if (data.get(Layer.MetalConnectionsV, x, y) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Metal, x, y + 1);
-      if (val === MetalValue.None) {
-        throw new Error('Metal connection to none');
-      }
-      connections.push({
-        direction: 'v',
-        point: [ x, y ],
-      });
-    }
-    if (data.get(Layer.MetalConnectionsH, x - 1, y) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Metal, x - 1, y);
-      if (val === MetalValue.None) {
-        throw new Error('Metal connection to none');
-      }
-      connections.push({
-        direction: 'h',
-        point: [ x - 1, y ],
-      });
-    }
-    if (data.get(Layer.MetalConnectionsV, x, y - 1) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Metal, x, y - 1);
-      if (val === MetalValue.None) {
-        throw new Error('Metal connection to none');
-      }
-      connections.push({
-        direction: 'v',
-        point: [ x, y - 1 ],
-      });
     }
     return connections;
   }
@@ -284,49 +272,34 @@ export default class FieldGraph {
     const { data } = this;
     const [ x, y ] = point;
     const connections: QuerySiliconResult[] = [];
-    if (data.get(Layer.SiliconConnectionsH, x, y) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Silicon, x + 1, y);
-      if (val === SiliconValue.None) {
-        throw new Error('Silicon connection to none');
+    const offsets: {
+      dir: Direction,
+      cx: number,
+      cy: number,
+      dx: number,
+      dy: number,
+    }[] = [
+      { cx: 0,  cy: 0,  dx: 1,  dy: 0,  dir: 'h' },
+      { cx: 0,  cy: 0,  dx: 0,  dy: 1,  dir: 'v' },
+      { cx: -1, cy: 0,  dx: -1, dy: 0,  dir: 'h' },
+      { cx: 0,  cy: -1, dx: 0,  dy: -1, dir: 'v' },
+    ];
+    for (const offset of offsets) {
+      const { cx, cy, dx, dy, dir } = offset;
+      const layer = dir === 'h' ? Layer.SiliconConnectionsH : Layer.SiliconConnectionsV;
+      if (data.get(layer, x + cx, y + cy) === ConnectionValue.Connected) {
+        const ax = x + dx;
+        const ay = y + dy;
+        const val = data.get(Layer.Silicon, ax, ay);
+        if (val === SiliconValue.None) {
+          throw new Error('Silicon connection to none');
+        }
+        connections.push({
+          direction: 'h',
+          type: val === SiliconValue.PSilicon ? 'p' : 'n',
+          point: [ ax, ay ],
+        });
       }
-      connections.push({
-        direction: 'h',
-        type: val === SiliconValue.PSilicon ? 'p' : 'n',
-        point: [ x, y ],
-      });
-    }
-    if (data.get(Layer.SiliconConnectionsV, x, y) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Silicon, x, y + 1);
-      if (val === SiliconValue.None) {
-        throw new Error('Silicon connection to none');
-      }
-      connections.push({
-        direction: 'v',
-        type: val === SiliconValue.PSilicon ? 'p' : 'n',
-        point: [ x, y ],
-      });
-    }
-    if (data.get(Layer.SiliconConnectionsH, x - 1, y) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Silicon, x - 1, y);
-      if (val === SiliconValue.None) {
-        throw new Error('Silicon connection to none');
-      }
-      connections.push({
-        direction: 'h',
-        type: val === SiliconValue.PSilicon ? 'p' : 'n',
-        point: [ x - 1, y ],
-      });
-    }
-    if (data.get(Layer.SiliconConnectionsV, x, y - 1) === ConnectionValue.Connected) {
-      const val = data.get(Layer.Silicon, x, y - 1);
-      if (val === SiliconValue.None) {
-        throw new Error('Silicon connection to none');
-      }
-      connections.push({
-        direction: 'v',
-        type: val === SiliconValue.PSilicon ? 'p' : 'n',
-        point: [ x, y - 1 ],
-      });
     }
     return connections;
   }
