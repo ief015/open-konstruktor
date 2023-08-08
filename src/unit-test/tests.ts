@@ -8,6 +8,7 @@ import andOrGate from "@/unit-test/tests/4-input-and-or-gate";
 import dualFixedFreqOsc from "@/unit-test/tests/dual-fixed-freq-oscillator";
 import serialization from "@/unit-test/tests/serialization";
 import serializationMetalBug from "@/unit-test/tests/serialization-metal-bug";
+import fieldGraphDrawing from "@/unit-test/tests/field-graph-drawing";
 
 const tests: Record<string, UnitTest> = {
   npn,
@@ -18,6 +19,7 @@ const tests: Record<string, UnitTest> = {
   dualFixedFreqOsc,
   serialization,
   serializationMetalBug,
+  fieldGraphDrawing,
 };
 
 export default tests;
