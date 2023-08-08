@@ -9,6 +9,26 @@ import { adjacentPoints } from '@/utils/adjacentPoints';
 export type SiliconType = 'p' | 'n';
 export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
 export type EraseType = 'metal' | 'silicon' | 'via';
+export type Direction = 'h' | 'v';
+
+export interface QueryMetalResult {
+  point: Point;
+  direction: Direction;
+}
+export interface QuerySiliconResult {
+  point: Point;
+  type: SiliconType;
+  direction: Direction;
+}
+
+export interface QueryResult {
+  metal: boolean;
+  metalConnections: Point[];
+  silicon: SiliconType | false;
+  siliconConnections: QuerySiliconResult[];
+  via: boolean;
+  gate: boolean;
+}
 
 const drawTypeToLayer = {
   'metal': Layer.Metal,
@@ -211,6 +231,54 @@ export default class FieldGraph {
         }
       }
     }
+  }
+
+  public queryMetalConnections(point: Point): Point[] {
+
+  }
+
+  public querySiliconConnections(point: Point): QuerySiliconResult[] {
+    const { data } = this;
+    const [ x, y ] = point;
+    const connections: QuerySiliconResult[] = [];
+    if (data.get(Layer.SiliconConnectionsH, x, y) === ConnectionValue.Connected) {
+      connections.push({
+        direction: 'h',
+        type: data.get(Layer.Silicon, x, y) === SiliconValue.PSilicon ? 'p' : 'n',
+        gate: data.get(Layer.GatesH, x, y) === GateValue.Gate,
+      });
+    }
+    if (data.get(Layer.SiliconConnectionsV, x, y) === ConnectionValue.Connected) {
+      connections.push({
+        direction: 'v',
+        type: data.get(Layer.Silicon, x, y) === SiliconValue.PSilicon ? 'p' : 'n',
+        gate: data.get(Layer.GatesV, x, y) === GateValue.Gate,
+      });
+    }
+    return connections;
+  }
+
+  public query(point: Point): QueryResult {
+    const { data } = this;
+    const [ x, y ] = point;
+    const metal = data.get(Layer.Metal, x, y) === MetalValue.Metal;
+    const siliconRaw = data.get(Layer.Silicon, x, y);
+    const silicon = siliconRaw === SiliconValue.PSilicon ? 'p' :
+      siliconRaw === SiliconValue.NSilicon ? 'n' :
+      false;
+    const via = data.get(Layer.Vias, x, y) === ViaValue.Via;
+    const gate = data.get(Layer.GatesH, x, y) === GateValue.Gate ||
+      data.get(Layer.GatesV, x, y) === GateValue.Gate;
+    const metalConnections = this.queryMetalConnections(point);
+    const siliconConnections = this.querySiliconConnections(point);
+    return {
+      metal,
+      silicon,
+      via,
+      gate,
+      metalConnections,
+      siliconConnections,
+    };
   }
 
   public toSaveString(): string {
