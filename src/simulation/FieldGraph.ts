@@ -4,7 +4,6 @@ import DesignData, {
 import { decodeSync, encodeSync } from '@/serialization';
 import { Point } from '@/simulation/Point';
 import { traceLine } from '@/utils/traceLine';
-import { adjacentPoints } from '@/utils/adjacentPoints';
 
 export type SiliconType = 'p' | 'n';
 export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
