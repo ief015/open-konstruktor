@@ -113,8 +113,10 @@ export default class FieldGraph {
           this.placeMetal(point, lastPoint);
           break;
         case 'p-silicon':
+          this.placeSilicon('p', point, lastPoint);
+          break;
         case 'n-silicon':
-          this.placeSilicon(type === 'p-silicon' ? 'p' : 'n', point, lastPoint);
+          this.placeSilicon('n', point, lastPoint);
           break;
         case 'via':
           this.placeVia(point);
@@ -137,33 +139,45 @@ export default class FieldGraph {
     data.set(Layer.MetalConnectionsV, x, y - 1, ConnectionValue.None);
   }
 
+  public removeGate(point: Point) {
+    const { data } = this;
+    const [ x, y ] = point;
+    if (data.get(Layer.GatesH, x, y) === GateValue.Gate) {
+      data.set(Layer.GatesH, x, y, GateValue.None);
+      data.set(Layer.SiliconConnectionsH, x, y, ConnectionValue.None);
+      data.set(Layer.SiliconConnectionsH, x - 1, y, ConnectionValue.None);
+    }
+    if (data.get(Layer.GatesV, x, y) === GateValue.Gate) {
+      data.set(Layer.GatesV, x, y, GateValue.None);
+      data.set(Layer.SiliconConnectionsV, x, y, ConnectionValue.None);
+      data.set(Layer.SiliconConnectionsV, x, y - 1, ConnectionValue.None);
+    }
+  }
+
   public removeSilicon(point: Point) {
     const { data } = this;
     const [ x, y ] = point;
     if (data.get(Layer.Silicon, x, y) === SiliconValue.None) {
       return;
     }
+    this.removeGate(point);
     data.set(Layer.Silicon, x, y, SiliconValue.None);
     data.set(Layer.Vias, x, y, ViaValue.None);
-    data.set(Layer.SiliconConnectionsH, x, y, ConnectionValue.None);
-    data.set(Layer.SiliconConnectionsV, x, y, ConnectionValue.None);
-    data.set(Layer.SiliconConnectionsH, x - 1, y, ConnectionValue.None);
-    data.set(Layer.SiliconConnectionsV, x, y - 1, ConnectionValue.None);
-    data.set(Layer.GatesH, x, y, GateValue.None);
-    data.set(Layer.GatesV, x, y, GateValue.None);
-    // Remove adjacent gates
-    for (const adjacent of adjacentPoints(point)) {
-      const [ ax, ay ] = adjacent;
-      if (data.get(Layer.GatesH, ax, ay) === GateValue.Gate) {
-        data.set(Layer.GatesH, ax, ay, GateValue.None);
-        data.set(Layer.SiliconConnectionsH, ax, ay, ConnectionValue.None);
-        data.set(Layer.SiliconConnectionsH, ax - 1, ay, ConnectionValue.None);
-      }
-      if (data.get(Layer.GatesV, ax, ay) === GateValue.Gate) {
-        data.set(Layer.GatesV, ax, ay, GateValue.None);
-        data.set(Layer.SiliconConnectionsV, ax, ay, ConnectionValue.None);
-        data.set(Layer.SiliconConnectionsV, ax, ay - 1, ConnectionValue.None);
-      }
+    if (data.get(Layer.SiliconConnectionsH, x, y) === ConnectionValue.Connected) {
+      data.set(Layer.SiliconConnectionsH, x, y, ConnectionValue.None);
+      this.removeGate([ x + 1, y ]);
+    }
+    if (data.get(Layer.SiliconConnectionsV, x, y) === ConnectionValue.Connected) {
+      data.set(Layer.SiliconConnectionsV, x, y, ConnectionValue.None);
+      this.removeGate([ x, y + 1 ]);
+    }
+    if (data.get(Layer.SiliconConnectionsH, x - 1, y) === ConnectionValue.Connected) {
+      data.set(Layer.SiliconConnectionsH, x - 1, y, ConnectionValue.None);
+      this.removeGate([ x - 1, y ]);
+    }
+    if (data.get(Layer.SiliconConnectionsV, x, y - 1) === ConnectionValue.Connected) {
+      data.set(Layer.SiliconConnectionsV, x, y - 1, ConnectionValue.None);
+      this.removeGate([ x, y - 1 ]);
     }
   }
 
