@@ -24,7 +24,7 @@ export default class Network {
     this.pins = nodes.filter(n => n instanceof PinNode) as PinNode[];
   }
 
-  public getPinNodess(): readonly PinNode[] {
+  public getPinNodes(): readonly PinNode[] {
     return this.pins;
   }
 
