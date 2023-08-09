@@ -1,8 +1,8 @@
 import DesignData, {
-  ConnectionValue, GateValue, Layer, MetalValue, SiliconValue, ViaValue
+  ConnectionValue, GateValue, Layer, LayerDimensions, MetalValue, SiliconValue, ViaValue
 } from '@/serialization/DesignData';
 import { decodeSync, encodeSync } from '@/serialization';
-import { Point } from '@/simulation/Point';
+import { Point } from '@/simulation';
 import { traceLine } from '@/utils/traceLine';
 
 export type SiliconType = 'p' | 'n';
@@ -42,6 +42,18 @@ export default class FieldGraph {
 
   constructor() {
     this.data = new DesignData();
+  }
+
+  public getDimensions(): LayerDimensions {
+    return this.data.getDimensions();
+  }
+
+  public getPinCount(): number {
+    return this.data.getPinCount();
+  }
+
+  public getPinPoint(pin: number): Point {
+    return this.data.getPinPoint(pin);
   }
 
   public placeMetal(startPoint: Point, lastPoint?: Point) {
