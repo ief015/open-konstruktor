@@ -10,8 +10,8 @@ Run prototype:
 Run unit tests:
 `npm test`
 
-Run save string decode to bin utility:
+Run decode (save string to bin) utility:
 `npm run decoder`
 
-Run bin encode to save string utility:
+Run encode (bin to save string) utility:
 `npm run encoder`
