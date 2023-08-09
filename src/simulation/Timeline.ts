@@ -13,6 +13,12 @@ export type HistoryFrame = {
   states: readonly PinState[];
 };
 
+/*
+  TODO:
+  Update history to pin map of state history for efficiency
+  history: Map<PinNode, boolean[]> = new Map();
+*/
+
 export default class Timeline {
 
   private network: Network;
