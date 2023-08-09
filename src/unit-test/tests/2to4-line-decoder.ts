@@ -15,14 +15,21 @@ y+/UW4N0Z/5OUUCRPmbMyDY=
 
 export default async function() {
 
+  const pathVCC = new PathNode();
+  const pathA = new PathNode();
+  const pathB = new PathNode();
+  const pathY0 = new PathNode();
+  const pathY1 = new PathNode();
+  const pathY2 = new PathNode();
+  const pathY3 = new PathNode();
 
-  const pinVCC = new PinNode('VCC', true);
-  const pinA = new PinNode('A');
-  const pinB = new PinNode('B');
-  const pinY0 = new PinNode('Y0');
-  const pinY1 = new PinNode('Y1');
-  const pinY2 = new PinNode('Y2');
-  const pinY3 = new PinNode('Y3');
+  const pinVCC = new PinNode(pathVCC, 'VCC', true);
+  const pinA = new PinNode(pathA, 'A');
+  const pinB = new PinNode(pathB, 'B');
+  const pinY0 = new PinNode(pathY0, 'Y0');
+  const pinY1 = new PinNode(pathY1, 'Y1');
+  const pinY2 = new PinNode(pathY2, 'Y2');
+  const pinY3 = new PinNode(pathY3, 'Y3');
 
   const p1 = new PathNode();
   const p2 = new PathNode();
@@ -35,26 +42,27 @@ export default async function() {
   const gn1 = new GateNode('npn');
   const gn2 = new GateNode('npn');
 
-  gp1.gatedPaths.push(pinVCC, p1);
-  gp1.switchingPaths.push(pinA);
+  gp1.gatedPaths.push(pathVCC, p1);
+  gp1.switchingPaths.push(pathA);
 
-  gp2.gatedPaths.push(p1, pinY0);
-  gp2.switchingPaths.push(pinB);
+  gp2.gatedPaths.push(p1, pathY0);
+  gp2.switchingPaths.push(pathB);
 
-  gp3.gatedPaths.push(pinA, pinY1);
-  gp3.switchingPaths.push(pinB);
+  gp3.gatedPaths.push(pathA, pathY1);
+  gp3.switchingPaths.push(pathB);
 
-  gp4.gatedPaths.push(pinVCC, p2);
-  gp4.switchingPaths.push(pinA);
+  gp4.gatedPaths.push(pathVCC, p2);
+  gp4.switchingPaths.push(pathA);
 
-  gn1.gatedPaths.push(p2, pinY2);
-  gn1.switchingPaths.push(pinB);
+  gn1.gatedPaths.push(p2, pathY2);
+  gn1.switchingPaths.push(pathB);
 
-  gn2.gatedPaths.push(pinA, pinY3);
-  gn2.switchingPaths.push(pinB);
+  gn2.gatedPaths.push(pathA, pathY3);
+  gn2.switchingPaths.push(pathB);
 
   const network = new Network([
-    pinVCC, pinA, pinB, pinY0, pinY1, pinY2, pinY3, p1, p2,
+    pinVCC, pinA, pinB, pinY0, pinY1, pinY2, pinY3,
+    pathVCC, pathA, pathB, pathY0, pathY1, pathY2, pathY3, p1, p2,
     gp1, gp2, gp3, gp4, gn1, gn2,
   ]);
 

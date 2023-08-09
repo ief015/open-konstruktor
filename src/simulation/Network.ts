@@ -1,26 +1,38 @@
-import FieldGraph from "@/simulation/FieldGraph";
-import { GateNode, PathNode, PinNode } from "@/simulation";
+import FieldGraph, { QueryResult } from "@/simulation/FieldGraph";
+import { GateNode, NetworkNode, PathNode, PinNode, Point } from "@/simulation";
+
+type FoundGates = {
+  node: NetworkNode,
+  query: QueryResult
+}
 
 export default class Network {
   private paths: PathNode[] = [];
   private gates: GateNode[] = [];
   private pins: PinNode[] = [];
 
-  constructor(nodes: (PathNode|PinNode|GateNode)[]) {
+  private graph: Map<string, NetworkNode[]> = new Map();
+
+  constructor();
+  constructor(nodes: NetworkNode[]);
+  constructor(nodes?: NetworkNode[]) {
+    if (!nodes) {
+      return;
+    }
     this.paths = nodes.filter(n => n instanceof PathNode) as PathNode[];
     this.gates = nodes.filter(n => n instanceof GateNode) as GateNode[];
     this.pins = nodes.filter(n => n instanceof PinNode) as PinNode[];
   }
 
-  public getPins(): readonly PinNode[] {
+  public getPinNodess(): readonly PinNode[] {
     return this.pins;
   }
 
-  public getPaths(): readonly PathNode[] {
+  public getPathNodes(): readonly PathNode[] {
     return this.paths;
   }
 
-  public getGates(): readonly GateNode[] {
+  public getGateNodes(): readonly GateNode[] {
     return this.gates;
   }
 
@@ -31,9 +43,6 @@ export default class Network {
     for (const gate of this.gates) {
       gate.active = false;
     }
-    for (const pin of this.pins) {
-      pin.state = false;
-    }
   }
 
   public step() {
@@ -42,7 +51,9 @@ export default class Network {
       path.state = false;
     }
     for (const pin of this.pins) {
-      pin.state = pin.active;
+      if (pin.path) {
+        pin.path.state = pin.active;
+      }
     }
 
     while (true) {
@@ -72,11 +83,24 @@ export default class Network {
     }
   }
 
+  private getGraphKey(point: Point): string {
+    return point.join(',');
+  }
+
+  public getNodesAt(point: Point): NetworkNode[] {
+    const key = this.getGraphKey(point);
+    const nodes = this.graph.get(key);
+    return nodes ?? [];
+  }
+
+  public getNodeCount(): number {
+    return this.paths.length + this.gates.length + this.pins.length;
+  }
+
   public static from(graph: FieldGraph): Network {
-    const paths: PathNode[] = [];
-    const gates: GateNode[] = [];
-    // TODO: Build the network from the graph
-    return new Network([ ...paths, ...gates ]);
+    const network = new Network([]);
+    // TODO
+    return network;
   }
 
 }

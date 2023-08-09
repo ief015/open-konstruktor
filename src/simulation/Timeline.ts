@@ -32,7 +32,7 @@ export default class Timeline {
   public run(length?: number, onPostStep?: (frame: number) => void) {
     this.network.reset();
     this.history.splice(0, this.history.length);
-    const pins = this.network.getPins();
+    const pins = this.network.getPinNodess();
     for (let frame = 0; frame < (length ?? this.keyframes.length); frame++) {
       const keyframe = this.keyframes[frame];
       if (keyframe) {
@@ -43,7 +43,7 @@ export default class Timeline {
       this.network.step();
       this.history.push({
         frame,
-        states: pins.map<PinState>(p => ({ pin: p, state: p.state })),
+        states: pins.map<PinState>(p => ({ pin: p, state: !!p.path?.state })),
       });
       onPostStep?.(frame);
     }
@@ -54,7 +54,7 @@ export default class Timeline {
   }
 
   public printHistory(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true) {
-    const pins = this.network.getPins();
+    const pins = this.network.getPinNodess();
     const maxLengthName = Math.max(...pins.map(p => p.label.length), String(this.history.length).length);
     if (showLabels) {
       const pinNames = pins.map(p => p.label.padStart(maxLengthName));
@@ -69,7 +69,7 @@ export default class Timeline {
   }
 
   public printHistoryHorizontal(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true) {
-    const pins = this.network.getPins();
+    const pins = this.network.getPinNodess();
     const maxLengthName = Math.max(...pins.map(p => p.label.length));
     for (const pin of pins) {
       const pinId = pins.indexOf(pin);
@@ -86,7 +86,7 @@ export default class Timeline {
   }
 
   public printHistoryScope(showLabels: boolean = true, padding: number = 2) {
-    const pins = this.network.getPins();
+    const pins = this.network.getPinNodess();
     const maxLengthName = Math.max(...pins.map(p => p.label.length), 2);
     const sPadding = ' '.repeat(padding);
     if (showLabels) {
@@ -111,7 +111,7 @@ export default class Timeline {
   }
 
   public printHistoryScopeHorizontal(showLabels: boolean = true) {
-    const pins = this.network.getPins();
+    const pins = this.network.getPinNodess();
     const maxLengthName = Math.max(...pins.map(p => p.label.length));
     for (const pin of pins) {
       const pinId = pins.indexOf(pin);

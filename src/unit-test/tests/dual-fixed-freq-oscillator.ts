@@ -14,11 +14,17 @@ pA==
 
 export default async function() {
 
-  const pinVCC = new PinNode('VCC', true);
-  const pinEn0 = new PinNode('EN0');
-  const pinOsc0 = new PinNode('OSC0');
-  const pinEn1 = new PinNode('EN1');
-  const pinOsc1 = new PinNode('OSC1');
+  const pathVCC = new PathNode();
+  const pathEn0 = new PathNode();
+  const pathOsc0 = new PathNode();
+  const pathEn1 = new PathNode();
+  const pathOsc1 = new PathNode();
+
+  const pinVCC = new PinNode(pathVCC, 'VCC', true);
+  const pinEn0 = new PinNode(pathEn0, 'EN0');
+  const pinOsc0 = new PinNode(pathOsc0, 'OSC0');
+  const pinEn1 = new PinNode(pathEn1, 'EN1');
+  const pinOsc1 = new PinNode(pathOsc1, 'OSC1');
 
   const npnEn0 = new GateNode('npn');
   const npnEn1 = new GateNode('npn');
@@ -33,7 +39,7 @@ export default async function() {
 
   for (let i = 0; i < 9; i++) {
     const cur = new GateNode('npn');
-    cur.gatedPaths.push(pinVCC);
+    cur.gatedPaths.push(pathVCC);
     const prev = npnOscGates[npnOscGates.length - 1];
     npnOscGates.push(cur);
     if (prev) {
@@ -47,17 +53,18 @@ export default async function() {
   npnOscGates[0].gatedPaths.push(pathPnp);
   npnOscGates[npnOscGates.length - 1].switchingPaths.push(pathOsc);
 
-  npnEn0.gatedPaths.push(pinEn0, pinOsc0);
+  npnEn0.gatedPaths.push(pathEn0, pathOsc0);
   npnEn0.switchingPaths.push(pathOsc);
-  npnEn1.gatedPaths.push(pinEn1, pinOsc1);
+  npnEn1.gatedPaths.push(pathEn1, pathOsc1);
   npnEn1.switchingPaths.push(pathOsc);
 
-  pnpOsc.gatedPaths.push(pinVCC, pathOsc);
+  pnpOsc.gatedPaths.push(pathVCC, pathOsc);
   pnpOsc.switchingPaths.push(pathPnp);
 
 
   const network = new Network([
     pinVCC, pinEn0, pinOsc0, pinEn1, pinOsc1,
+    pathVCC, pathEn0, pathOsc0, pathEn1, pathOsc1,
     npnEn0, npnEn1, pnpOsc, pathPnp, pathOsc,
     ...npnOscGates,
     ...npnOscPaths

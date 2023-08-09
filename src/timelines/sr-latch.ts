@@ -2,10 +2,15 @@ import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
 
 export default function play() {
 
-  const pinVCC = new PinNode('VCC', true);
-  const pinS = new PinNode('S');
-  const pinR = new PinNode('R');
-  const pinQ = new PinNode('Q');
+  const pathVCC = new PathNode();
+  const pathS = new PathNode();
+  const pathR = new PathNode();
+  const pathQ = new PathNode();
+
+  const pinVCC = new PinNode(pathVCC, 'VCC', true);
+  const pinS = new PinNode(pathS, 'S');
+  const pinR = new PinNode(pathR, 'R');
+  const pinQ = new PinNode(pathQ, 'Q');
 
   const pathCell = new PathNode();
 
@@ -13,18 +18,19 @@ export default function play() {
   const npn = new GateNode('npn');
 
   const network = new Network([
-    pinVCC, pinS, pinR, pinQ, pathCell,
+    pinVCC, pinS, pinR, pinQ,
+    pathVCC, pathS, pathR, pathQ, pathCell,
     pnp, npn,
   ]);
 
-  npn.gatedPaths.push(pinVCC);
-  npn.gatedPaths.push(pinQ);
+  npn.gatedPaths.push(pathVCC);
+  npn.gatedPaths.push(pathQ);
   npn.switchingPaths.push(pathCell);
-  npn.switchingPaths.push(pinS);
+  npn.switchingPaths.push(pathS);
 
   pnp.gatedPaths.push(pathCell);
-  pnp.gatedPaths.push(pinQ);
-  pnp.switchingPaths.push(pinR);
+  pnp.gatedPaths.push(pathQ);
+  pnp.switchingPaths.push(pathR);
 
   const tl = new Timeline(network);
 

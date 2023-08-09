@@ -13,13 +13,21 @@ mFDoOrpNj/srqpyf5bT1pPzLTihr/EnQj9R+4l0lFLoJ3dJIkeMJ5zrHaQ==
 
 export default async function() {
 
-  const pinVCC = new PinNode('VCC', true);
-  const pinA = new PinNode('A');
-  const pinB = new PinNode('B');
-  const pinC = new PinNode('C');
-  const pinD = new PinNode('D');
-  const pinX = new PinNode('X');
-  const pinY = new PinNode('Y');
+  const pathVCC = new PathNode();
+  const pathA = new PathNode();
+  const pathB = new PathNode();
+  const pathC = new PathNode();
+  const pathD = new PathNode();
+  const pathX = new PathNode();
+  const pathY = new PathNode();
+
+  const pinVCC = new PinNode(pathVCC, 'VCC', true);
+  const pinA = new PinNode(pathA, 'A');
+  const pinB = new PinNode(pathB, 'B');
+  const pinC = new PinNode(pathC, 'C');
+  const pinD = new PinNode(pathD, 'D');
+  const pinX = new PinNode(pathX, 'X');
+  const pinY = new PinNode(pathY, 'Y');
 
   const gp1 = new GateNode('pnp');
   const gp2 = new GateNode('pnp');
@@ -39,32 +47,33 @@ export default async function() {
   const pn1 = new PathNode();
   const pn2 = new PathNode();
 
-  gn1.gatedPaths.push(pinA, pn1);
-  gn1.switchingPaths.push(pinB);
+  gn1.gatedPaths.push(pathA, pn1);
+  gn1.switchingPaths.push(pathB);
 
   gn2.gatedPaths.push(pn1, pn2);
-  gn2.switchingPaths.push(pinC);
+  gn2.switchingPaths.push(pathC);
 
-  gn3.gatedPaths.push(pn2, pinX);
-  gn3.switchingPaths.push(pinD);
+  gn3.gatedPaths.push(pn2, pathX);
+  gn3.switchingPaths.push(pathD);
 
-  gp1.gatedPaths.push(pinVCC, pp1);
-  gp1.switchingPaths.push(pinA);
+  gp1.gatedPaths.push(pathVCC, pp1);
+  gp1.switchingPaths.push(pathA);
   
   gp2.gatedPaths.push(pp1, pp2);
-  gp2.switchingPaths.push(pinB);
+  gp2.switchingPaths.push(pathB);
   
   gp3.gatedPaths.push(pp2, pp3);
-  gp3.switchingPaths.push(pinC);
+  gp3.switchingPaths.push(pathC);
   
   gp4.gatedPaths.push(pp3, pp4);
-  gp4.switchingPaths.push(pinD);
+  gp4.switchingPaths.push(pathD);
 
-  gp5.gatedPaths.push(pinVCC, pinY);
+  gp5.gatedPaths.push(pathVCC, pathY);
   gp5.switchingPaths.push(pp4);
 
   const network = new Network([
     pinVCC, pinA, pinB, pinC, pinD, pinX, pinY,
+    pathVCC, pathA, pathB, pathC, pathD, pathX, pathY,
     pp1, pp2, pp3, pp4, pn1, pn2,
     gp1, gp2, gp3, gp4, gp5, gn1, gn2, gn3
   ]);
