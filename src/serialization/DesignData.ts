@@ -47,6 +47,10 @@ export enum ConnectionValue {
 const NUM_LAYERS = 9;
 const DEFAULT_NUM_COLUMNS = 44;
 const DEFAULT_NUM_ROWS = 27;
+const DEFAULT_PIN_SIZE = 3;
+const DEFAULT_PIN_OFFSET_X = 1;
+const DEFAULT_PIN_OFFSET_Y = 2;
+const DEFAULT_PIN_GAP = 1;
 
 export default class DesignData {
   private layers: DesignDataLayer[] = [];
@@ -79,18 +83,18 @@ export default class DesignData {
     const metalConnectionsHLayer = this.layers[Layer.MetalConnectionsH];
     const metalConnectionsVLayer = this.layers[Layer.MetalConnectionsV];
     for (let pin = 0; pin < numPinRows; pin++) {
-      const row = (pin * 3) + (pin * 1) + 2;
-      for (let x = 0; x < 3; x++) {
-        for (let y = 0; y < 3; y++) {
-          const left = 1;
-          const right = columns - 4;
+      const row = (pin * DEFAULT_PIN_SIZE) + (pin * DEFAULT_PIN_GAP) + DEFAULT_PIN_OFFSET_Y;
+      for (let x = 0; x < DEFAULT_PIN_SIZE; x++) {
+        for (let y = 0; y < DEFAULT_PIN_SIZE; y++) {
+          const left = DEFAULT_PIN_OFFSET_X;
+          const right = columns - DEFAULT_PIN_OFFSET_X - DEFAULT_PIN_SIZE;
           metalLayer[left+x][row+y] = MetalValue.Metal;
           metalLayer[right+x][row+y] = MetalValue.Metal;
-          if (x < 2) {
+          if (x < DEFAULT_PIN_SIZE - 1) {
             metalConnectionsHLayer[left+x][row+y] = ConnectionValue.Connected;
             metalConnectionsHLayer[right+x][row+y] = ConnectionValue.Connected;
           }
-          if (y < 2) {
+          if (y < DEFAULT_PIN_SIZE - 1) {
             metalConnectionsVLayer[left+x][row+y] = ConnectionValue.Connected;
             metalConnectionsVLayer[right+x][row+y] = ConnectionValue.Connected;
           }
@@ -109,6 +113,20 @@ export default class DesignData {
 
   public getLayers(): DesignDataLayer[] {
     return this.layers;
+  }
+
+  public getPinCount(): number {
+    return this.pinCount;
+  }
+
+  public getPinPoint(pin: number): [ number, number ] {
+    const { columns } = this.dimensions;
+    const pinRow = Math.floor(pin / 2);
+    const row = (pinRow * DEFAULT_PIN_SIZE) + (pinRow * DEFAULT_PIN_GAP) + DEFAULT_PIN_OFFSET_Y;
+    const left = DEFAULT_PIN_OFFSET_X;
+    const right = columns - DEFAULT_PIN_OFFSET_X - DEFAULT_PIN_SIZE;
+    const col = pin % 2 == 0 ? left : right;
+    return [ col, row ];
   }
 
   public get(layer: Layer|number, col: number, row: number): number {
