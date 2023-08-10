@@ -1,10 +1,12 @@
 import FieldGraph, { QueryResult } from "@/simulation/FieldGraph";
 import { GateNode, NetworkNode, PathNode, PinNode, Point } from "@/simulation";
 
-type FoundGates = {
-  node: NetworkNode,
-  query: QueryResult
+type FoundGate = {
+  query: QueryResult;
+  point: Point;
 }
+
+export type GraphLayer = 'metal'|'silicon';
 
 export default class Network {
   private paths: PathNode[] = [];
@@ -83,23 +85,146 @@ export default class Network {
     }
   }
 
-  private getGraphKey(point: Point): string {
-    return point.join(',');
+  private getGraphKey(point: Point, layer: GraphLayer): string {
+    return point.join(',') + ':' + (layer === 'metal' ? 'm' : 's');
   }
 
-  public getNodesAt(point: Point): NetworkNode[] {
-    const key = this.getGraphKey(point);
+  private setGraphNode(point: Point, layer: GraphLayer, node: NetworkNode) {
+    const key = this.getGraphKey(point, layer);
     const nodes = this.graph.get(key);
-    return nodes ?? [];
+    if (nodes) {
+      nodes.push(node);
+    } else {
+      this.graph.set(key, [node]);
+    }
+  }
+
+  public getNodesAt(point: Point, layer?: GraphLayer): NetworkNode[] {
+    if (layer) {
+      const key = this.getGraphKey(point, layer);
+      const nodes = this.graph.get(key);
+      return nodes ?? [];
+    } else {
+      const metalNodes = this.getNodesAt(point, 'metal');
+      const siliconNodes = this.getNodesAt(point, 'silicon');
+      return metalNodes.concat(siliconNodes);
+    }
   }
 
   public getNodeCount(): number {
     return this.paths.length + this.gates.length + this.pins.length;
   }
 
+  private buildPath(
+    fieldGraph: FieldGraph,
+    point: Point,
+    layer: GraphLayer,
+    node: PathNode,
+  ): FoundGate[]|undefined {
+    const nodesAtPoint = this.getNodesAt(point, layer);
+    if (nodesAtPoint.length > 0) {
+      return;
+    }
+    const foundGates: FoundGate[] = [];
+    const query = fieldGraph.query(point);
+    if (layer === 'metal' && query.metal) {
+      this.setGraphNode(point, 'metal', node);
+      for (const adjMetal of query.metalConnections) {
+        foundGates.push(...(this.buildPath(fieldGraph, adjMetal.point, 'metal', node) ?? []));
+      }
+      if (query.via) {
+        foundGates.push(...(this.buildPath(fieldGraph, point, 'silicon', node) ?? []));
+      }
+    } else if (layer === 'silicon' && query.silicon) {
+      if (query.gate) {
+        return [ { query, point } ];
+      }
+      this.setGraphNode(point, 'silicon', node);
+      for (const adjSilicon of query.siliconConnections) {
+        foundGates.push(...(this.buildPath(fieldGraph, adjSilicon.point, 'silicon', node) ?? []));
+      }
+      if (query.via) {
+        foundGates.push(...(this.buildPath(fieldGraph, point, 'metal', node) ?? []));
+      }
+    }
+    return foundGates;
+  }
+
+  private buildGate(fieldGraph: FieldGraph, foundGate: FoundGate): {
+    newGate?: GateNode
+    foundGates: FoundGate[]
+  } {
+    const { query, point } = foundGate;
+    const nodesAtPoint = this.getNodesAt(point, 'silicon');
+    if (nodesAtPoint.length > 0) {
+      return { foundGates: [] };
+    }
+    const foundGates: FoundGate[] = [];
+    const gate = new GateNode();
+    this.setGraphNode(point, 'silicon', gate);
+    this.gates.push(gate);
+    for (const adjSilicon of query.siliconConnections) {
+      const adjQuery = fieldGraph.query(adjSilicon.point);
+      if (adjQuery.gate) {
+        // There's a gate directly adjacent to this gate, need an intermediate path
+        const adjGate = this.getNodesAt(adjSilicon.point, 'silicon').find(n => n instanceof GateNode);
+        if (!adjGate) {
+          const path = new PathNode();
+          gate.gatedPaths.push(path);
+          this.paths.push(path);
+          const { foundGates: more, newGate } = this.buildGate(fieldGraph, { query: adjQuery, point: adjSilicon.point });
+          if (!newGate) {
+            throw new Error('Failed to build gate');
+          }
+          newGate.gatedPaths.push(path);
+          foundGates.push(...more);
+        }
+      } else {
+        const path = new PathNode();
+        const more = this.buildPath(fieldGraph, adjSilicon.point, 'silicon', path);
+        if (more) {
+          this.paths.push(path);
+          foundGates.push(...more);
+          if (query.gate === adjSilicon.direction) {
+            gate.switchingPaths.push(path);
+          } else {
+            gate.gatedPaths.push(path);
+          }
+        }
+      }
+    }
+    return { newGate: gate, foundGates };
+  }
+
   public static from(graph: FieldGraph): Network {
     const network = new Network([]);
-    // TODO
+    const pins = graph.getPinCount();
+    const gates: FoundGate[] = [];
+    // Build starting paths starting from each pin
+    for (let i = 0; i < pins; i++) {
+      const pinPoint = graph.getPinPoint(i);
+      const existing = network.getNodesAt(pinPoint, 'metal');
+      let pin: PinNode;
+      if (existing.length > 0) {
+        for (const node of existing) {
+          if (node instanceof PathNode) {
+            pin = new PinNode(node);
+            break;
+          }
+        }
+        continue;
+      }
+      const path = new PathNode();
+      pin = new PinNode(path);
+      gates.push(...(network.buildPath(graph, pinPoint, 'metal', path) ?? []));
+      network.paths.push(path);
+      network.pins.push(pin);
+    }
+    // Build gates and connected paths until no more new gates are found
+    for (let i = 0; i < gates.length; i++) {
+      const gate = gates[i];
+      gates.push(...network.buildGate(graph, gate).foundGates);
+    }
     return network;
   }
 
