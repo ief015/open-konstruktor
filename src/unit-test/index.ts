@@ -23,8 +23,12 @@ export function assertEqualArray<T>(actual: T[], expected: T[], message?: string
 }
 
 export function assertPin(pin: PinNode, expected: boolean|number, message?: string) {
-  if (pin.state != expected) {
+  if (!pin.path) {
     message = (`${message}\n`) || '';
-    throw new Error(message + `Pin ${pin.label}: Expected ${!!expected}, got ${pin.state}`);
+    throw new Error(message + `Pin ${pin.label}: No path`);
+  }
+  if (pin.path.state != expected) {
+    message = (`${message}\n`) || '';
+    throw new Error(message + `Pin ${pin.label}: Expected ${!!expected}, got ${pin.path.state}`);
   }
 }
