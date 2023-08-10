@@ -160,35 +160,48 @@ export default class Network {
       return { foundGates: [] };
     }
     const foundGates: FoundGate[] = [];
-    const gate = new GateNode();
+    const gate = new GateNode(query.silicon === 'p' ? 'pnp' : 'npn');
     this.setGraphNode(point, 'silicon', gate);
     this.gates.push(gate);
     for (const adjSilicon of query.siliconConnections) {
       const adjQuery = fieldGraph.query(adjSilicon.point);
+      const adjNode = this.getNodesAt(adjSilicon.point, 'silicon')[0];
       if (adjQuery.gate) {
         // There's a gate directly adjacent to this gate, need an intermediate path
-        const adjGate = this.getNodesAt(adjSilicon.point, 'silicon').find(n => n instanceof GateNode);
-        if (!adjGate) {
+        if (!adjNode) {
           const path = new PathNode();
-          gate.gatedPaths.push(path);
           this.paths.push(path);
+          gate.gatedPaths.push(path);
           const { foundGates: more, newGate } = this.buildGate(fieldGraph, { query: adjQuery, point: adjSilicon.point });
           if (!newGate) {
             throw new Error('Failed to build gate');
           }
-          newGate.gatedPaths.push(path);
+          if (query.gate === adjSilicon.direction) {
+            newGate.switchingPaths.push(path);
+          } else {
+            newGate.gatedPaths.push(path);
+          }
           foundGates.push(...more);
         }
       } else {
-        const path = new PathNode();
-        const more = this.buildPath(fieldGraph, adjSilicon.point, 'silicon', path);
-        if (more) {
-          this.paths.push(path);
-          foundGates.push(...more);
+        const adjPathNode = adjNode as PathNode;
+        if (adjPathNode) {
           if (query.gate === adjSilicon.direction) {
-            gate.switchingPaths.push(path);
+            gate.switchingPaths.push(adjPathNode);
           } else {
-            gate.gatedPaths.push(path);
+            gate.gatedPaths.push(adjPathNode);
+          }
+        } else {
+          const path = new PathNode();
+          const more = this.buildPath(fieldGraph, adjSilicon.point, 'silicon', path);
+          if (more) {
+            this.paths.push(path);
+            foundGates.push(...more);
+            if (query.gate === adjSilicon.direction) {
+              gate.switchingPaths.push(path);
+            } else {
+              gate.gatedPaths.push(path);
+            }
           }
         }
       }
@@ -204,21 +217,21 @@ export default class Network {
     for (let i = 0; i < pins; i++) {
       const pinPoint = graph.getPinPoint(i);
       const existing = network.getNodesAt(pinPoint, 'metal');
-      let pin: PinNode;
       if (existing.length > 0) {
         for (const node of existing) {
           if (node instanceof PathNode) {
-            pin = new PinNode(node);
+            const pin = new PinNode(node);
+            network.pins.push(pin);
             break;
           }
         }
-        continue;
+      } else {
+        const path = new PathNode();
+        const pin = new PinNode(path);
+        gates.push(...(network.buildPath(graph, pinPoint, 'metal', path) ?? []));
+        network.paths.push(path);
+        network.pins.push(pin);
       }
-      const path = new PathNode();
-      pin = new PinNode(path);
-      gates.push(...(network.buildPath(graph, pinPoint, 'metal', path) ?? []));
-      network.paths.push(path);
-      network.pins.push(pin);
     }
     // Build gates and connected paths until no more new gates are found
     for (let i = 0; i < gates.length; i++) {

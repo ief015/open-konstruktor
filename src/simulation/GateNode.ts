@@ -8,7 +8,7 @@ export default class GateNode {
   public active: boolean = false;
   public isNPN: boolean = true;
 
-  constructor(type: GateType = 'npn') {
+  constructor(type: GateType) {
     this.isNPN = type === 'npn';
   }
 }
