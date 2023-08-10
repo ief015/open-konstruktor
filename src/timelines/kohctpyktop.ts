@@ -31,7 +31,7 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     const tl = new Timeline(network);
     tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     for (let i = 0; i < 14; i++) {
-      tl.addPulse(i*10, 10, pinA0);
+      tl.addPulse(i*20, 10, pinA0);
     }
     for (let i = 0; i < 9; i++) {
       tl.addPulse(i*30, 10, pinA1);
