@@ -36,7 +36,7 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     for (let i = 0; i < 9; i++) {
       tl.addPulse(i*30, 10, pinA1);
     }
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       tl.addPulse(i*40, 10, pinA2);
     }
     for (let i = 0; i < 5; i++) {
