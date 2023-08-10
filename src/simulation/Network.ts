@@ -212,7 +212,12 @@ export default class Network {
     return { newGate: gate, foundGates };
   }
 
-  public static from(graph: FieldGraph): Network {
+  public static from(saveString: string): Network;
+  public static from(graph: FieldGraph): Network;
+  public static from(graph: string|FieldGraph): Network {
+    if (typeof graph === 'string') {
+      return Network.from(FieldGraph.from(graph));
+    }
     const network = new Network([]);
     const pins = graph.getPinCount();
     const gates: FoundGate[] = [];

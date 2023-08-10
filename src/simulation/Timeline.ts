@@ -31,8 +31,24 @@ export default class Timeline {
   }
 
   public addKeyFrame(frame: number, pin: PinNode, state: boolean) {
+    if (!pin) {
+      throw new Error(`Invalid pin: ${pin}`);
+    }
     const keyframe = this.keyframes[frame] = this.keyframes[frame] ?? [];
     keyframe.push({ pin, state });
+  }
+
+  public addVCC(...pin: PinNode[]) {
+    for (const p of pin) {
+      this.addKeyFrame(0, p, true);
+    }
+  }
+
+  public addPulse(frame: number, duration: number, ...pin: PinNode[]) {
+    for (const p of pin) {
+      this.addKeyFrame(frame, p, true);
+      this.addKeyFrame(frame + duration, p, false);
+    }
   }
 
   public run(length?: number, onPostStep?: (frame: number) => void) {

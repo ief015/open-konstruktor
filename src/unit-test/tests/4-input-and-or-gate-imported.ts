@@ -163,6 +163,6 @@ export default async function() {
     }
   });
 
-  tl.printHistory();
+  //tl.printHistory();
 
 }
