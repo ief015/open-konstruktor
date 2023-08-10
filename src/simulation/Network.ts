@@ -115,6 +115,9 @@ export default class Network {
     return this.paths.length + this.gates.length + this.pins.length;
   }
 
+  // I barely know how everything under this line works. I'm sorry.
+  // TODO: Simplify this.
+
   private buildPath(
     fieldGraph: FieldGraph,
     point: Point,
@@ -165,10 +168,10 @@ export default class Network {
     this.gates.push(gate);
     for (const adjSilicon of query.siliconConnections) {
       const adjQuery = fieldGraph.query(adjSilicon.point);
-      const adjNode = this.getNodesAt(adjSilicon.point, 'silicon')[0];
+      const adjNode = this.getNodesAt(adjSilicon.point, 'silicon');
       if (adjQuery.gate) {
         // There's a gate directly adjacent to this gate, need an intermediate path
-        if (!adjNode) {
+        if (!adjNode[0]) {
           const path = new PathNode();
           this.paths.push(path);
           gate.gatedPaths.push(path);
@@ -184,7 +187,7 @@ export default class Network {
           foundGates.push(...more);
         }
       } else {
-        const adjPathNode = adjNode as PathNode;
+        const adjPathNode = adjNode[0] as PathNode;
         if (adjPathNode) {
           if (query.gate === adjSilicon.direction) {
             gate.switchingPaths.push(adjPathNode);
