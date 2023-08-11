@@ -4,9 +4,9 @@ type KOHCTPYKTOPLevelName =
   '01 KT411I QUAD INVERTER GATE' |
   '02 KT221A DUAL 2-INPUT AND GATE' |
   '03 KT141AO 4-INPUT AND-OR GATE' |
-  // '04 KO229 POWER ON RESET GENERATOR' |
-  // '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR' |
-  // '06 KL2S1 DUAL SET-RESET LATCH' |
+  '04 KO229 POWER ON RESET GENERATOR' |
+  '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR' |
+  '06 KL2S1 DUAL SET-RESET LATCH' |
   // '07 KL2T1 DUAL TOGGLE LATCH' |
   // '08 KO224X DUAL FREQUENCY OSCILLATOR' |
   // '09 KD124 2-TO-4 LINE DECODER' |
@@ -20,6 +20,42 @@ type KOHCTPYKTOPLevelName =
   // '17 X901 RADIO MESSAGE STREAM DECODER' |
   // '18 X902 GRENADE LAUNCHER AMMO COUNTER' |
   // '19 X903 GATLING CANNON FIRE CONTROLLER';
+
+
+/*
+
+  'LEVEL_NAME': (network) => {
+    const pins = network.getPinNodes();
+    if (pins.length !== 12) {
+      throw new Error(`Pin count must be 12, got ${pins.length}`);
+    }
+    const [
+      pinVCC0, pinVCC1,
+      pinNC0, pinNC1,
+      pinNC2, pinNC3,
+      pinNC4, pinNC5,
+      pinNC6, pinNC7,
+      pinVCC2, pinVCC3,
+    ] = pins;
+    pinVCC0.label = 'VCC';
+    pinVCC1.label = 'VCC';
+    pinVCC2.label = 'VCC';
+    pinVCC3.label = 'VCC';
+    pinNC0.label = 'N/C';
+    pinNC1.label = 'N/C';
+    pinNC2.label = 'N/C';
+    pinNC3.label = 'N/C';
+    pinNC4.label = 'N/C';
+    pinNC5.label = 'N/C';
+    pinNC6.label = 'N/C';
+    pinNC7.label = 'N/C';
+    const tl = new Timeline(network);
+    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    // tl.addPulse(10, 10, pinNC0);
+    return tl;
+  },
+
+*/
 
 type TimelineBuilder<T extends string|number|symbol> = Record<T, (network: Network) => Timeline>
 
@@ -165,6 +201,121 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     tl.addPulse(200, 10, pinD);
     tl.addPulse(220, 20, pinD);
     tl.addPulse(250, 20, pinD);
+    return tl;
+  },
+
+  '04 KO229 POWER ON RESET GENERATOR': (network) => {
+    const pins = network.getPinNodes();
+    if (pins.length !== 12) {
+      throw new Error(`Pin count must be 12, got ${pins.length}`);
+    }
+    const [
+      pinVCC0, pinVCC1,
+      pinNC0, pinNC1,
+      pinNC2, pinRST,
+      pinNC4, pinRRST,
+      pinNC6, pinNC7,
+      pinVCC2, pinVCC3,
+    ] = pins;
+    pinVCC0.label = 'VCC';
+    pinVCC1.label = 'VCC';
+    pinVCC2.label = 'VCC';
+    pinVCC3.label = 'VCC';
+    pinNC0.label = 'N/C';
+    pinNC1.label = 'N/C';
+    pinNC2.label = 'N/C';
+    pinRST.label = 'RST';
+    pinNC4.label = 'N/C';
+    pinRRST.label = '/RST';
+    pinNC6.label = 'N/C';
+    pinNC7.label = 'N/C';
+    const tl = new Timeline(network);
+    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    return tl;
+  },
+
+  '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR': (network) => {
+    const pins = network.getPinNodes();
+    if (pins.length !== 12) {
+      throw new Error(`Pin count must be 12, got ${pins.length}`);
+    }
+    const [
+      pinVCC0, pinVCC1,
+      pinEN0, pinEN1,
+      pinNC2, pinNC3,
+      pinNC4, pinNC5,
+      pinOSC0, pinOSC1,
+      pinVCC2, pinVCC3,
+    ] = pins;
+    pinVCC0.label = 'VCC';
+    pinVCC1.label = 'VCC';
+    pinVCC2.label = 'VCC';
+    pinVCC3.label = 'VCC';
+    pinEN0.label = 'EN0';
+    pinEN1.label = 'EN1';
+    pinNC2.label = 'N/C';
+    pinNC3.label = 'N/C';
+    pinNC4.label = 'N/C';
+    pinNC5.label = 'N/C';
+    pinOSC0.label = 'OSC0';
+    pinOSC1.label = 'OSC1';
+    const tl = new Timeline(network);
+    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    // EN0
+    tl.addPulse(40, 100, pinEN0);
+    tl.addPulse(180, 70, pinEN0);
+    // EN1
+    tl.addPulse(20, 60, pinEN1);
+    tl.addPulse(120, 40, pinEN1);
+    tl.addPulse(200, 50, pinEN1);
+    return tl;
+  },
+
+  '06 KL2S1 DUAL SET-RESET LATCH': (network) => {
+    const pins = network.getPinNodes();
+    if (pins.length !== 12) {
+      throw new Error(`Pin count must be 12, got ${pins.length}`);
+    }
+    const [
+      pinVCC0, pinVCC1,
+      pinS0, pinS1,
+      pinR0, pinR1,
+      pinNC4, pinNC5,
+      pinQ0, pinQ1,
+      pinVCC2, pinVCC3,
+    ] = pins;
+    pinVCC0.label = 'VCC';
+    pinVCC1.label = 'VCC';
+    pinVCC2.label = 'VCC';
+    pinVCC3.label = 'VCC';
+    pinS0.label = 'S0';
+    pinS1.label = 'S1';
+    pinR0.label = 'R0';
+    pinR1.label = 'R1';
+    pinNC4.label = 'N/C';
+    pinNC5.label = 'N/C';
+    pinQ0.label = 'Q0';
+    pinQ1.label = 'Q1';
+    const tl = new Timeline(network);
+    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    // S0
+    tl.addPulse(10, 10, pinS0);
+    tl.addPulse(100, 10, pinS0);
+    tl.addPulse(170, 10, pinS0);
+    // R0
+    tl.addPulse(40, 10, pinR0);
+    tl.addPulse(120, 10, pinR0);
+    tl.addPulse(250, 10, pinR0);
+    // S1
+    tl.addPulse(20, 10, pinS1);
+    tl.addPulse(60, 10, pinS1);
+    tl.addPulse(140, 10, pinS1);
+    tl.addPulse(240, 10, pinS1);
+    // R1
+    tl.addPulse(50, 10, pinR1);
+    tl.addPulse(110, 10, pinR1);
+    tl.addPulse(220, 10, pinR1);
+    tl.addPulse(260, 10, pinR1);
     return tl;
   },
 
