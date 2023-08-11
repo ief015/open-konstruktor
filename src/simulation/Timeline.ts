@@ -8,23 +8,18 @@ export type PinState = {
 
 export type KeyFrame = PinState[];
 
-export type HistoryFrame = {
-  frame: number;
-  states: readonly PinState[];
-};
+export type PrintPinOrdering = 'none' | 'even-odd';
 
-/*
-  TODO:
-  Update history to pin map of state history for efficiency
-  history: Map<PinNode, boolean[]> = new Map();
-*/
+export type PinStateHistory = boolean[];
+export type StateHistory = PinStateHistory[];
 
 export default class Timeline {
 
   private network: Network;
   private keyframes: KeyFrame[] = [];
 
-  private history: HistoryFrame[] = [];
+  private history: StateHistory = [];
+  private historyLength: number = 0;
 
   constructor(network: Network) {
     this.network = network;
@@ -36,6 +31,7 @@ export default class Timeline {
     }
     const keyframe = this.keyframes[frame] = this.keyframes[frame] ?? [];
     keyframe.push({ pin, state });
+    
   }
 
   public addVCC(...pin: PinNode[]) {
@@ -51,10 +47,9 @@ export default class Timeline {
     }
   }
 
-  public run(length?: number, onPostStep?: (frame: number) => void) {
+  public run(length?: number, onPostStep?: (frame: number) => void, recordHistory: boolean = true) {
     this.network.reset();
-    this.history.splice(0, this.history.length);
-    const pins = this.network.getPinNodes();
+    recordHistory && this.clearHistory();
     for (let frame = 0; frame < (length ?? this.keyframes.length); frame++) {
       const keyframe = this.keyframes[frame];
       if (keyframe) {
@@ -63,65 +58,131 @@ export default class Timeline {
         }
       }
       this.network.step();
-      this.history.push({
-        frame,
-        states: pins.map<PinState>(p => ({ pin: p, state: !!p.path?.state })),
-      });
+      recordHistory && this.recordFrame(frame);
       onPostStep?.(frame);
     }
   }
 
-  public getHistory(): readonly HistoryFrame[] {
+  public getHistory(): Readonly<StateHistory> {
     return this.history;
   }
 
-  public printHistory(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true) {
+  public clearHistory() {
+    this.history.splice(0, this.history.length);
     const pins = this.network.getPinNodes();
-    const maxLengthName = Math.max(...pins.map(p => p.label.length), String(this.history.length).length);
+    for (let pinIndex = 0; pinIndex < pins.length; pinIndex++) {
+      this.history[pinIndex] = [];
+    }
+  }
+
+  private recordFrame(frame: number) {
+    const pins = this.network.getPinNodes();
+    for (let pinIndex = 0; pinIndex < pins.length; pinIndex++) {
+      const pinHistory = this.history[pinIndex];
+      pinHistory[frame] = !!(pins[pinIndex].path?.state);
+    }
+    this.historyLength = Math.max(this.historyLength, frame + 1);
+  }
+
+  public printHistory(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true, pinOrder: PrintPinOrdering = 'none') {
+    const pins = this.network.getPinNodes();
+    const sortedPins = [ ...pins ];
+    if (pinOrder !== 'none') {
+      sortedPins.sort((a, b) => {
+        const aid = sortedPins.indexOf(a);
+        const bid = sortedPins.indexOf(b);
+        if (pinOrder === 'even-odd') {
+          if (aid % 2 === 0 && bid % 2 === 1) {
+            return -1;
+          } else if (aid % 2 === 1 && bid % 2 === 0) {
+            return 1;
+          } else {
+            return aid - bid;
+          }
+        }
+        return aid - bid;
+      });
+    }
+    const maxLengthName = Math.max(...sortedPins.map(p => p.label.length), String(this.history.length).length);
     if (showLabels) {
-      const pinNames = pins.map(p => p.label.padStart(maxLengthName));
+      const pinNames = sortedPins.map(p => p.label.padStart(maxLengthName));
       console.log([' '.repeat(maxLengthName), ...pinNames].join(' '));
     }
-    for (const { frame, states } of this.history) {
-      const pinStates = states.map(s => s.state);
+    for (let frame = 0; frame < this.historyLength; frame++) {
       const sFrame = `${frame}`.padStart(maxLengthName);
+      const pinStates = sortedPins.map(p => this.history[pins.indexOf(p)][frame]);
       const sLine = pinStates.map(s => (s ? highSymbol : lowSymbol).padStart(maxLengthName)).join(' ');
       console.log(`${sFrame} ${sLine}`);
     }
   }
 
-  public printHistoryHorizontal(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true) {
+  public printHistoryHorizontal(highSymbol: string = '1', lowSymbol: string = '-', showLabels: boolean = true, pinOrder: PrintPinOrdering = 'none') {
     const pins = this.network.getPinNodes();
-    const maxLengthName = Math.max(...pins.map(p => p.label.length));
-    for (const pin of pins) {
+    const sortedPins = [ ...pins ];
+    if (pinOrder !== 'none') {
+      sortedPins.sort((a, b) => {
+        const aid = sortedPins.indexOf(a);
+        const bid = sortedPins.indexOf(b);
+        if (pinOrder === 'even-odd') {
+          if (aid % 2 === 0 && bid % 2 === 1) {
+            return -1;
+          } else if (aid % 2 === 1 && bid % 2 === 0) {
+            return 1;
+          } else {
+            return aid - bid;
+          }
+        }
+        return aid - bid;
+      });
+    }
+    const maxLengthName = Math.max(...sortedPins.map(p => p.label.length));
+    for (const pin of sortedPins) {
       const pinId = pins.indexOf(pin);
       let line = '';
       if (showLabels) {
         line += pin.label.padStart(maxLengthName) + ' ';
       }
-      for (const { frame, states } of this.history) {
-        const state = states[pinId].state;
+      const pinHistory = this.history[pinId];
+      for (let frame = 0; frame < this.historyLength; frame++) {
+        const state = !!(pinHistory[frame]);
         line += state ? highSymbol : lowSymbol;
       }
       console.log(line);
     }
   }
 
-  public printHistoryScope(showLabels: boolean = true, padding: number = 2) {
+  public printHistoryScope(showLabels: boolean = true, padding: number = 2, pinOrder: PrintPinOrdering = 'none') {
     const pins = this.network.getPinNodes();
-    const maxLengthName = Math.max(...pins.map(p => p.label.length), 2);
+    const sortedPins = [ ...pins ];
+    if (pinOrder !== 'none') {
+      sortedPins.sort((a, b) => {
+        const aid = sortedPins.indexOf(a);
+        const bid = sortedPins.indexOf(b);
+        if (pinOrder === 'even-odd') {
+          if (aid % 2 === 0 && bid % 2 === 1) {
+            return -1;
+          } else if (aid % 2 === 1 && bid % 2 === 0) {
+            return 1;
+          } else {
+            return aid - bid;
+          }
+        }
+        return aid - bid;
+      });
+    }
+    const maxLengthName = Math.max(...sortedPins.map(p => p.label.length), 2);
     const sPadding = ' '.repeat(padding);
     if (showLabels) {
-      const pinNames = pins.map(p => p.label.padEnd(maxLengthName));
+      const pinNames = sortedPins.map(p => p.label.padEnd(maxLengthName));
       console.log([' '.repeat(maxLengthName), ...pinNames].join(sPadding));
     }
-    for (const { frame, states } of this.history) {
+    for (let frame = 0; frame < this.historyLength; frame++) {
       let line = '';
       line += `${frame}`.padStart(maxLengthName) + sPadding;
-      for (const pin of pins) {
+      for (const pin of sortedPins) {
         const pinId = pins.indexOf(pin);
-        const state = states[pinId].state;
-        const lastState = this.history[frame - 1]?.states[pinId].state ?? false;
+        const state = !!(this.history[pinId][frame]);
+        const lastState = !!(this.history[pinId][frame - 1]);
         if (state !== lastState) {
           line += (state ? '└┐' : '┌┘').padEnd(maxLengthName) + sPadding;
         } else {
@@ -132,10 +193,27 @@ export default class Timeline {
     }
   }
 
-  public printHistoryScopeHorizontal(showLabels: boolean = true) {
+  public printHistoryScopeHorizontal(showLabels: boolean = true, pinOrder: PrintPinOrdering = 'none') {
     const pins = this.network.getPinNodes();
-    const maxLengthName = Math.max(...pins.map(p => p.label.length));
-    for (const pin of pins) {
+    const sortedPins = [ ...pins ];
+    if (pinOrder !== 'none') {
+      sortedPins.sort((a, b) => {
+        const aid = sortedPins.indexOf(a);
+        const bid = sortedPins.indexOf(b);
+        if (pinOrder === 'even-odd') {
+          if (aid % 2 === 0 && bid % 2 === 1) {
+            return -1;
+          } else if (aid % 2 === 1 && bid % 2 === 0) {
+            return 1;
+          } else {
+            return aid - bid;
+          }
+        }
+        return aid - bid;
+      });
+    }
+    const maxLengthName = Math.max(...sortedPins.map(p => p.label.length));
+    for (const pin of sortedPins) {
       const pinId = pins.indexOf(pin);
       for (const isTop of [ true, false ]) {
         let line = '';
@@ -147,8 +225,9 @@ export default class Timeline {
           }
         }
         let lastState = false;
-        for (const { frame, states } of this.history) {
-          const state = states[pinId].state;
+        const pinHistory = this.history[pinId];
+        for (let frame = 0; frame < this.historyLength; frame++) {
+          const state = !!(pinHistory[frame]);
           if (state !== lastState) {
             line += isTop ? (state ? '┌' : '┐') : (state ? '┘' : '└');
             lastState = state;
