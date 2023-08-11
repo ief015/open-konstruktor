@@ -12,6 +12,8 @@ export type PinStateHistory = boolean[];
 export type StateHistory = PinStateHistory[];
 
 export type PrintPinOrdering = 'none' | 'even-odd';
+export type PinFilter = (id: number, pin: PinNode) => boolean;
+export type PinSort = (id: number, pin: PinNode) => number;
 
 export interface PrintHistoryOptions {
   highSymbol?: string;
@@ -20,6 +22,7 @@ export interface PrintHistoryOptions {
   pinOrder?: PrintPinOrdering;
   padding?: number;
   horizontal?: boolean;
+  filter?: PinFilter;
 }
 
 export interface PrintHistoryScopeOptions {
@@ -27,6 +30,21 @@ export interface PrintHistoryScopeOptions {
   padding?: number;
   pinOrder?: PrintPinOrdering;
   horizontal?: boolean;
+  filter?: PinFilter;
+}
+
+const evenOddPinSort = (pins: PinNode[]) => {
+  pins.sort((a, b) => {
+    const aid = pins.indexOf(a);
+    const bid = pins.indexOf(b);
+    if (aid % 2 === 0 && bid % 2 === 1) {
+      return -1;
+    } else if (aid % 2 === 1 && bid % 2 === 0) {
+      return 1;
+    } else {
+      return aid - bid;
+    }
+  });
 }
 
 export default class Timeline {
@@ -108,24 +126,14 @@ export default class Timeline {
       pinOrder = 'none',
       padding = 0,
       horizontal = false,
+      filter,
     } = options;
     const pins = this.network.getPinNodes();
-    const sortedPins = [ ...pins ];
-    if (pinOrder !== 'none') {
-      sortedPins.sort((a, b) => {
-        const aid = sortedPins.indexOf(a);
-        const bid = sortedPins.indexOf(b);
-        if (pinOrder === 'even-odd') {
-          if (aid % 2 === 0 && bid % 2 === 1) {
-            return -1;
-          } else if (aid % 2 === 1 && bid % 2 === 0) {
-            return 1;
-          } else {
-            return aid - bid;
-          }
-        }
-        return aid - bid;
-      });
+    const sortedPins = [ ...(filter ? pins.filter((p, i) => filter(i, p)) : pins) ];
+    switch (pinOrder) {
+      case 'even-odd':
+        evenOddPinSort(sortedPins);
+        break;
     }
     if (horizontal) {
       const maxLengthName = Math.max(...sortedPins.map(p => p.label.length));
@@ -163,24 +171,14 @@ export default class Timeline {
       pinOrder = 'none',
       padding = 2,
       horizontal = false,
+      filter,
     } = options;
     const pins = this.network.getPinNodes();
-    const sortedPins = [ ...pins ];
-    if (pinOrder !== 'none') {
-      sortedPins.sort((a, b) => {
-        const aid = sortedPins.indexOf(a);
-        const bid = sortedPins.indexOf(b);
-        if (pinOrder === 'even-odd') {
-          if (aid % 2 === 0 && bid % 2 === 1) {
-            return -1;
-          } else if (aid % 2 === 1 && bid % 2 === 0) {
-            return 1;
-          } else {
-            return aid - bid;
-          }
-        }
-        return aid - bid;
-      });
+    const sortedPins = [ ...(filter ? pins.filter((p, i) => filter(i, p)) : pins) ];
+    switch (pinOrder) {
+      case 'even-odd':
+        evenOddPinSort(sortedPins);
+        break;
     }
     if (horizontal) {
       const maxLengthName = Math.max(...sortedPins.map(p => p.label.length));
