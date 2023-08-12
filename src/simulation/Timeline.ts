@@ -74,10 +74,28 @@ export default class Timeline {
     }
   }
 
-  public addPulse(frame: number, duration: number, ...pin: PinNode[]) {
-    for (const p of pin) {
-      this.addKeyFrame(frame, p, true);
-      this.addKeyFrame(frame + duration, p, false);
+  public addPulseRange(start: number, end: number, ...pins: PinNode[]) {
+    for (const p of pins) {
+      this.addKeyFrame(start, p, true);
+      this.addKeyFrame(end, p, false);
+    }
+  }
+
+  public addPulse(frame: number, duration: number, ...pins: PinNode[]) {
+    return this.addPulseRange(frame, frame + duration, ...pins);
+  }
+
+  public addTogglePoints(pin: PinNode, ...frames: number[]) {
+    let state = true;
+    for (const frame of frames) {
+      this.addKeyFrame(frame, pin, state);
+      state = !state;
+    }
+  }
+
+  public addOscillation(frame: number, numPulses: number, highDuration: number, lowDuration: number, ...pins: PinNode[]) {
+    for (let i = 0; i < numPulses; i++) {
+      this.addPulse(frame + i * (highDuration + lowDuration), highDuration, ...pins);
     }
   }
 
