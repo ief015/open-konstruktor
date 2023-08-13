@@ -1,6 +1,6 @@
 import { Network } from "@/simulation";
 import FieldGraph from "@/simulation/FieldGraph";
-import { kohctpyktop } from "@/timelines/kohctpyktop";
+import { kohctpyktop } from "@/circuits/kohctpyktop";
 import { assertEqual } from "@/unit-test";
 
 const levels: (() => void)[] = [

@@ -1,4 +1,4 @@
-import { Point } from '@/simulation/Point';
+import { Point } from '@/simulation';
 
 export function adjacentPoints(point: Point): Point[] {
   const [ x, y ] = point;

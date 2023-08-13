@@ -24,8 +24,8 @@ export interface PrintRecordingScopeOptions {
   filter?: PinFilter;
 }
 
-export type Sequences = Map<PinNode, Sequence>;
-export type Recording = Map<PinNode, Sequence>;
+export type SequenceMap = Map<PinNode, Sequence>;
+export type RecordingMap = Map<PinNode, Sequence>;
 
 export interface VerificationResultOutput {
   pin: PinNode;
@@ -59,12 +59,12 @@ export default class CircuitSimulation {
 
   private network: Network;
 
-  private inputSequences: Sequences = new Map();
-  private outputSequences: Sequences = new Map();
+  private inputSequences: SequenceMap = new Map();
+  private outputSequences: SequenceMap = new Map();
   private sequenceLength: number = 0;
 
   private currentFrame: number = 0;
-  private recording: Recording = new Map();
+  private recording: RecordingMap = new Map();
   private recordingLength: number = 0;
 
   constructor(network: Network) {
@@ -107,7 +107,7 @@ export default class CircuitSimulation {
     return this.recordingLength;
   }
 
-  public getRecordings(): Readonly<Recording> {
+  public getRecordings(): Readonly<RecordingMap> {
     return this.recording;
   }
 

@@ -1,4 +1,4 @@
-import { Point } from '@/simulation/Point';
+import { Point } from '@/simulation';
 
 const truncPoint = (point: Point): Point => [ Math.trunc(point[0]), Math.trunc(point[1]) ];
 

@@ -1,5 +1,5 @@
 import { assertPin } from "@/unit-test";
-import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
+import { PathNode, GateNode, PinNode, Network, CircuitSimulation, Sequence } from "@/simulation";
 
 // Based on KD124 - 2-TO-4 LINE DECODER design:
 /*
@@ -66,31 +66,35 @@ export default async function() {
     gp1, gp2, gp3, gp4, gn1, gn2,
   ]);
 
-  const tl = new Timeline(network);
+  const sim = new CircuitSimulation(network);
 
   // Pin A
+  const seqA = new Sequence();
   for (let i = 0; i < 10; i++) {
-    tl.addKeyFrame(i * 20 + 10, pinA, true);
-    tl.addKeyFrame(i * 20 + 20, pinA, false);
+    seqA.setFrame(i * 20 + 10, true);
+    seqA.setFrame(i * 20 + 20, false);
   }
-  tl.addKeyFrame(210, pinA, true);
-  tl.addKeyFrame(240, pinA, false);
-  tl.addKeyFrame(250, pinA, true);
-  tl.addKeyFrame(260, pinA, false);
+  seqA.setFrame(210, true);
+  seqA.setFrame(240, false);
+  seqA.setFrame(250, true);
+  seqA.setFrame(260, false);
+  sim.setInputSequence(pinA, seqA);
 
   // Pin B
+  const seqB = new Sequence();
   for (let i = 0; i < 4; i++) {
-    tl.addKeyFrame(i * 40 + 20, pinB, true);
-    tl.addKeyFrame(i * 40 + 40, pinB, false);
+    seqB.setFrame(i * 40 + 20, true);
+    seqB.setFrame(i * 40 + 40, false);
   }
-  tl.addKeyFrame(190, pinB, true);
-  tl.addKeyFrame(200, pinB, false);
-  tl.addKeyFrame(220, pinB, true);
-  tl.addKeyFrame(240, pinB, false);
-  tl.addKeyFrame(260, pinB, true);
-  tl.addKeyFrame(270, pinB, false);
+  seqB.setFrame(190, true);
+  seqB.setFrame(200, false);
+  seqB.setFrame(220, true);
+  seqB.setFrame(240, false);
+  seqB.setFrame(260, true);
+  seqB.setFrame(270, false);
+  sim.setInputSequence(pinB, seqB);
 
-  tl.run(280, frame => {
+  sim.run(280, frame => {
     // Probe various frames for expected values
     switch (frame) {
       case 0:

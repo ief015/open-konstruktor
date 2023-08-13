@@ -1,4 +1,4 @@
-import { Network, PinNode, Timeline } from "@/simulation";
+import { Network, PinNode } from "@/simulation";
 import CircuitSimulation from "@/simulation/CircuitSimulation";
 import Sequence from "@/simulation/Sequence";
 

@@ -1,5 +1,5 @@
 import { assertPin } from "@/unit-test";
-import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
+import { PathNode, GateNode, PinNode, Network, CircuitSimulation, Sequence } from "@/simulation";
 
 // Based on KT141AO - 4-INPUT AND/OR GATE design:
 /*
@@ -78,59 +78,67 @@ export default async function() {
     gp1, gp2, gp3, gp4, gp5, gn1, gn2, gn3
   ]);
 
-  const tl = new Timeline(network);
+  const sim = new CircuitSimulation(network);
 
   // Pin A
+  const seqA = new Sequence();
   for (let i = 0; i < 10; i++) {
-    tl.addKeyFrame(i * 20 + 10, pinA, true);
-    tl.addKeyFrame(i * 20 + 20, pinA, false);
+    seqA.setFrame(i * 20 + 10, true);
+    seqA.setFrame(i * 20 + 20, false);
   }
-  tl.addKeyFrame(210, pinA, true);
-  tl.addKeyFrame(240, pinA, false);
-  tl.addKeyFrame(250, pinA, true);
-  tl.addKeyFrame(270, pinA, false);
+  seqA.setFrame(210, true);
+  seqA.setFrame(240, false);
+  seqA.setFrame(250, true);
+  seqA.setFrame(270, false);
+  sim.setInputSequence(pinA, seqA);
 
   // Pin B
-  tl.addKeyFrame(20, pinB, true);
-  tl.addKeyFrame(40, pinB, false);
-  tl.addKeyFrame(60, pinB, true);
-  tl.addKeyFrame(80, pinB, false);
-  tl.addKeyFrame(90, pinB, true);
-  tl.addKeyFrame(120, pinB, false);
-  tl.addKeyFrame(140, pinB, true);
-  tl.addKeyFrame(160, pinB, false);
-  tl.addKeyFrame(190, pinB, true);
-  tl.addKeyFrame(200, pinB, false);
-  tl.addKeyFrame(220, pinB, true);
-  tl.addKeyFrame(240, pinB, false);
-  tl.addKeyFrame(260, pinB, true);
-  tl.addKeyFrame(270, pinB, false);
+  const seqB = new Sequence()
+    .setFrame(20, true)
+    .setFrame(40, false)
+    .setFrame(60, true)
+    .setFrame(80, false)
+    .setFrame(90, true)
+    .setFrame(120, false)
+    .setFrame(140, true)
+    .setFrame(160, false)
+    .setFrame(190, true)
+    .setFrame(200, false)
+    .setFrame(220, true)
+    .setFrame(240, false)
+    .setFrame(260, true)
+    .setFrame(270, false);
+  sim.setInputSequence(pinB, seqB);
 
   // Pin C
-  tl.addKeyFrame(30, pinC, true);
-  tl.addKeyFrame(80, pinC, false);
-  tl.addKeyFrame(90, pinC, true);
-  tl.addKeyFrame(100, pinC, false);
-  tl.addKeyFrame(120, pinC, true);
-  tl.addKeyFrame(160, pinC, false);
-  tl.addKeyFrame(200, pinC, true);
-  tl.addKeyFrame(240, pinC, false);
-  tl.addKeyFrame(260, pinC, true);
-  tl.addKeyFrame(270, pinC, false);
+  const seqC = new Sequence()
+    .setFrame(30, true)
+    .setFrame(80, false)
+    .setFrame(90, true)
+    .setFrame(100, false)
+    .setFrame(120, true)
+    .setFrame(160, false)
+    .setFrame(200, true)
+    .setFrame(240, false)
+    .setFrame(260, true)
+    .setFrame(270, false);
+  sim.setInputSequence(pinC, seqC);
 
   // Pin D
-  tl.addKeyFrame(30, pinD, true);
-  tl.addKeyFrame(40, pinD, false);
-  tl.addKeyFrame(80, pinD, true);
-  tl.addKeyFrame(160, pinD, false);
-  tl.addKeyFrame(200, pinD, true);
-  tl.addKeyFrame(210, pinD, false);
-  tl.addKeyFrame(220, pinD, true);
-  tl.addKeyFrame(240, pinD, false);
-  tl.addKeyFrame(250, pinD, true);
-  tl.addKeyFrame(270, pinD, false);
+  const seqD = new Sequence()
+    .setFrame(30, true)
+    .setFrame(40, false)
+    .setFrame(80, true)
+    .setFrame(160, false)
+    .setFrame(200, true)
+    .setFrame(210, false)
+    .setFrame(220, true)
+    .setFrame(240, false)
+    .setFrame(250, true)
+    .setFrame(270, false);
+  sim.setInputSequence(pinD, seqD);
 
-  tl.run(280, frame => {
+  sim.run(280, frame => {
     // Probe various frames for expected values
     switch (frame) {
       case 0:

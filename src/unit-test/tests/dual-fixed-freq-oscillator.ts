@@ -1,5 +1,5 @@
 import { assertPin } from "@/unit-test";
-import { PathNode, GateNode, PinNode, Network, Timeline } from "@/simulation";
+import { PathNode, GateNode, PinNode, Network, CircuitSimulation, Sequence } from "@/simulation";
 
 // Based on KO223 - DUAL FIXED FREQUENCY OSCILLATOR design:
 /*
@@ -70,23 +70,27 @@ export default async function() {
     ...npnOscPaths
   ]);
 
-  const tl = new Timeline(network);
+  const sim = new CircuitSimulation(network);
 
   // Pin En0
-  tl.addKeyFrame(40, pinEn0, true);
-  tl.addKeyFrame(140, pinEn0, false);
-  tl.addKeyFrame(180, pinEn0, true);
-  tl.addKeyFrame(250, pinEn0, false);
+  const seqEn0 = new Sequence()
+    .setFrame(40, true)
+    .setFrame(140, false)
+    .setFrame(180, true)
+    .setFrame(250, false);
+  sim.setInputSequence(pinEn0, seqEn0);
 
   // Pin En1
-  tl.addKeyFrame(20, pinEn1, true);
-  tl.addKeyFrame(80, pinEn1, false);
-  tl.addKeyFrame(120, pinEn1, true);
-  tl.addKeyFrame(160, pinEn1, false);
-  tl.addKeyFrame(200, pinEn1, true);
-  tl.addKeyFrame(250, pinEn1, false);
+  const seqEn1 = new Sequence()
+    .setFrame(20, true)
+    .setFrame(80, false)
+    .setFrame(120, true)
+    .setFrame(160, false)
+    .setFrame(200, true)
+    .setFrame(250, false);
+  sim.setInputSequence(pinEn1, seqEn1);
 
-  tl.run(280, frame => {
+  sim.run(280, frame => {
     // Probe various frames for expected values
     switch (frame) {
       case 20:
