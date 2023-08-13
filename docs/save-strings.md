@@ -13,6 +13,7 @@ The first 4 bytes are dimensions of the layers.
 They are `04 2C 04 1B`, representing the 44 (`2C`) columns of 27 (`1B`) elements.
 
 The next 3 bytes appear to be layer markers found throughout the design data. They are `09 59 01`.
+They are a part of ActionScript's serialization process.
 See [Layers](#layers).
 
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
@@ -35,7 +36,8 @@ even though they are never changed (the only exception being the [metal horizont
 There are 9 layers in total.
 Each layer starts with a layer marker `09 59 01` as mentioned in [Format](#format).
 These layers include 2D data (in vertical columns top-bottom from left-right format).
-Each column starts with the following bytes: `09 37 01`.
+Each column starts with the following bytes: `09 37 01`. They are a part of ActionScript's
+serialization process.
 
 ## Layer 1: Silicon
 
