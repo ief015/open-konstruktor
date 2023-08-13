@@ -203,4 +203,17 @@ export default class Sequence implements Iterable<boolean> {
     return { differences: diff, ratio: 1 - (diff / max) };
   }
 
+  public toString(len: number = this.frames.length): string {
+    let str = '';
+    let state = false;
+    for (let i = 0; i < len; i++) {
+      const frame = this.frames[i];
+      if (frame !== undefined) {
+        state = frame;
+      }
+      str += state ? '1' : '0';
+    }
+    return str;
+  }
+
 }
