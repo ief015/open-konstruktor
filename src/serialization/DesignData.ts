@@ -144,6 +144,18 @@ export default class DesignData {
       && this.pinCount === 12;
   }
 
+  public getDesignScore(): number {
+    let score = 0;
+    for (let x = 0; x < this.dimensions.columns; x++) {
+      for (let y = 0; y < this.dimensions.rows; y++) {
+        this.layers[Layer.Metal][x][y] === MetalValue.Metal && score++;
+        this.layers[Layer.Silicon][x][y] !== SiliconValue.None && score++;
+      }
+    }
+    const pinScore = DEFAULT_PIN_SIZE * DEFAULT_PIN_SIZE * this.pinCount;
+    return score - pinScore;
+  }
+
   public static from(data: Buffer): DesignData {
     const cols = data.readUInt8(1);
     const rows = data.readUInt8(3);
