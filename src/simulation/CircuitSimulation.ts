@@ -36,7 +36,8 @@ export interface VerificationResultOutput {
 }
 
 export interface VerificationResult {
-  grade: number;
+  ratioAvg: number;
+  gradePercent: number;
   outputs: VerificationResultOutput[];
 }
 
@@ -161,23 +162,28 @@ export default class CircuitSimulation {
 
   public verify(method: DifferenceMethod = 'kohctpyktop'): VerificationResult {
     let sumRatio = 0;
+    let sumGrade = 0;
     const outputs: VerificationResultOutput[] = [];
-    for (const [ pin, out ] of this.outputSequences) {
-      const pinRec = this.recording.get(pin);
-      if (pinRec) {
-        const { differences, ratio } = out.getDifference(pinRec, { method })
+    for (const [ pin, expected ] of this.outputSequences) {
+      const actual = this.recording.get(pin);
+      if (actual) {
+        const { differences, ratio } = expected.getDifference(actual, { method, length: this.currentFrame });
         sumRatio += ratio;
+        sumGrade += Math.trunc(ratio * 100); // Inaccurate, but how kohctpyktop does it.
         outputs.push({
           pin,
-          expected: out,
-          actual: pinRec,
+          expected,
+          actual,
           differences,
           ratio,
         });
       }
     }
+    const ratioAvg = sumRatio / this.outputSequences.size;
+    const gradePercent = Math.trunc(sumGrade / this.outputSequences.size);
     return {
-      grade: sumRatio / this.outputSequences.size,
+      ratioAvg,
+      gradePercent,
       outputs,
     };
   }
