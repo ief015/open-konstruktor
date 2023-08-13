@@ -54,7 +54,7 @@ const evenOddPinSort = (pins: PinNode[]) => {
   });
 }
 
-export default class Circuit {
+export default class CircuitSimulation {
 
   private network: Network;
 

@@ -47,6 +47,7 @@ const evenOddPinSort = (pins: PinNode[]) => {
   });
 }
 
+/** @deprecated */
 export default class Timeline {
 
   private network: Network;
