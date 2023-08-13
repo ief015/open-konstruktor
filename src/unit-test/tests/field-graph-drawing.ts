@@ -1,5 +1,53 @@
-import FieldGraph from "@/simulation/FieldGraph";
+import { kohctpyktop } from "@/circuits/kohctpyktop";
+import { Network, FieldGraph } from "@/simulation";
 import { assertEqual } from "@/unit-test";
+
+function andGateFromString() {
+  const saveString = 'eNrtmUEOgyAQRYVhwxm8gnvP4v0v0hSNSWWkBa2W8oa4ev4wIeTzCW5wvZ+MH43rSkb1QhNG0Yz27xcHIUKECBEivEFoy4SJI72JVQ1xzu5XoCKifsfpXDLXs6HNzOsfal/prqFQaC1UEnTxh0s9Sev5I7OEQqHQtumPWCW5EQqF5mfO1qxSIq/ESKFQzDB2B1IlmwcKxSq5gL9JlVglFArVU2VFF/ATXrnDuSGkSigUmvcC/uodX3zjPsUq9e84XRdKNsGSrQWFQmN3uMSRlHoA6/zGXw==';
+  const net = Network.from(saveString);
+  const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net);
+  sim.run(280);
+  return sim.getRecordings();
+}
+
+function andGateFromDrawnField() {
+  const field = new FieldGraph();
+  field.draw('metal', [3, 8], [4, 8], [4, 9]);
+  field.draw('metal', [3, 10], [5, 10]);
+  field.draw('metal', [3, 14], [4, 14], [4, 11]);
+  field.draw('n-silicon', [4, 9], [4, 11]);
+  field.draw('p-silicon', [5, 10], [4, 10]);
+  field.placeVia([4, 9]);
+  field.placeVia([5, 10]);
+  field.placeVia([4, 11]);
+  field.draw('metal', [40, 12], [39, 12], [39, 13]);
+  field.draw('metal', [40, 14], [38, 14]);
+  field.draw('metal', [40, 18], [39, 18], [39, 15]);
+  field.draw('n-silicon', [39, 13], [39, 15]);
+  field.draw('p-silicon', [38, 14], [39, 14]);
+  field.placeVia([39, 13]);
+  field.placeVia([38, 14]);
+  field.placeVia([39, 15]);
+  const net = Network.from(field);
+  const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net);
+  sim.run(280);
+  return sim.getRecordings();
+}
+
+function testCompareStringAndDrawing() {
+  const stringRecordings = Array.from(andGateFromString().values());
+  const drawnRecordings = Array.from(andGateFromDrawnField().values());
+  for (const k in stringRecordings) {
+    const stringRecording = stringRecordings[k];
+    const drawnRecording = drawnRecordings[k];
+    const {
+      differences,
+      ratio,
+    } = stringRecording.getDifference(drawnRecording, { method: 'strict', length: 280 });
+    assertEqual(differences, 0, `testCompareStringAndDrawing[${k}]:differences`);
+    assertEqual(ratio, 1, `testCompareStringAndDrawing[${k}]:ratio`);
+  }
+}
 
 export default async function() {
 
@@ -21,6 +69,8 @@ export default async function() {
   graph.draw('n-silicon', [4, 23], [39, 23]);
   const targetAddSilicon = 'eNrtmlFy2zAMRONd/+QMvUL/e5be/yJtZIoASACULCtjO7THEycr8BEEBUFCrr+vvz7/Xj7/XK4f97zf2vCyxfCi3s1vuSHUWwwhRDSHtERc5SgzVZTJVA8U8aNO1QC2EXsfi6FMyRrGPkIWB85UYx+rYUzc5KMcstHHu3fOiBj6eGkmtdlHWVVs3KvNqnrEYRyzsyOJY3x2DH3cdz7i3vNx+jh9nD7e6ePdF9bnMHzBOmcp5xC/FpWk+zmq8vbC11FYfv7/VrnLceshWmVVUdUyyvJFRi4qWKnVtpLK6Eo1tou95jbqYiZcGTng2pG3c01UiHat4teXLTMuypwj7nq45y/qGnrrbNWeK3Lsb8pFytWbL1XddU65tx0bcpFyMYhvykXKRcpdvYr3VcJFym3OIzq2wqUTQVSuUfWsbl9PzUhZJtyUKt9O5Q/zd6pTnepB9XVSJdWX0JaqEhYTjrhSst5UWlzDJbpcS3dkh2ttW+6D1uoQ97H+5ut8IL6T+2LcmSq/SaU50fsg6tv4UjfebjWM7iVSUWrNSbHtuWbkjtsklo7bjMym1k24gzqZmb/dyIwSqcNl7q8XhzCCfFR8J/epuZyp8lvU/GqYPlUga+owVWWJY1W9SikIseIyrrIIR9XcfPNw72qkqsPN/fWqaPE3WGdu4W73d3LfiIuH7ueZKvfdVMoDZ3htjvVyqFIlTSmkmiBt1pCeUK05yYhrRu64/SVYc83IHZcpd7BWub8pd7DOR/zN1/lAfCf3xbg/pKo81G+C/eiRzX1f39WF+qPbAUejRz3utYrMVahOtO2PB9zSiwy4zLh0uN61P9iWvbrOWfcT4fS4XS4lBlGHdL3Bb/xV5YbLVedY6G/KRcpFzkXKRcpFzkXKHcV32AGPuUi5GO6rwX9WxFzs4e7ogLcqOtVmkBN73A9Jlf7nqLp60D8zlqdkJBk4JVfH7gacIqu9mzVByoFFNbbdYvYqGT/opmPrceucwd1Xw/h/hTQ39tcLgZlzI7b+MvQXB7g4xsV5XJzHxXlcPCGX5m7Hr3WpnxqcmpGSOf8D7XLOfg==';
   assertEqual(graph.toSaveString(), targetAddSilicon, 'targetAddSilicon');
+
+  testCompareStringAndDrawing();
 
 }
 
