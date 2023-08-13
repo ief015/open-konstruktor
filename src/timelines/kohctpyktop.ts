@@ -169,8 +169,12 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     sim.setInputSequence(pinB0, seqB0);
     sim.setInputSequence(pinA1, seqA1);
     sim.setInputSequence(pinB1, seqB1);
-    sim.setOutputSequence(pinY0, new Sequence().addOscillation(30, 6, 10, 30));
-    sim.setOutputSequence(pinY1, new Sequence().repeatTogglePoints(20, 2, 90, [ 0, 10, 50, 60 ]));
+    sim.setOutputSequence(pinY0, new Sequence()
+      .addOscillation(30, 6, 10, 30)
+    );
+    sim.setOutputSequence(pinY1, new Sequence()
+      .repeatTogglePoints(20, 2, 90, [ 0, 10, 50, 60 ])
+    );
     return sim;
   },
 
@@ -235,7 +239,14 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqD.addPulse(220, 20);
     seqD.addPulse(250, 20);
     sim.setInputSequence(pinD, seqD);
-    // TODO: outputs
+    // X
+    sim.setOutputSequence(pinX, new Sequence()
+      .addTogglePoints(30, 40, 90, 100, 150, 160, 220, 240, 260, 270)
+    );
+    // Y
+    sim.setOutputSequence(pinY, new Sequence()
+      .addTogglePoints(10, 160, 170, 180, 190, 240, 250, 270)
+    );
     return sim;
   },
 
@@ -266,7 +277,14 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinNC7.label = 'N/C';
     const sim = new CircuitSimulation(network);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    // TODO: outputs
+    // RST
+    const seqRST = new Sequence();
+    seqRST.addPulse(0, 10);
+    sim.setOutputSequence(pinRST, seqRST);
+    // /RST
+    const seqRRST = new Sequence();
+    seqRRST.setFrame(10, true);
+    sim.setOutputSequence(pinRRST, seqRRST);
     return sim;
   },
 
@@ -308,7 +326,16 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqEN1.addPulse(120, 40);
     seqEN1.addPulse(200, 50);
     sim.setInputSequence(pinEN1, seqEN1);
-    // TODO: outputs
+    // OSC0
+    sim.setOutputSequence(pinOSC0, new Sequence()
+      .addOscillation(40, 5, 10, 10)
+    );
+    // OSC1
+    sim.setOutputSequence(pinOSC1, new Sequence()
+      .addOscillation(20, 3, 10, 10)
+      .addOscillation(120, 2, 10, 10)
+      .addOscillation(200, 3, 10, 10)
+    );
     return sim;
   },
 
@@ -365,7 +392,14 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqR1.addPulse(220, 10);
     seqR1.addPulse(260, 10);
     sim.setInputSequence(pinR1, seqR1);
-    // TODO: outputs
+    // Q0
+    sim.setOutputSequence(pinQ0, new Sequence()
+      .addTogglePoints(10, 40, 100, 120, 170, 250)
+    );
+    // Q1
+    sim.setOutputSequence(pinQ1, new Sequence()
+      .addTogglePoints(20, 30, 60, 110, 140, 220, 240, 260)
+    );
     return sim;
   },
 
@@ -416,7 +450,14 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqT0.addPulse(240, 5);
     seqT0.addPulse(260, 5);
     sim.setInputSequence(pinT1, seqT1);
-    // TODO: outputs
+    // Q0
+    sim.setOutputSequence(pinQ0, new Sequence()
+      .addTogglePoints(10, 40, 100, 120, 170, 250)
+    );
+    // Q1
+    sim.setOutputSequence(pinQ1, new Sequence()
+      .addTogglePoints(20, 30, 60, 110, 140, 220, 240, 260)
+    );
     return sim;
   },
 
@@ -457,7 +498,25 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqS1.addPulseRange(20, 80);
     seqS1.addPulseRange(120, 160);
     seqS1.addPulseRange(200, 240);
-    // TODO: outputs
+    sim.setInputSequence(pinS1, seqS1);
+    // OSC0
+    sim.setOutputSequence(pinOSC0, new Sequence()
+      .addOscillation(0, 2, 10, 10)
+      .addOscillation(40, 10, 5, 5)
+      .addOscillation(140, 2, 10, 10)
+      .addOscillation(180, 8, 5, 5)
+      .addOscillation(260, 1, 10, 10)
+    );
+    // OSC1
+    sim.setOutputSequence(pinOSC0, new Sequence()
+      .addOscillation(0, 1, 10, 10)
+      .addOscillation(20, 6, 5, 5)
+      .addOscillation(80, 2, 10, 10)
+      .addOscillation(120, 4, 5, 5)
+      .addOscillation(160, 2, 10, 10)
+      .addOscillation(200, 4, 5, 5)
+      .addOscillation(240, 2, 10, 10)
+    );
     return sim;
   },
 
@@ -504,7 +563,28 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqB.addPulse(190, 10);
     seqB.addPulse(220, 20);
     seqB.addPulse(260, 10);
-    // TODO: outputs
+    sim.setInputSequence(pinB, seqB);
+    // Y0
+    sim.setOutputSequence(pinY0, new Sequence()
+      .addOscillation(0, 4, 10, 30)
+      .addOscillation(160, 3, 10, 10)
+      .addPulse(240, 10)
+      .addPulse(270, 10)
+    );
+    // Y1
+    sim.setOutputSequence(pinY1, new Sequence()
+      .addOscillation(10, 7, 10, 30)
+    );
+    // Y2
+    sim.setOutputSequence(pinY2, new Sequence()
+      .addOscillation(30, 4, 10, 30)
+      .addPulse(260, 10)
+    );
+    // Y3
+    sim.setOutputSequence(pinY3, new Sequence()
+      .addOscillation(30, 5, 10, 30)
+      .addPulse(220, 20)
+    );
     return sim;
   },
 
@@ -551,13 +631,30 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     // B0
     const seqB0 = new Sequence();
     seqB0.addOscillation(40, 3, 40, 40);
+    sim.setInputSequence(pinB0, seqB0);
     // B1
     const seqB1 = new Sequence();
     seqB1.addPulseRange(80, 160);
     seqB1.addPulse(200, 10);
     seqB1.addPulse(220, 10);
     seqB1.addPulse(250, 20);
-    // TODO: outputs
+    sim.setInputSequence(pinB1, seqB1);
+    // S0
+    sim.setOutputSequence(pinS0, new Sequence()
+      .repeatTogglePoints(10, 2, 20, [0, 10, 20, 40, 50, 60])
+      .addTogglePoints(170, 180, 190, 210, 250, 260)
+    );
+    // S1
+    sim.setOutputSequence(pinS1, new Sequence()
+      .addOscillation(20, 3, 20, 10)
+      .addOscillation(120, 2, 10, 20)
+      .addTogglePoints(190, 230, 250, 260)
+    );
+    // C
+    sim.setOutputSequence(pinC, new Sequence()
+      .addTogglePoints(70, 80, 100, 120, 130, 160)
+      .addTogglePoints(220, 240, 260, 270)
+    );
     return sim;
   },
 
@@ -596,7 +693,10 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqIN.addOscillation(200, 3, 5, 5);
     seqIN.addPulse(250, 5);
     sim.setInputSequence(pinIN, seqIN);
-    // TODO: outputs
+    // OUT
+    sim.setOutputSequence(pinOUT, new Sequence()
+      .addTogglePoints(10, 30, 50, 70, 120, 160, 200, 220)
+    );
     return sim;
   },
 
@@ -668,7 +768,12 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqS1.addPulse(220, 20);
     seqS1.addPulse(260, 10);
     sim.setInputSequence(pinS1, seqS1);
-    // TODO: outputs
+    // Z
+    sim.setOutputSequence(pinZ, new Sequence()
+      .addTogglePoints(10, 20, 30, 40, 60, 70)
+      .addTogglePoints(110, 120, 140, 160)
+      .addTogglePoints(200, 210, 220, 230, 250, 270)
+    );
     return sim;
   },
 
@@ -710,7 +815,24 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqINC.addOscillation(20, 15, 5, 5);
     seqINC.addOscillation(210, 3, 5, 5);
     sim.setInputSequence(pinINC, seqINC);
-    // TODO: outputs
+    // Y0
+    sim.setOutputSequence(pinY0, new Sequence()
+      .addOscillation(20, 7, 10, 10)
+      .addTogglePoints(160, 190, 210, 220, 230, 260)
+    );
+    // Y1
+    sim.setOutputSequence(pinY1, new Sequence()
+      .addOscillation(30, 3, 20, 20)
+      .addTogglePoints(150, 190, 220, 260)
+    );
+    // Y2
+    sim.setOutputSequence(pinY1, new Sequence()
+      .addTogglePoints(50, 90, 130, 190)
+    );
+    // Y3
+    sim.setOutputSequence(pinY1, new Sequence()
+      .addTogglePoints(90, 190)
+    );
     return sim;
   },
 
@@ -750,7 +872,26 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqCLK.addOscillation(20, 15, 5, 5);
     seqCLK.addOscillation(210, 3, 5, 5);
     sim.setInputSequence(pinCLK, seqCLK);
-    // TODO: outputs
+    // Q0
+    sim.setOutputSequence(pinQ0, new Sequence()
+      .repeatTogglePoints(20, 1, 0, [0, 20, 30, 40, 60, 70, 90, 120])
+      .addTogglePoints(160, 210, 220, 230)
+    );
+    // Q1
+    sim.setOutputSequence(pinQ1, new Sequence()
+      .repeatTogglePoints(30, 1, 0, [0, 20, 30, 40, 60, 70, 90, 120])
+      .addTogglePoints(210, 220, 230)
+    );
+    // Q2
+    sim.setOutputSequence(pinQ2, new Sequence()
+      .repeatTogglePoints(40, 1, 0, [0, 20, 30, 40, 60, 70, 90, 120])
+      .addPulse(220, 10)
+    );
+    // Q3
+    sim.setOutputSequence(pinQ3, new Sequence()
+      .repeatTogglePoints(50, 1, 0, [0, 20, 30, 40, 60, 70])
+      .addTogglePoints(140, 210, 230)
+    );
     return sim;
   },
 
@@ -831,7 +972,12 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqDin.addPulse(110, 10);
     seqDin.addPulse(140, 10);
     sim.setInputSequence(pinDin, seqDin);
-    // TODO: outputs
+    // Dout
+    sim.setOutputSequence(pinDout, new Sequence()
+      .addPulse(130, 10)
+      .addPulse(160, 10)
+      .addPulse(200, 30)
+    );
     return sim;
   },
 
@@ -892,7 +1038,18 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     const seqF1 = new Sequence();
     seqF1.setFrame(140, true);
     sim.setInputSequence(pinF1, seqF1);
-    // TODO: outputs
+    // C0
+    sim.setOutputSequence(pinC0, new Sequence()
+      .addTogglePoints(60, 70, 80, 100, 120, 140, 150, 170)
+      .addTogglePoints(190, 200, 210, 220, 230, 260)
+    );
+    // C1
+    sim.setOutputSequence(pinC1, new Sequence()
+      .addPulse(30, 10)
+      .addPulse(60, 10)
+      .addPulse(100, 40)
+      .addTogglePoints(180, 200, 210, 240, 250, 270)
+    );
     return sim;
   },
 
@@ -945,7 +1102,21 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqCLK.addOscillation(10, 11, 5, 5);
     seqCLK.addPulse(210, 5);
     sim.setInputSequence(pinCLK, seqCLK);
-    // TODO: outputs
+    // OUT0
+    sim.setOutputSequence(pinOUT0, new Sequence()
+      .addTogglePoints(20, 40, 50, 60, 80, 90, 100, 130)
+      .addTogglePoints(140, 150, 160, 170, 180, 210, 230, 240, 260, 270)
+    );
+    // OUT1
+    sim.setOutputSequence(pinOUT1, new Sequence()
+      .addTogglePoints(30, 50, 60, 70, 80, 90, 110, 130)
+      .addTogglePoints(150, 180, 200, 230, 260)
+    );
+    // OUT2
+    sim.setOutputSequence(pinOUT2, new Sequence()
+      .addTogglePoints(40, 60, 70, 80, 100, 110)
+      .addTogglePoints(140, 170, 190, 200, 210, 240, 250)
+    );
     return sim;
   },
 
@@ -986,7 +1157,28 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqDEC.addOscillation(170, 3, 5, 5);
     seqDEC.addOscillation(230, 3, 5, 5);
     sim.setInputSequence(pinDEC, seqDEC);
-    // TODO: outputs
+    // LOW
+    sim.setOutputSequence(pinLOW, new Sequence()
+      .addTogglePoints(100, 150)
+    );
+    // Y0
+    sim.setOutputSequence(pinY0, new Sequence()
+      .addOscillation(20, 6, 10, 10)
+      .addTogglePoints(170, 180, 190, 210, 230, 240, 250)
+    );
+    // Y1
+    sim.setOutputSequence(pinY1, new Sequence()
+      .addOscillation(20, 3, 20, 20)
+      .addOscillation(170, 2, 20, 40)
+    );
+    // Y2
+    sim.setOutputSequence(pinY2, new Sequence()
+      .addTogglePoints(0, 20, 60, 100, 150, 170, 210, 230)
+    );
+    // Y3
+    sim.setOutputSequence(pinY3, new Sequence()
+      .addTogglePoints(0, 60, 150)
+    );
     return sim;
   },
 
@@ -1025,7 +1217,27 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     const seqLOCK = new Sequence();
     seqLOCK.addTogglePoints(150, 180, 210, 230);
     sim.setInputSequence(pinLOCK, seqLOCK);
-    // TODO: outputs
+    // TRIG
+    sim.setOutputSequence(pinTRIG, new Sequence()
+      .addOscillation(32, 8, 5, 5)
+      .addOscillation(132, 2, 5, 5)
+      .addOscillation(182, 3, 5, 5)
+      .addOscillation(232, 2, 5, 5)
+    );
+    // A+/-
+    sim.setOutputSequence(pinA, new Sequence()
+      .addTogglePoints(0, 30, 50, 70, 90, 130, 180, 200, 240)
+    );
+    sim.setOutputSequence(pinAN, new Sequence()
+      .addTogglePoints(30, 50, 70, 90, 130, 180, 200, 240)
+    );
+    // B+/-
+    sim.setOutputSequence(pinB, new Sequence()
+      .addTogglePoints(0, 40, 60, 80, 100, 140, 190, 230)
+    );
+    sim.setOutputSequence(pinBN, new Sequence()
+      .addTogglePoints(40, 60, 80, 100, 140, 190, 230)
+    );
     return sim;
   },
 
