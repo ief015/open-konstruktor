@@ -41,11 +41,13 @@ const evenOddPinSort = (pins: PinNode[]) => {
   });
 }
 
-export default class Simulator {
+export default class Circuit {
 
   private network: Network;
 
-  private sequences: Sequences = new Map();
+  private inputSequences: Sequences = new Map();
+  private outputSequences: Sequences = new Map();
+  private sequenceLength: number = 0;
 
   private currentFrame: number = 0;
   private recording: Recording = new Map();
@@ -56,14 +58,14 @@ export default class Simulator {
   }
 
   public run(
-    length: number = this.getSequenceLength(),
+    length: number = this.sequenceLength,
     onPostStep?: (frame: number) => void,
     record: boolean = true
   ) {
     this.network.reset();
     record && this.clearRecordings();
     for (this.currentFrame = 0; this.currentFrame < length; this.currentFrame++) {
-      for (const [ pin, sequence ] of this.sequences) {
+      for (const [ pin, sequence ] of this.inputSequences) {
         const state = sequence.getFrames()[this.currentFrame];
         if (state !== undefined) {
           pin.active = state;
@@ -84,8 +86,7 @@ export default class Simulator {
   }
 
   public getSequenceLength(): number {
-    const lengths = [ ...this.sequences.values() ].map(s => s.getLength());
-    return lengths.length > 0 ? Math.max(...lengths) : 0;
+    return this.sequenceLength;
   }
 
   public getRecordingLength(): number {
@@ -94,6 +95,22 @@ export default class Simulator {
 
   public getRecordings(): Readonly<Recording> {
     return this.recording;
+  }
+
+  private updateSequenceLength() {
+    const inputLengths = [ ...this.inputSequences.values() ].map(s => s.getLength());
+    const outputLengths = [ ...this.outputSequences.values() ].map(s => s.getLength());
+    this.sequenceLength = Math.max(...inputLengths, ...outputLengths, 0);
+  }
+
+  public setInputSequence(pin: PinNode, sequence: Sequence) {
+    this.inputSequences.set(pin, sequence);
+    this.updateSequenceLength();
+  }
+
+  public setOutputSequence(pin: PinNode, sequence: Sequence) {
+    this.outputSequences.set(pin, sequence);
+    this.updateSequenceLength();
   }
 
   public clearRecordings() {
@@ -123,7 +140,7 @@ export default class Simulator {
       lowSymbol = '-',
       showLabels = true,
       pinOrder = 'none',
-      padding = 0,
+      padding = 1,
       horizontal = false,
       filter,
     } = options;
@@ -150,10 +167,11 @@ export default class Simulator {
         console.log(line);
       }
     } else {
+      const sPadding = ' '.repeat(padding);
       const maxLengthName = Math.max(...sortedPins.map(p => p.label.length), String(this.recordingLength).length);
       if (showLabels) {
         const pinNames = sortedPins.map(p => p.label.padStart(maxLengthName));
-        console.log([' '.repeat(maxLengthName), ...pinNames].join(' '));
+        console.log([' '.repeat(maxLengthName), ...pinNames].join(sPadding));
       }
       const currentStates = new Map<PinNode, boolean>();
       for (const pin of sortedPins) {
@@ -164,13 +182,13 @@ export default class Simulator {
         const pinStates = sortedPins.map(p => {
           const s = this.recording.get(p)?.getFrames()[frame];
           if (s !== undefined) {
-            currentStates.set(p, !!s);
-            return !!s;
+            currentStates.set(p, s);
+            return s;
           }
           return currentStates.get(p) ?? false;
         });
-        const sLine = pinStates.map(s => (s ? highSymbol : lowSymbol).padStart(maxLengthName)).join(' ');
-        console.log(`${sFrame} ${sLine}`);
+        const sLine = [sFrame, ...pinStates.map(s => (s ? highSymbol : lowSymbol).padStart(maxLengthName))].join(sPadding);
+        console.log(`${sLine}`);
       }
     }
   }
@@ -205,7 +223,7 @@ export default class Simulator {
           let lastState = false;
           const pinRec = this.recording.get(pin)?.getFrames();
           for (let frame = 0; frame < this.recordingLength; frame++) {
-            const state: boolean = (pinRec?.[frame] === undefined) ? !!lastState : !!(pinRec[frame]);
+            const state: boolean = (pinRec?.[frame] === undefined) ? lastState : !!(pinRec[frame]);
             if (state !== lastState) {
               line += isTop ? (state ? '┌' : '┐') : (state ? '┘' : '└');
               lastState = state;
@@ -227,22 +245,26 @@ export default class Simulator {
         const pinNames = sortedPins.map(p => p.label.padEnd(maxLengthName));
         console.log([' '.repeat(maxLengthName), ...pinNames].join(sPadding));
       }
-      const currentStates = new Map<PinNode, boolean>();
+      const pinStates = new Map<PinNode, { cur: boolean, prev: boolean }>();
       for (const pin of sortedPins) {
-        currentStates.set(pin, false);
+        pinStates.set(pin, { cur: false, prev: false });
       }
       for (let frame = 0; frame < this.recordingLength; frame++) {
         let line = '';
         line += `${frame}`.padStart(maxLengthName) + sPadding;
         for (const pin of sortedPins) {
-          const state = !!(this.recording.get(pin)?.getFrames()[frame]);
-          const lastState = !!currentStates.get(pin);
-          if (state !== lastState) {
-            line += (state ? '└┐' : '┌┘').padEnd(maxLengthName) + sPadding;
-          } else {
-            line += (state ? '┆│' : '│ ').padEnd(maxLengthName) + sPadding;
+          const states = pinStates.get(pin)!;
+          const frameState = this.recording.get(pin)?.getFrames()[frame];
+          if (frameState !== undefined) {
+            states.cur = frameState;
           }
-          currentStates.set(pin, state)
+          const { cur, prev } = states;
+          if (cur !== prev) {
+            line += (cur ? '└┐' : '┌┘').padEnd(maxLengthName) + sPadding;
+          } else {
+            line += (cur ? '┆│' : '│ ').padEnd(maxLengthName) + sPadding;
+          }
+          states.prev = cur;
         }
         console.log(line);
       }

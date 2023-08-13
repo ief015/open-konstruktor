@@ -354,4 +354,39 @@ export default class FieldGraph {
     return graph;
   }
 
+  public getDesignScore(): number {
+    return 0;
+    // TODO: The sum of metal and silicon tiles, minus the pin tiles
+    /*
+      
+      public function ScoreDesign() : int
+      {
+         var _loc1_:int = 0;
+         var _loc2_:int = 0;
+         var _loc3_:int = 0;
+         _loc3_ = 0;
+         _loc1_ = 0;
+         while(_loc1_ < width)
+         {
+            _loc2_ = 0;
+            while(_loc2_ < height)
+            {
+               if(silicon[_loc1_][_loc2_] != SILICON_NONE)
+               {
+                  _loc3_ = _loc3_ + 1;
+               }
+               if(metal[_loc1_][_loc2_])
+               {
+                  _loc3_ = _loc3_ + 1;
+               }
+               _loc2_++;
+            }
+            _loc1_++;
+         }
+         return _loc3_ - 108;
+      }
+      
+    */
+  }
+
 }
