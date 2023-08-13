@@ -1,6 +1,6 @@
 import Network from "@/simulation/Network";
 import PinNode from "@/simulation/PinNode";
-import Sequence from "@/simulation/Sequence";
+import Sequence, { DifferenceMethod } from "@/simulation/Sequence";
 
 export type PrintPinOrdering = 'none' | 'even-odd';
 export type PinFilter = (id: number, pin: PinNode) => boolean;
@@ -26,6 +26,19 @@ export interface PrintRecordingScopeOptions {
 
 export type Sequences = Map<PinNode, Sequence>;
 export type Recording = Map<PinNode, Sequence>;
+
+export interface VerificationResultOutput {
+  pin: PinNode;
+  expected: Sequence;
+  actual: Sequence;
+  differences: number;
+  ratio: number;
+}
+
+export interface VerificationResult {
+  grade: number;
+  outputs: VerificationResultOutput[];
+}
 
 const evenOddPinSort = (pins: PinNode[]) => {
   pins.sort((a, b) => {
@@ -132,6 +145,29 @@ export default class Circuit {
       }
     }
     this.recordingLength = Math.max(this.recordingLength, frame + 1);
+  }
+
+  public verify(method: DifferenceMethod = 'kohctpyktop'): VerificationResult {
+    let sumRatio = 0;
+    const outputs: VerificationResultOutput[] = [];
+    for (const [ pin, out ] of this.outputSequences) {
+      const pinRec = this.recording.get(pin);
+      if (pinRec) {
+        const { differences, ratio } = out.getDifference(pinRec, { method })
+        sumRatio += ratio;
+        outputs.push({
+          pin,
+          expected: out,
+          actual: pinRec,
+          differences,
+          ratio,
+        });
+      }
+    }
+    return {
+      grade: sumRatio / this.outputSequences.size,
+      outputs,
+    };
   }
 
   public printHistory(options: PrintRecordingOptions = {}) {
