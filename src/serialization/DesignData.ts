@@ -179,7 +179,7 @@ export default class DesignData {
             if (val == 0x04) {
               // Compensate possible bug with metal layer during export from original game.
               // Replace `04 00` with `02`
-              // See SAVE-STRINGS.md#layer-2-metal
+              // See docs/save-strings.md#layer-2-metal
               column[row] = 0x02;
               offset += 2;
               continue;
