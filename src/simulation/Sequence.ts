@@ -18,6 +18,12 @@ export default class Sequence implements Iterable<boolean> {
 
   private frames: SequenceFrames = [];
 
+  constructor(frames?: SequenceFrames) {
+    if (frames) {
+      this.applyFrames(frames);
+    }
+  }
+
   public [Symbol.iterator](): Iterator<boolean, any, undefined> {
     let frame = 0;
     let state = false;
@@ -214,6 +220,25 @@ export default class Sequence implements Iterable<boolean> {
       str += state ? '1' : '0';
     }
     return str;
+  }
+
+  /**
+   * Builds a sequence from an array of booleans.
+   * If a sparse array is provided, then gaps will be assumed to be previous state.
+   */
+  public static from(states: boolean[]): Sequence {
+    const seq = new Sequence();
+    let last: boolean|undefined = undefined;
+    for (const frame in states) {
+      const state = states[frame];
+      //if (state !== undefined) { // Shouldn't be necessary if ts does it's job.
+        if (state !== last) {
+          seq.frames[frame] = state;
+          last = state;
+        }
+      //}
+    }
+    return seq;
   }
 
 }
