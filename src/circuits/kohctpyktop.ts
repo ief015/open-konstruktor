@@ -39,10 +39,7 @@ type KOHCTPYKTOPLevelName =
       pinNC6, pinNC7,
       pinVCC2, pinVCC3,
     ] = pins;
-    pinVCC0.label = 'VCC';
-    pinVCC1.label = 'VCC';
-    pinVCC2.label = 'VCC';
-    pinVCC3.label = 'VCC';
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     pinNC0.label = 'N/C';
     pinNC1.label = 'N/C';
     pinNC2.label = 'N/C';
@@ -51,10 +48,9 @@ type KOHCTPYKTOPLevelName =
     pinNC5.label = 'N/C';
     pinNC6.label = 'N/C';
     pinNC7.label = 'N/C';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    // tl.addPulse(10, 10, pinNC0);
-    return tl;
+    const sim = new CircuitSimulation(network);
+    // Add I/O sequences...
+    return sim;
   },
 
 */
