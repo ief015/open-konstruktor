@@ -10,6 +10,7 @@ import serialization from "@/unit-test/tests/serialization";
 import serializationMetalBug from "@/unit-test/tests/serialization-metal-bug";
 import fieldGraphDrawing from "@/unit-test/tests/field-graph-drawing";
 import andOrGateImported from "@/unit-test/tests/4-input-and-or-gate-imported";
+import verificationKohctpyktop from "@/unit-test/tests/verification-kohctpyktop";
 
 const tests: Record<string, UnitTest> = {
   npn,
@@ -22,6 +23,7 @@ const tests: Record<string, UnitTest> = {
   serializationMetalBug,
   fieldGraphDrawing,
   andOrGateImported,
+  verificationKohctpyktop,
 };
 
 export default tests;

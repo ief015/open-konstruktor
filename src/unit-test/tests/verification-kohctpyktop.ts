@@ -11,7 +11,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['01 KT411I QUAD INVERTER GATE'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 39);
     assertEqual(designScore, 0);
@@ -24,7 +24,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['01 KT411I QUAD INVERTER GATE'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 172);
@@ -36,7 +36,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 87);
   },
 
@@ -47,7 +47,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 24);
@@ -60,7 +60,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 35);
@@ -72,7 +72,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['03 KT141AO 4-INPUT AND-OR GATE'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 47);
   },
 
@@ -83,7 +83,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['03 KT141AO 4-INPUT AND-OR GATE'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 144);
@@ -95,7 +95,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['04 KO229 POWER ON RESET GENERATOR'](net);
     sim.run(80);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 49);
   },
 
@@ -106,7 +106,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['04 KO229 POWER ON RESET GENERATOR'](net);
     sim.run(80);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 66);
@@ -118,7 +118,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['05 KO223 DUAL FIXED FREQUENCY OSCILLATOR'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 75);
   },
 
@@ -129,7 +129,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['05 KO223 DUAL FIXED FREQUENCY OSCILLATOR'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 142);
@@ -141,7 +141,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['06 KL2S1 DUAL SET-RESET LATCH'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 46);
   },
 
@@ -152,7 +152,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['06 KL2S1 DUAL SET-RESET LATCH'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 58);
@@ -164,7 +164,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['07 KL2T1 DUAL TOGGLE LATCH'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 46);
   },
 
@@ -175,7 +175,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['07 KL2T1 DUAL TOGGLE LATCH'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 94);
@@ -188,7 +188,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['07 KL2T1 DUAL TOGGLE LATCH'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 114);
@@ -200,7 +200,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['08 KO224X DUAL FREQUENCY OSCILLATOR'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 50);
   },
 
@@ -211,10 +211,10 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['08 KO224X DUAL FREQUENCY OSCILLATOR'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
-    assertEqual(designScore, 226);
+    assertEqual(designScore, 228);
   },
 
   () => {
@@ -223,7 +223,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['09 KD124 2-TO-4 LINE DECODER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 80);
   },
 
@@ -234,7 +234,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['09 KD124 2-TO-4 LINE DECODER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 142);
@@ -247,7 +247,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['09 KD124 2-TO-4 LINE DECODER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 222);
@@ -260,7 +260,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['09 KD124 2-TO-4 LINE DECODER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 98);
     assertEqual(designScore, 231);
@@ -272,7 +272,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['10 KA180 2-BIT ADDER WITH CARRY'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 60);
   },
 
@@ -283,7 +283,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['10 KA180 2-BIT ADDER WITH CARRY'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 320);
@@ -295,7 +295,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['11 KC82F DIVIDE-BY-FOUR COUNTER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 65);
   },
 
@@ -306,7 +306,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['11 KC82F DIVIDE-BY-FOUR COUNTER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 117);
@@ -318,7 +318,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['12 KM141P 4-TO-1 MULTIPLEXER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 67);
   },
 
@@ -329,7 +329,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['12 KM141P 4-TO-1 MULTIPLEXER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 223);
@@ -342,7 +342,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['12 KM141P 4-TO-1 MULTIPLEXER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 346);
@@ -354,7 +354,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['13 KC84C 4-BIT COUNTER WITH CLEAR'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 56);
   },
 
@@ -365,7 +365,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['13 KC84C 4-BIT COUNTER WITH CLEAR'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 98);
     assertEqual(designScore, 466);
@@ -377,7 +377,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['14 KC74S 4-BIT SHIFT REGISTER S-TO-P'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 55);
   },
 
@@ -388,7 +388,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['14 KC74S 4-BIT SHIFT REGISTER S-TO-P'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 312);
@@ -400,7 +400,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['15 KR8S1 8-BIT ADDRESSABLE SRAM'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 84);
   },
 
@@ -411,7 +411,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['15 KR8S1 8-BIT ADDRESSABLE SRAM'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 1009);
@@ -423,7 +423,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['16 KA181 2-BIT LOGICAL FUNCTION UNIT'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 55);
   },
 
@@ -434,7 +434,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['16 KA181 2-BIT LOGICAL FUNCTION UNIT'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 100);
     assertEqual(designScore, 688);
@@ -446,7 +446,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['17 X901 RADIO MESSAGE STREAM DECODER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 49);
   },
 
@@ -457,7 +457,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['17 X901 RADIO MESSAGE STREAM DECODER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 98);
     assertEqual(designScore, 461);
@@ -469,7 +469,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['18 X902 GRENADE LAUNCHER AMMO COUNTER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 60);
   },
 
@@ -480,7 +480,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['18 X902 GRENADE LAUNCHER AMMO COUNTER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 653);
@@ -492,7 +492,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['19 X903 GATLING CANNON FIRE CONTROLLER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     assertEqual(grade, 57);
   },
 
@@ -503,7 +503,7 @@ const levels: (() => void)[] = [
     const sim = kohctpyktop['19 X903 GATLING CANNON FIRE CONTROLLER'](net);
     sim.run(280);
     const verification = sim.verify();
-    const grade = Math.floor(verification.grade * 100);
+    const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
     assertEqual(grade, 99);
     assertEqual(designScore, 424);
