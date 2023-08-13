@@ -116,12 +116,24 @@ export default class CircuitSimulation {
     this.sequenceLength = Math.max(...inputLengths, ...outputLengths, 0);
   }
 
-  public setInputSequence(pin: PinNode, sequence: Sequence) {
+  public setInputSequence(pin: PinNode|number, sequence: Sequence) {
+    if (typeof pin === 'number') {
+      pin = this.network.getPinNodes()[pin];
+      if (!pin) {
+        throw new Error(`Pin ${pin} does not exist`);
+      }
+    }
     this.inputSequences.set(pin, sequence);
     this.updateSequenceLength();
   }
 
-  public setOutputSequence(pin: PinNode, sequence: Sequence) {
+  public setOutputSequence(pin: PinNode|number, sequence: Sequence) {
+    if (typeof pin === 'number') {
+      pin = this.network.getPinNodes()[pin];
+      if (!pin) {
+        throw new Error(`Pin ${pin} does not exist`);
+      }
+    }
     this.outputSequences.set(pin, sequence);
     this.updateSequenceLength();
   }
