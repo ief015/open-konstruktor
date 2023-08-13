@@ -184,7 +184,7 @@ export default class Sequence implements Iterable<boolean> {
         break;
       case 'kohctpyktop':
         for (let i = 2; i < length - 2; i++) {
-          const thisState = this.probe(offsetOther + i);
+          const thisState = this.probe(offsetThis + i);
           if (
             this.probe(offsetThis + i - 1) == thisState &&
             this.probe(offsetThis + i - 2) == thisState &&
@@ -192,7 +192,7 @@ export default class Sequence implements Iterable<boolean> {
             this.probe(offsetThis + i + 1) == thisState
           ) {
             max++;
-            if (other.probe(offsetThis + i) != thisState) {
+            if (other.probe(offsetOther + i) != thisState) {
               diff++;
             }
           }
