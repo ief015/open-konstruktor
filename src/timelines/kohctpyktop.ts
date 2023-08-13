@@ -1,25 +1,27 @@
-import { Network, Timeline } from "@/simulation";
+import { Network, PinNode, Timeline } from "@/simulation";
+import CircuitSimulation from "@/simulation/CircuitSimulation";
+import Sequence from "@/simulation/Sequence";
 
 type KOHCTPYKTOPLevelName =
-  '01 KT411I QUAD INVERTER GATE' |
-  '02 KT221A DUAL 2-INPUT AND GATE' |
-  '03 KT141AO 4-INPUT AND-OR GATE' |
-  '04 KO229 POWER ON RESET GENERATOR' |
-  '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR' |
-  '06 KL2S1 DUAL SET-RESET LATCH' |
-  '07 KL2T1 DUAL TOGGLE LATCH' |
-  '08 KO224X DUAL FREQUENCY OSCILLATOR' |
-  '09 KD124 2-TO-4 LINE DECODER' |
-  '10 KA180 2-BIT ADDER WITH CARRY' |
-  '11 KC82F DIVIDE-BY-FOUR COUNTER' |
-  '12 KM141P 4-TO-1 MULTIPLEXER' |
-  '13 KC84C 4-BIT COUNTER WITH CLEAR' |
-  '14 KC74S 4-BIT SHIFT REGISTER S-TO-P' |
-  '15 KR8S1 8-BIT ADDRESSABLE SRAM' |
-  '16 KA181 2-BIT LOGICAL FUNCTION UNIT' |
-  '17 X901 RADIO MESSAGE STREAM DECODER' |
-  '18 X902 GRENADE LAUNCHER AMMO COUNTER' |
-  '19 X903 GATLING CANNON FIRE CONTROLLER';
+    '01 KT411I QUAD INVERTER GATE'
+  | '02 KT221A DUAL 2-INPUT AND GATE'
+  | '03 KT141AO 4-INPUT AND-OR GATE'
+  | '04 KO229 POWER ON RESET GENERATOR'
+  | '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR'
+  | '06 KL2S1 DUAL SET-RESET LATCH'
+  | '07 KL2T1 DUAL TOGGLE LATCH'
+  | '08 KO224X DUAL FREQUENCY OSCILLATOR'
+  | '09 KD124 2-TO-4 LINE DECODER'
+  | '10 KA180 2-BIT ADDER WITH CARRY'
+  | '11 KC82F DIVIDE-BY-FOUR COUNTER'
+  | '12 KM141P 4-TO-1 MULTIPLEXER'
+  | '13 KC84C 4-BIT COUNTER WITH CLEAR'
+  | '14 KC74S 4-BIT SHIFT REGISTER S-TO-P'
+  | '15 KR8S1 8-BIT ADDRESSABLE SRAM'
+  | '16 KA181 2-BIT LOGICAL FUNCTION UNIT'
+  | '17 X901 RADIO MESSAGE STREAM DECODER'
+  | '18 X902 GRENADE LAUNCHER AMMO COUNTER'
+  | '19 X903 GATLING CANNON FIRE CONTROLLER';
 
 
 /*
@@ -57,9 +59,16 @@ type KOHCTPYKTOPLevelName =
 
 */
 
-type TimelineBuilder<T extends string|number|symbol> = Record<T, (network: Network) => Timeline>
+type CircuitBuilder<T extends string|number|symbol> = Record<T, (network: Network) => CircuitSimulation>
 
-const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
+const assignVCC = (...pins: PinNode[]) => {
+  pins.forEach((pin) => {
+    pin.label = 'VCC';
+    pin.active = true;
+  });
+}
+
+const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
 
   '01 KT411I QUAD INVERTER GATE': (network) => {
     const pins = network.getPinNodes();
@@ -74,10 +83,7 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
       pinA3, pinY3,
       pinVCC2, pinVCC3,
     ] = pins;
-    pinVCC0.label = 'VCC';
-    pinVCC1.label = 'VCC';
-    pinVCC2.label = 'VCC';
-    pinVCC3.label = 'VCC';
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     pinA0.label = 'A0';
     pinY0.label = 'Y0';
     pinA1.label = 'A1';
@@ -86,23 +92,33 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinA3.label = 'A3';
     pinY3.label = 'Y3';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    for (let i = 0; i < 14; i++) {
-      tl.addPulse(i*20, 10, pinA0);
-    }
-    for (let i = 0; i < 9; i++) {
-      tl.addPulse(i*30, 10, pinA1);
-    }
-    for (let i = 0; i < 7; i++) {
-      tl.addPulse(i*40, 10, pinA2);
-    }
-    for (let i = 0; i < 5; i++) {
-      tl.addPulse(i*50, 10, pinA3);
-      tl.addPulse(i*50 + 20, 20, pinA3);
-    }
-    tl.addPulse(250, 20, pinA3);
-    return tl;
+    const sim = new CircuitSimulation(network);
+    const seqA0 = new Sequence()
+      .addOscillation(0, 14, 10, 10);
+    const seqA1 = new Sequence()
+      .addOscillation(0, 9, 10, 20);
+    const seqA2 = new Sequence()
+      .addOscillation(0, 7, 10, 30);
+    const seqA3 = new Sequence()
+      .repeatTogglePoints(0, 5, 10, [ 0, 10, 20, 40 ])
+      .addPulse(250, 20);
+    const seqY0 = new Sequence()
+      .applyFrames(seqA0.getFrames().map(s => !s));
+    const seqY1 = new Sequence()
+      .applyFrames(seqA1.getFrames().map(s => !s));
+    const seqY2 = new Sequence()
+      .applyFrames(seqA2.getFrames().map(s => !s));
+    const seqY3 = new Sequence()
+      .applyFrames(seqA3.getFrames().map(s => !s));
+    sim.setInputSequence(pinA0, seqA0);
+    sim.setInputSequence(pinA1, seqA1);
+    sim.setInputSequence(pinA2, seqA2);
+    sim.setInputSequence(pinA3, seqA3);
+    sim.setOutputSequence(pinY0, seqY0);
+    sim.setOutputSequence(pinY1, seqY1);
+    sim.setOutputSequence(pinY2, seqY2);
+    sim.setOutputSequence(pinY3, seqY3);
+    return sim;
   },
 
   '02 KT221A DUAL 2-INPUT AND GATE': (network) => {
@@ -130,22 +146,32 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinB1.label = 'B1';
     pinNC0.label = 'N/C';
     pinNC1.label = 'N/C';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const seqA0 = new Sequence();
     for (let i = 0; i < 13; i++) {
-      tl.addPulse(i*20 + 10, 10, pinA0);
+      seqA0.addPulse(i*20 + 10, 10);
     }
+    const seqB0 = new Sequence();
     for (let i = 0; i < 6; i++) {
-      tl.addPulse(i*40 + 20, 20, pinB0);
+      seqB0.addPulse(i*40 + 20, 20);
     }
-    tl.addPulse(260, 10, pinB0);
+    seqB0.addPulse(260, 10);
+    const seqA1 = new Sequence();
     for (let i = 0; i < 9; i++) {
-      tl.addPulse(i*30 + 10, 20, pinA1);
+      seqA1.addPulse(i*30 + 10, 20);
     }
+    const seqB1 = new Sequence();
     for (let i = 0; i < 5; i++) {
-      tl.addPulse(i*50 + 20, 10, pinB1);
+      seqB1.addPulse(i*50 + 20, 10);
     }
-    return tl;
+    sim.setInputSequence(pinA0, seqA0);
+    sim.setInputSequence(pinB0, seqB0);
+    sim.setInputSequence(pinA1, seqA1);
+    sim.setInputSequence(pinB1, seqB1);
+    sim.setOutputSequence(pinY0, new Sequence().addOscillation(30, 6, 10, 30));
+    sim.setOutputSequence(pinY1, new Sequence().repeatTogglePoints(20, 2, 90, [ 0, 10, 50, 60 ]));
+    return sim;
   },
 
   '03 KT141AO 4-INPUT AND-OR GATE': (network) => {
@@ -173,35 +199,44 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinD.label = 'D';
     pinX.label = 'X';
     pinY.label = 'Y';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A
+    const seqA = new Sequence();
     for (let i = 0; i < 10; i++) {
-      tl.addPulse(i*20 + 10, 10, pinA);
+      seqA.addPulse(i*20 + 10, 10);
     }
-    tl.addPulse(210, 30, pinA);
-    tl.addPulse(250, 20, pinA);
+    seqA.addPulse(210, 30);
+    seqA.addPulse(250, 20);
+    sim.setInputSequence(pinA, seqA);
     // B
-    tl.addPulse(20, 20, pinB);
-    tl.addPulse(60, 20, pinB);
-    tl.addPulse(90, 30, pinB);
-    tl.addPulse(140, 20, pinB);
-    tl.addPulse(190, 10, pinB);
-    tl.addPulse(220, 20, pinB);
-    tl.addPulse(260, 10, pinB);
+    const seqB = new Sequence();
+    seqB.addPulse(20, 20);
+    seqB.addPulse(60, 20);
+    seqB.addPulse(90, 30);
+    seqB.addPulse(140, 20);
+    seqB.addPulse(190, 10);
+    seqB.addPulse(220, 20);
+    seqB.addPulse(260, 10);
+    sim.setInputSequence(pinB, seqB);
     // C
-    tl.addPulse(30, 50, pinC);
-    tl.addPulse(90, 10, pinC);
-    tl.addPulse(120, 40, pinC);
-    tl.addPulse(200, 40, pinC);
-    tl.addPulse(260, 10, pinC);
+    const seqC = new Sequence();
+    seqC.addPulse(30, 50);
+    seqC.addPulse(90, 10);
+    seqC.addPulse(120, 40);
+    seqC.addPulse(200, 40);
+    seqC.addPulse(260, 10);
+    sim.setInputSequence(pinC, seqC);
     // D
-    tl.addPulse(30, 10, pinD);
-    tl.addPulse(80, 80, pinD);
-    tl.addPulse(200, 10, pinD);
-    tl.addPulse(220, 20, pinD);
-    tl.addPulse(250, 20, pinD);
-    return tl;
+    const seqD = new Sequence();
+    seqD.addPulse(30, 10);
+    seqD.addPulse(80, 80);
+    seqD.addPulse(200, 10);
+    seqD.addPulse(220, 20);
+    seqD.addPulse(250, 20);
+    sim.setInputSequence(pinD, seqD);
+    // TODO: outputs
+    return sim;
   },
 
   '04 KO229 POWER ON RESET GENERATOR': (network) => {
@@ -229,9 +264,10 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinRRST.label = '/RST';
     pinNC6.label = 'N/C';
     pinNC7.label = 'N/C';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    return tl;
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    // TODO: outputs
+    return sim;
   },
 
   '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR': (network) => {
@@ -259,16 +295,21 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinOSC0.label = 'OSC0';
     pinOSC1.label = 'OSC1';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // EN0
-    tl.addPulse(40, 100, pinEN0);
-    tl.addPulse(180, 70, pinEN0);
+    const seqEN0 = new Sequence();
+    seqEN0.addPulse(40, 100);
+    seqEN0.addPulse(180, 70);
+    sim.setInputSequence(pinEN0, seqEN0);
     // EN1
-    tl.addPulse(20, 60, pinEN1);
-    tl.addPulse(120, 40, pinEN1);
-    tl.addPulse(200, 50, pinEN1);
-    return tl;
+    const seqEN1 = new Sequence();
+    seqEN1.addPulse(20, 60);
+    seqEN1.addPulse(120, 40);
+    seqEN1.addPulse(200, 50);
+    sim.setInputSequence(pinEN1, seqEN1);
+    // TODO: outputs
+    return sim;
   },
 
   '06 KL2S1 DUAL SET-RESET LATCH': (network) => {
@@ -296,27 +337,36 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinQ0.label = 'Q0';
     pinQ1.label = 'Q1';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // S0
-    tl.addPulse(10, 10, pinS0);
-    tl.addPulse(100, 10, pinS0);
-    tl.addPulse(170, 10, pinS0);
+    const seqS0 = new Sequence();
+    seqS0.addPulse(10, 10);
+    seqS0.addPulse(100, 10);
+    seqS0.addPulse(170, 10);
+    sim.setInputSequence(pinS0, seqS0);
     // R0
-    tl.addPulse(40, 10, pinR0);
-    tl.addPulse(120, 10, pinR0);
-    tl.addPulse(250, 10, pinR0);
+    const seqR0 = new Sequence();
+    seqR0.addPulse(40, 10);
+    seqR0.addPulse(120, 10);
+    seqR0.addPulse(250, 10);
+    sim.setInputSequence(pinR0, seqR0);
     // S1
-    tl.addPulse(20, 10, pinS1);
-    tl.addPulse(60, 10, pinS1);
-    tl.addPulse(140, 10, pinS1);
-    tl.addPulse(240, 10, pinS1);
+    const seqS1 = new Sequence();
+    seqS1.addPulse(20, 10);
+    seqS1.addPulse(60, 10);
+    seqS1.addPulse(140, 10);
+    seqS1.addPulse(240, 10);
+    sim.setInputSequence(pinS1, seqS1);
     // R1
-    tl.addPulse(50, 10, pinR1);
-    tl.addPulse(110, 10, pinR1);
-    tl.addPulse(220, 10, pinR1);
-    tl.addPulse(260, 10, pinR1);
-    return tl;
+    const seqR1 = new Sequence();
+    seqR1.addPulse(50, 10);
+    seqR1.addPulse(110, 10);
+    seqR1.addPulse(220, 10);
+    seqR1.addPulse(260, 10);
+    sim.setInputSequence(pinR1, seqR1);
+    // TODO: outputs
+    return sim;
   },
 
   '07 KL2T1 DUAL TOGGLE LATCH': (network) => {
@@ -344,25 +394,30 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinQ0.label = 'Q0';
     pinQ1.label = 'Q0';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // T0
-    tl.addPulse(10, 5, pinT0);
-    tl.addPulse(40, 5, pinT0);
-    tl.addPulse(100, 5, pinT0);
-    tl.addPulse(120, 5, pinT0);
-    tl.addPulse(170, 5, pinT0);
-    tl.addPulse(250, 5, pinT0);
+    const seqT0 = new Sequence();
+    seqT0.addPulse(10, 5);
+    seqT0.addPulse(40, 5);
+    seqT0.addPulse(100, 5);
+    seqT0.addPulse(120, 5);
+    seqT0.addPulse(170, 5);
+    seqT0.addPulse(250, 5);
+    sim.setInputSequence(pinT0, seqT0);
     // T1
-    tl.addPulse(20, 5, pinT1);
-    tl.addPulse(30, 5, pinT1);
-    tl.addPulse(60, 5, pinT1);
-    tl.addPulse(110, 5, pinT1);
-    tl.addPulse(140, 5, pinT1);
-    tl.addPulse(220, 5, pinT1);
-    tl.addPulse(240, 5, pinT1);
-    tl.addPulse(260, 5, pinT1);
-    return tl;
+    const seqT1 = new Sequence();
+    seqT0.addPulse(20, 5);
+    seqT0.addPulse(30, 5);
+    seqT0.addPulse(60, 5);
+    seqT0.addPulse(110, 5);
+    seqT0.addPulse(140, 5);
+    seqT0.addPulse(220, 5);
+    seqT0.addPulse(240, 5);
+    seqT0.addPulse(260, 5);
+    sim.setInputSequence(pinT1, seqT1);
+    // TODO: outputs
+    return sim;
   },
 
   '08 KO224X DUAL FREQUENCY OSCILLATOR': (network) => {
@@ -390,14 +445,20 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinOSC0.label = 'OSC0';
     pinOSC1.label = 'OSC1';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    tl.addPulseRange(40, 140, pinS0);
-    tl.addPulseRange(180, 260, pinS0);
-    tl.addPulseRange(20, 80, pinS1);
-    tl.addPulseRange(120, 160, pinS1);
-    tl.addPulseRange(200, 240, pinS1);
-    return tl;
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    // S0
+    const seqS0 = new Sequence();
+    seqS0.addPulseRange(40, 140);
+    seqS0.addPulseRange(180, 260);
+    sim.setInputSequence(pinS0, seqS0);
+    // S1
+    const seqS1 = new Sequence();
+    seqS1.addPulseRange(20, 80);
+    seqS1.addPulseRange(120, 160);
+    seqS1.addPulseRange(200, 240);
+    // TODO: outputs
+    return sim;
   },
 
   '09 KD124 2-TO-4 LINE DECODER': (network) => {
@@ -425,20 +486,26 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinNC6.label = 'N/C';
     pinY3.label = 'Y3';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    // A
+    const seqA = new Sequence();
     for (let i = 0; i < 10; i++) {
-      tl.addPulse(i*20 + 10, 10, pinA);
+      seqA.addPulse(i*20 + 10, 10);
     }
-    tl.addPulseRange(210, 240, pinA);
-    tl.addPulse(250, 10, pinA);
+    seqA.addPulseRange(210, 240);
+    seqA.addPulse(250, 10);
+    sim.setInputSequence(pinA, seqA);
+    // B
+    const seqB = new Sequence();
     for (let i = 0; i < 4; i++) {
-      tl.addPulse(i*40 + 20, 20, pinB);
+      seqB.addPulse(i*40 + 20, 20);
     }
-    tl.addPulse(190, 10, pinB);
-    tl.addPulse(220, 20, pinB);
-    tl.addPulse(260, 10, pinB);
-    return tl;
+    seqB.addPulse(190, 10);
+    seqB.addPulse(220, 20);
+    seqB.addPulse(260, 10);
+    // TODO: outputs
+    return sim;
   },
 
   '10 KA180 2-BIT ADDER WITH CARRY': (network) => {
@@ -466,25 +533,32 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinB1.label = 'B1';
     pinC.label = 'C';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A0
-    tl.addOscillation(10, 10, 10, 10, pinA0);
-    tl.addPulse(210, 30, pinA0);
-    tl.addPulse(250, 10, pinA0);
+    const seqA0 = new Sequence();
+    seqA0.addOscillation(10, 10, 10, 10);
+    seqA0.addPulse(210, 30);
+    seqA0.addPulse(250, 10);
+    sim.setInputSequence(pinA0, seqA0);
     // A1
-    tl.addOscillation(20, 4, 20, 20, pinA1);
-    tl.addPulse(190, 10, pinA1);
-    tl.addPulse(220, 20, pinA1);
-    tl.addPulse(260, 10, pinA1);
+    const seqA1 = new Sequence();
+    seqA1.addOscillation(20, 4, 20, 20);
+    seqA1.addPulse(190, 10);
+    seqA1.addPulse(220, 20);
+    seqA1.addPulse(260, 10);
+    sim.setInputSequence(pinA1, seqA1);
     // B0
-    tl.addOscillation(40, 3, 40, 40, pinB0);
+    const seqB0 = new Sequence();
+    seqB0.addOscillation(40, 3, 40, 40);
     // B1
-    tl.addPulseRange(80, 160, pinB1);
-    tl.addPulse(200, 10, pinB1);
-    tl.addPulse(220, 10, pinB1);
-    tl.addPulse(250, 20, pinB1);
-    return tl;
+    const seqB1 = new Sequence();
+    seqB1.addPulseRange(80, 160);
+    seqB1.addPulse(200, 10);
+    seqB1.addPulse(220, 10);
+    seqB1.addPulse(250, 20);
+    // TODO: outputs
+    return sim;
   },
 
   '11 KC82F DIVIDE-BY-FOUR COUNTER': (network) => {
@@ -512,14 +586,18 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinNC6.label = 'N/C';
     pinNC7.label = 'N/C';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    tl.addOscillation(10, 8, 5, 5, pinIN);
-    tl.addOscillation(120, 2, 5, 5, pinIN);
-    tl.addOscillation(160, 2, 5, 5, pinIN);
-    tl.addOscillation(200, 3, 5, 5, pinIN);
-    tl.addPulse(250, 5, pinIN);
-    return tl;
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    // IN
+    const seqIN = new Sequence();
+    seqIN.addOscillation(10, 8, 5, 5);
+    seqIN.addOscillation(120, 2, 5, 5);
+    seqIN.addOscillation(160, 2, 5, 5);
+    seqIN.addOscillation(200, 3, 5, 5);
+    seqIN.addPulse(250, 5);
+    sim.setInputSequence(pinIN, seqIN);
+    // TODO: outputs
+    return sim;
   },
 
   '12 KM141P 4-TO-1 MULTIPLEXER': (network) => {
@@ -547,38 +625,51 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinS0.label = 'S0';
     pinD.label = 'D';
     pinS1.label = 'S1';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A
-    tl.addOscillation(10, 9, 10, 10, pinA);
-    tl.addPulseRange(190, 240, pinA);
-    tl.addPulse(250, 10, pinA);
+    const seqA = new Sequence();
+    seqA.addOscillation(10, 9, 10, 10);
+    seqA.addPulseRange(190, 240);
+    seqA.addPulse(250, 10);
+    sim.setInputSequence(pinA, seqA);
     // B
-    tl.addPulse(10, 30, pinB);
-    tl.addOscillation(60, 3, 20, 20, pinB);
-    tl.addPulse(190, 10, pinB);
-    tl.addPulse(220, 20, pinB);
-    tl.addPulse(250, 20, pinB);
+    const seqB = new Sequence();
+    seqB.addPulse(10, 30);
+    seqB.addOscillation(60, 3, 20, 20);
+    seqB.addPulse(190, 10);
+    seqB.addPulse(220, 20);
+    seqB.addPulse(250, 20);
+    sim.setInputSequence(pinB, seqB);
     // C
-    tl.addPulseRange(40, 80, pinC);
-    tl.addPulseRange(120, 160, pinC);
-    tl.addPulseRange(170, 240, pinC);
-    tl.addPulse(250, 20, pinC);
+    const seqC = new Sequence();
+    seqC.addPulseRange(40, 80);
+    seqC.addPulseRange(120, 160);
+    seqC.addPulseRange(170, 240);
+    seqC.addPulse(250, 20);
+    sim.setInputSequence(pinC, seqC);
     // D
-    tl.addPulseRange(0, 40, pinD);
-    tl.addPulseRange(80, 160, pinD);
-    tl.addOscillation(200, 2, 10, 10, pinD);
-    tl.addPulse(250, 20, pinD);
+    const seqD = new Sequence();
+    seqD.addPulseRange(0, 40);
+    seqD.addPulseRange(80, 160);
+    seqD.addOscillation(200, 2, 10, 10);
+    seqD.addPulse(250, 20);
+    sim.setInputSequence(pinD, seqD);
     // S0
-    tl.addOscillation(10, 10, 10, 10, pinS0);
-    tl.addPulse(210, 30, pinS0);
-    tl.addPulse(250, 10, pinS0);
+    const seqS0 = new Sequence();
+    seqS0.addOscillation(10, 10, 10, 10);
+    seqS0.addPulse(210, 30);
+    seqS0.addPulse(250, 10);
+    sim.setInputSequence(pinS0, seqS0);
     // S1
-    tl.addOscillation(20, 4, 20, 20, pinS1);
-    tl.addPulse(190, 10, pinS1);
-    tl.addPulse(220, 20, pinS1);
-    tl.addPulse(260, 10, pinS1);
-    return tl;
+    const seqS1 = new Sequence();
+    seqS1.addOscillation(20, 4, 20, 20);
+    seqS1.addPulse(190, 10);
+    seqS1.addPulse(220, 20);
+    seqS1.addPulse(260, 10);
+    sim.setInputSequence(pinS1, seqS1);
+    // TODO: outputs
+    return sim;
   },
 
   '13 KC84C 4-BIT COUNTER WITH CLEAR': (network) => {
@@ -606,16 +697,21 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinNC6.label = 'N/C';
     pinY3.label = 'Y3';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // CLR
-    tl.addPulse(0, 10, pinCLR);
-    tl.addPulse(190, 10, pinCLR);
-    tl.addPulse(260, 10, pinCLR);
+    const seqCLR = new Sequence();
+    seqCLR.addPulse(0, 10);
+    seqCLR.addPulse(190, 10);
+    seqCLR.addPulse(260, 10);
+    sim.setInputSequence(pinCLR, seqCLR);
     // INC
-    tl.addOscillation(20, 15, 5, 5, pinINC);
-    tl.addOscillation(210, 3, 5, 5, pinINC);
-    return tl;
+    const seqINC = new Sequence();
+    seqINC.addOscillation(20, 15, 5, 5);
+    seqINC.addOscillation(210, 3, 5, 5);
+    sim.setInputSequence(pinINC, seqINC);
+    // TODO: outputs
+    return sim;
   },
 
   '14 KC74S 4-BIT SHIFT REGISTER S-TO-P': (network) => {
@@ -643,14 +739,19 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinQ2.label = 'Q2';
     pinNC6.label = 'N/C';
     pinQ3.label = 'Q3';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // D
-    tl.addTogglePoints(pinD, 20, 40, 50, 60, 80, 90, 110, 140, 160, 170, 180, 210, 220, 230, 250, 270);
+    const seqD = new Sequence();
+    seqD.addTogglePoints(20, 40, 50, 60, 80, 90, 110, 140, 160, 170, 180, 210, 220, 230, 250, 270);
+    sim.setInputSequence(pinD, seqD);
     // CLK
-    tl.addOscillation(20, 15, 5, 5, pinCLK);
-    tl.addOscillation(210, 3, 5, 5, pinCLK);
-    return tl;
+    const seqCLK = new Sequence();
+    seqCLK.addOscillation(20, 15, 5, 5);
+    seqCLK.addOscillation(210, 3, 5, 5);
+    sim.setInputSequence(pinCLK, seqCLK);
+    // TODO: outputs
+    return sim;
   },
 
   '15 KR8S1 8-BIT ADDRESSABLE SRAM': (network) => {
@@ -678,46 +779,60 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinDin.label = 'Din';
     pinNC0.label = 'N/C';
     pinDout.label = 'Dout';
-    const tl = new Timeline(network);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A0
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    tl.addPulse(20, 10, pinA0);
-    tl.addPulse(50, 20, pinA0);
-    tl.addPulse(80, 20, pinA0);
-    tl.addPulse(110, 10, pinA0);
+    const seqA0 = new Sequence();
+    seqA0.addPulse(20, 10);
+    seqA0.addPulse(50, 20);
+    seqA0.addPulse(80, 20);
+    seqA0.addPulse(110, 10);
     for (let i = 0; i < 7; i++) {
-      tl.addPulse(i*20 + 140, 10, pinA0);
+      seqA0.addPulse(i*20 + 140, 10);
     }
+    sim.setInputSequence(pinA0, seqA0);
     // A1
-    tl.addPulse(30, 40, pinA1);
-    tl.addPulse(100, 20, pinA1);
-    tl.addPulse(150, 20, pinA1);
-    tl.addPulse(190, 20, pinA1);
-    tl.addPulse(220, 10, pinA1);
-    tl.addPulse(240, 10, pinA1);
-    tl.addPulse(260, 10, pinA1);
+    const seqA1 = new Sequence();
+    seqA1.addPulse(30, 40);
+    seqA1.addPulse(100, 20);
+    seqA1.addPulse(150, 20);
+    seqA1.addPulse(190, 20);
+    seqA1.addPulse(220, 10);
+    seqA1.addPulse(240, 10);
+    seqA1.addPulse(260, 10);
+    sim.setInputSequence(pinA1, seqA1);
     // A2
-    tl.addPulse(70, 50, pinA2);
-    tl.addPulse(170, 40, pinA2);
-    tl.addPulse(220, 10, pinA2);
-    tl.addPulse(240, 10, pinA2);
-    tl.addPulse(260, 10, pinA2);
+    const seqA2 = new Sequence();
+    seqA2.addPulse(70, 50);
+    seqA2.addPulse(170, 40);
+    seqA2.addPulse(220, 10);
+    seqA2.addPulse(240, 10);
+    seqA2.addPulse(260, 10);
+    sim.setInputSequence(pinA2, seqA2);
     // R/W
-    tl.addPulse(0, 130, pinRW);
-    tl.addPulse(240, 10, pinRW);
+    const seqRW = new Sequence();
+    seqRW.addPulse(0, 130);
+    seqRW.addPulse(240, 10);
+    sim.setInputSequence(pinRW, seqRW);
     // CLK
+    const seqCLK = new Sequence();
     for (let i = 0; i < 11; i++) {
-      tl.addPulse(i*10 + 10, 5, pinCLK);
+      seqCLK.addPulse(i*10 + 10, 5);
     }
-    tl.addPulse(130, 100, pinCLK);
-    tl.addPulse(240, 5, pinCLK);
-    tl.addPulse(260, 10, pinCLK);
+    seqCLK.addPulse(130, 100);
+    seqCLK.addPulse(240, 5);
+    seqCLK.addPulse(260, 10);
+    sim.setInputSequence(pinCLK, seqCLK);
     // Din
-    tl.addPulse(10, 10, pinDin);
-    tl.addPulse(40, 20, pinDin);
-    tl.addPulse(80, 10, pinDin);
-    tl.addPulse(110, 10, pinDin);
-    return tl;
+    const seqDin = new Sequence();
+    seqDin.addPulse(10, 10);
+    seqDin.addPulse(40, 20);
+    seqDin.addPulse(80, 10);
+    seqDin.addPulse(110, 10);
+    seqDin.addPulse(140, 10);
+    sim.setInputSequence(pinDin, seqDin);
+    // TODO: outputs
+    return sim;
   },
 
   '16 KA181 2-BIT LOGICAL FUNCTION UNIT': (network) => {
@@ -745,27 +860,40 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinC0.label = 'C0';
     pinB1.label = 'B1';
     pinC1.label = 'C1';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A0
-    tl.addTogglePoints(pinA0, 10, 20, 50, 70, 80, 90, 120, 140, 150, 160, 190, 210, 220, 230, 260);
+    const seqA0 = new Sequence();
+    seqA0.addTogglePoints(10, 20, 50, 70, 80, 90, 120, 140, 150, 160, 190, 210, 220, 230, 260);
+    sim.setInputSequence(pinA0, seqA0);
     // A1
-    tl.addOscillation(30, 2, 10, 20, pinA1);
-    tl.addOscillation(100, 2, 10, 20, pinA1);
-    tl.addOscillation(170, 2, 10, 20, pinA1);
-    tl.addOscillation(240, 2, 10, 20, pinA1);
+    const seqA1 = new Sequence();
+    seqA1.addOscillation(30, 2, 10, 20);
+    seqA1.addOscillation(100, 2, 10, 20);
+    seqA1.addOscillation(170, 2, 10, 20);
+    seqA1.addOscillation(240, 2, 10, 20);
+    sim.setInputSequence(pinA1, seqA1);
     // B0
-    tl.addOscillation(20, 2, 10, 30, pinB0);
-    tl.addOscillation(90, 2, 10, 30, pinB0);
-    tl.addOscillation(160, 2, 10, 30, pinB0);
-    tl.addOscillation(230, 2, 10, 30, pinB0);
+    const seqB0 = new Sequence();
+    seqB0.addOscillation(20, 2, 10, 30);
+    seqB0.addOscillation(90, 2, 10, 30);
+    seqB0.addOscillation(160, 2, 10, 30);
+    seqB0.addOscillation(230, 2, 10, 30);
+    sim.setInputSequence(pinB0, seqB0);
     // B1
-    tl.addOscillation(30, 4, 40, 30, pinB1);
+    const seqB1 = new Sequence();
+    seqB1.addOscillation(30, 4, 40, 30);
+    sim.setInputSequence(pinB1, seqB1);
     // F0
-    tl.addTogglePoints(pinF0, 70, 140, 210);
+    const seqF0 = new Sequence();
+    seqF0.addTogglePoints(70, 140, 210);
+    sim.setInputSequence(pinF0, seqF0);
     // F1
-    tl.addKeyFrame(140, pinF1, true);
-    return tl;
+    const seqF1 = new Sequence();
+    seqF1.setFrame(140, true);
+    sim.setInputSequence(pinF1, seqF1);
+    // TODO: outputs
+    return sim;
   },
 
   '17 X901 RADIO MESSAGE STREAM DECODER': (network) => {
@@ -793,21 +921,32 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinOUT2.label = 'OUT2';
     pinIN.label = 'IN';
     pinCLK.label = 'CLK';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // K0
-    tl.addOscillation(130, 3, 10, 10, pinK0);
-    tl.addOscillation(230, 2, 10, 20, pinK0);
+    const seqK0 = new Sequence();
+    seqK0.addOscillation(130, 3, 10, 10);
+    seqK0.addOscillation(230, 2, 10, 20);
+    sim.setInputSequence(pinK0, seqK0);
     // K1
-    tl.addTogglePoints(pinK1, 130, 150, 180, 200, 230, 260);
+    const seqK1 = new Sequence();
+    seqK1.addTogglePoints(130, 150, 180, 200, 230, 260);
+    sim.setInputSequence(pinK1, seqK1);
     // K2
-    tl.addTogglePoints(pinK2, 140, 170, 190, 200, 240, 250);
+    const seqK2 = new Sequence();
+    seqK2.addTogglePoints(140, 170, 190, 200, 240, 250);
+    sim.setInputSequence(pinK2, seqK2);
     // IN
-    tl.addTogglePoints(pinIN, 20, 40, 50, 60, 80, 90, 100, 120);
+    const seqIN = new Sequence();
+    seqIN.addTogglePoints(20, 40, 50, 60, 80, 90, 100, 120);
+    sim.setInputSequence(pinIN, seqIN);
     // CLK
-    tl.addOscillation(10, 11, 5, 5, pinCLK);
-    tl.addPulse(210, 5, pinCLK);
-    return tl;
+    const seqCLK = new Sequence();
+    seqCLK.addOscillation(10, 11, 5, 5);
+    seqCLK.addPulse(210, 5);
+    sim.setInputSequence(pinCLK, seqCLK);
+    // TODO: outputs
+    return sim;
   },
 
   '18 X902 GRENADE LAUNCHER AMMO COUNTER': (network) => {
@@ -835,15 +974,20 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinLOW.label = 'LOW';
     pinY3.label = 'Y3';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // RST
-    tl.addTogglePoints(pinRST, 0, 10, 150, 160, 210, 220);
+    const seqRST = new Sequence();
+    seqRST.addTogglePoints(0, 10, 150, 160, 210, 220);
+    sim.setInputSequence(pinRST, seqRST);
     // DEC
-    tl.addOscillation(20, 12, 5, 5, pinDEC);
-    tl.addOscillation(170, 3, 5, 5, pinDEC);
-    tl.addOscillation(230, 3, 5, 5, pinDEC);
-    return tl;
+    const seqDEC = new Sequence();
+    seqDEC.addOscillation(20, 12, 5, 5);
+    seqDEC.addOscillation(170, 3, 5, 5);
+    seqDEC.addOscillation(230, 3, 5, 5);
+    sim.setInputSequence(pinDEC, seqDEC);
+    // TODO: outputs
+    return sim;
   },
 
   '19 X903 GATLING CANNON FIRE CONTROLLER': (network) => {
@@ -871,13 +1015,18 @@ const kohctpyktop: TimelineBuilder<KOHCTPYKTOPLevelName> = {
     pinB.label = 'B+';
     pinTRIG.label = 'TRIG';
     pinBN.label = 'B-';
-    const tl = new Timeline(network);
-    tl.addVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+    const sim = new CircuitSimulation(network);
+    assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // FIRE
-    tl.addTogglePoints(pinFIRE, 30, 110, 130, 250);
+    const seqFIRE = new Sequence();
+    seqFIRE.addTogglePoints(30, 110, 130, 250);
+    sim.setInputSequence(pinFIRE, seqFIRE);
     // LOCK
-    tl.addTogglePoints(pinLOCK, 150, 180, 210, 230);
-    return tl;
+    const seqLOCK = new Sequence();
+    seqLOCK.addTogglePoints(150, 180, 210, 230);
+    sim.setInputSequence(pinLOCK, seqLOCK);
+    // TODO: outputs
+    return sim;
   },
 
 }
