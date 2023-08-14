@@ -62,17 +62,19 @@ export default class CircuitSimulation {
   private inputSequences: SequenceMap = new Map();
   private outputSequences: SequenceMap = new Map();
   private sequenceLength: number = 0;
+  private defaultRuntime?: number;
 
   private currentFrame: number = 0;
   private recording: RecordingMap = new Map();
   private recordingLength: number = 0;
 
-  constructor(network: Network) {
+  constructor(network: Network, defaultRuntime?: number) {
     this.network = network;
+    this.defaultRuntime = defaultRuntime;
   }
 
   public run(
-    length: number = this.sequenceLength,
+    length: number = this.defaultRuntime ?? this.sequenceLength,
     onPostStep?: (frame: number) => void,
     record: boolean = true
   ) {
