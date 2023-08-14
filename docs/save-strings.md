@@ -10,10 +10,11 @@ Uncompressed data length is varied ([possibly due to a bug](#layer-2-metal)) whe
 game, but not by much. Position of EOF in an empty save is `332B`.
 
 The first 4 bytes are dimensions of the layers.
-They are `04 2C 04 1B`, representing the 44 (`2C`) columns of 27 (`1B`) elements.
+They are `04 2C 04 1B`, representing the 44 (`2C`) columns of 27 (`1B`) elements. The `04` bytes
+are due to the game's serialization process.
 
-The next 3 bytes appear to be layer markers found throughout the design data: `09 59 01`.
-They are a part of ActionScript's serialization process.
+The next 3 bytes are found throughout the design data and represent the beginning of the
+individual serialized layers: `09 59 01`.
 See [Layers](#layers).
 
 By placing single squares of n-silicon in each corner, the following addresses in the save data are
@@ -33,11 +34,10 @@ even though they are never changed (the only exception being the [metal horizont
 
 # Layers
 
-There are 9 layers in total.
-Each layer starts with a layer marker `09 59 01` as mentioned in [Format](#format).
-These layers include 2D data (in vertical columns top-bottom from left-right format).
-Each column starts with the following bytes: `09 37 01`, which are a part of ActionScript's
-serialization process.
+There are 9 layers in total. Layers are 2D arrays in the format of `layer[column][row]`: columns
+are left to right, rows are top to bottom.
+Each layer starts with a serialization header `09 59 01` as mentioned in [Format](#format).
+Each column starts with a serialization header: `09 37 01`.
 
 ## Layer 1: Silicon
 
@@ -51,7 +51,9 @@ Columns have 27 2-byte elements, making this layer at most twice as large as all
 - `04 01` N Silicon
 - `04 02` P Silicon
 
-The purpose of the `04` bytes is currently unknown.
+The purpose of the `04` bytes is due to the serialization process, as this layer contains
+integer data rather than boolean data like the rest of the layers (excluding the metal layer
+in some cases, due to a minor bug).
 
 ## Layer 2: Metal
 
@@ -66,14 +68,14 @@ Columns have at least 27 1-byte elements:
 - `03` Metal
 
 The cause of varying column size (*n*) is due to some elements of empty metal being written as
-`04 00` instead of `02`. The cause of this is currently unknown. It may be caused by a bug when
-exporting some designs in the game.
+`04 00` instead of `02`. The cause of this is uncertain, but it appears to be a bug caused by the
+game writing integer data to the metal layer which normally contains boolean data.
 
 Instances of `04 00` in this layer can be safely replaced with `02`. Doing so will make all
 uncompressed designs uniform in size, and re-encoding these changes will load perfectly fine in the
 game.
 
-The bytes the pins in-game would occupy are assigned `03`. The same is true with it's
+The bytes that the pins in-game would occupy are assigned `03`. The same is true with it's
 [connections](#layer-8-metal-horizontal-connections).
 
 
@@ -195,7 +197,7 @@ Columns have 27 1-byte elements:
 The position of the connection in the layer represents a metal tile with a connection to the
 metal tile to the right of it.
 
-The bytes the pins in-game would occupy are assigned `03`.
+The bytes that the pins in-game would occupy are assigned `03`.
 
 ## Layer 9: Metal vertical connections
 
@@ -211,4 +213,4 @@ Columns have 27 1-byte elements:
 The position of the connection in the layer represents a metal tile with a connection to the
 metal tile underneath it.
 
-The bytes the pins in-game would occupy are assigned `03`.
+The bytes that the pins in-game would occupy are assigned `03`.
