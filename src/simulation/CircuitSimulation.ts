@@ -130,6 +130,22 @@ export default class CircuitSimulation {
     this.updateSequenceLength();
   }
 
+  public removeInputSequence(pin: PinNode|number) {
+    if (typeof pin === 'number') {
+      pin = this.network.getPinNodes()[pin];
+      if (!pin) {
+        throw new Error(`Pin ${pin} does not exist`);
+      }
+    }
+    this.inputSequences.delete(pin);
+    this.updateSequenceLength();
+  }
+
+  public clearInputSequences() {
+    this.inputSequences.clear();
+    this.updateSequenceLength();
+  }
+
   public setOutputSequence(pin: PinNode|number, sequence: Sequence) {
     if (typeof pin === 'number') {
       pin = this.network.getPinNodes()[pin];
@@ -138,6 +154,22 @@ export default class CircuitSimulation {
       }
     }
     this.outputSequences.set(pin, sequence);
+    this.updateSequenceLength();
+  }
+
+  public removeOutputSequence(pin: PinNode|number) {
+    if (typeof pin === 'number') {
+      pin = this.network.getPinNodes()[pin];
+      if (!pin) {
+        throw new Error(`Pin ${pin} does not exist`);
+      }
+    }
+    this.outputSequences.delete(pin);
+    this.updateSequenceLength();
+  }
+
+  public clearOutputSequences() {
+    this.outputSequences.clear();
     this.updateSequenceLength();
   }
 
