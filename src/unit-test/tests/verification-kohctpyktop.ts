@@ -13,8 +13,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 39);
-    assertEqual(designScore, 0);
+    assertEqual(grade, 39, '01 grade');
+    assertEqual(designScore, 0, '01 design score');
   },
 
   () => {
@@ -26,8 +26,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 172);
+    assertEqual(grade, 100, '01 grade');
+    assertEqual(designScore, 172, '01 design score');
   },
 
   () => {
@@ -37,7 +37,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 87);
+    assertEqual(grade, 87, '02 grade');
   },
 
   () => {
@@ -49,8 +49,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 24);
+    assertEqual(grade, 99, '02 grade');
+    assertEqual(designScore, 24, '02 design score');
   },
 
   () => {
@@ -62,8 +62,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 35);
+    assertEqual(grade, 100, '02 grade');
+    assertEqual(designScore, 35, '02 design score');
   },
 
   () => {
@@ -73,7 +73,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 47);
+    assertEqual(grade, 47, '03 grade');
   },
 
   () => {
@@ -85,8 +85,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 144);
+    assertEqual(grade, 100, '03 grade');
+    assertEqual(designScore, 144, '03 design score');
   },
 
   () => {
@@ -96,7 +96,7 @@ const levels: (() => void)[] = [
     sim.run(80);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 49);
+    assertEqual(grade, 49, '04 grade');
   },
 
   () => {
@@ -108,8 +108,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 66);
+    assertEqual(grade, 100, '04 grade');
+    assertEqual(designScore, 66, '04 design score');
   },
 
   () => {
@@ -119,7 +119,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 75);
+    assertEqual(grade, 75, '05 grade');
   },
 
   () => {
@@ -131,8 +131,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 142);
+    assertEqual(grade, 100, '05 grade');
+    assertEqual(designScore, 142, '05 design score');
   },
 
   () => {
@@ -142,7 +142,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 46);
+    assertEqual(grade, 46, '06 grade');
   },
 
   () => {
@@ -154,8 +154,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 58);
+    assertEqual(grade, 100, '06 grade');
+    assertEqual(designScore, 58, '06 design score');
   },
 
   () => {
@@ -165,7 +165,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 46);
+    assertEqual(grade, 46, '07 grade');
   },
 
   () => {
@@ -177,8 +177,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 94);
+    assertEqual(grade, 100, '07 grade');
+    assertEqual(designScore, 94, '07 design score');
   },
 
   () => {
@@ -190,8 +190,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 114);
+    assertEqual(grade, 100, '07 grade');
+    assertEqual(designScore, 114, '07 design score');
   },
 
   () => {
@@ -201,7 +201,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 50);
+    assertEqual(grade, 50, '08 grade');
   },
 
   () => {
@@ -213,8 +213,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 228);
+    assertEqual(grade, 100, '08 grade');
+    assertEqual(designScore, 228, '08 design score');
   },
 
   () => {
@@ -224,7 +224,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 80);
+    assertEqual(grade, 80, '09 grade');
   },
 
   () => {
@@ -236,8 +236,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 142);
+    assertEqual(grade, 99, '09 grade');
+    assertEqual(designScore, 142, '09 design score');
   },
 
   () => {
@@ -249,8 +249,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 222);
+    assertEqual(grade, 99, '09 grade');
+    assertEqual(designScore, 222, '09 design score');
   },
 
   () => {
@@ -262,8 +262,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 98);
-    assertEqual(designScore, 231);
+    assertEqual(grade, 98, '09 grade');
+    assertEqual(designScore, 231, '09 design score');
   },
 
   () => {
@@ -273,7 +273,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 60);
+    assertEqual(grade, 60, '10 grade');
   },
 
   () => {
@@ -285,8 +285,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 320);
+    assertEqual(grade, 99, '10 grade');
+    assertEqual(designScore, 320, '10 design score');
   },
 
   () => {
@@ -296,7 +296,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 65);
+    assertEqual(grade, 65, '11 grade');
   },
 
   () => {
@@ -308,8 +308,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 117);
+    assertEqual(grade, 100, '11 grade');
+    assertEqual(designScore, 117, '11 design score');
   },
 
   () => {
@@ -319,7 +319,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 67);
+    assertEqual(grade, 67, '12 grade');
   },
 
   () => {
@@ -331,8 +331,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 223);
+    assertEqual(grade, 99, '12 grade');
+    assertEqual(designScore, 223, '12 design score');
   },
 
   () => {
@@ -344,8 +344,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 346);
+    assertEqual(grade, 99, '12 grade');
+    assertEqual(designScore, 346, '12 design score');
   },
 
   () => {
@@ -367,8 +367,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 98);
-    assertEqual(designScore, 466);
+    assertEqual(grade, 98, '13 grade');
+    assertEqual(designScore, 466, '13 design score');
   },
 
   () => {
@@ -378,7 +378,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 55);
+    assertEqual(grade, 55, '14 grade');
   },
 
   () => {
@@ -390,8 +390,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 312);
+    assertEqual(grade, 100, '14 grade');
+    assertEqual(designScore, 312, '14 design score');
   },
 
   () => {
@@ -401,7 +401,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 84);
+    assertEqual(grade, 84, '15 grade');
   },
 
   () => {
@@ -413,8 +413,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 1009);
+    assertEqual(grade, 99, '15 grade');
+    assertEqual(designScore, 1009, '15 design score');
   },
 
   () => {
@@ -424,7 +424,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 55);
+    assertEqual(grade, 55, '16 grade');
   },
 
   () => {
@@ -436,8 +436,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 100);
-    assertEqual(designScore, 688);
+    assertEqual(grade, 100, '16 grade');
+    assertEqual(designScore, 688, '16 design score');
   },
 
   () => {
@@ -447,7 +447,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 49);
+    assertEqual(grade, 49, '17 grade');
   },
 
   () => {
@@ -459,8 +459,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 98);
-    assertEqual(designScore, 461);
+    assertEqual(grade, 98, '17 grade');
+    assertEqual(designScore, 461, '17 design score');
   },
 
   () => {
@@ -470,7 +470,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 60);
+    assertEqual(grade, 60, '18 grade');
   },
 
   () => {
@@ -482,8 +482,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 653);
+    assertEqual(grade, 99, '18 grade');
+    assertEqual(designScore, 653, '18 design score');
   },
 
   () => {
@@ -493,7 +493,7 @@ const levels: (() => void)[] = [
     sim.run(280);
     const verification = sim.verify();
     const grade = verification.gradePercent;
-    assertEqual(grade, 57);
+    assertEqual(grade, 57, '19 grade');
   },
 
   () => {
@@ -505,8 +505,8 @@ const levels: (() => void)[] = [
     const verification = sim.verify();
     const grade = verification.gradePercent;
     const designScore = field.getDesignScore();
-    assertEqual(grade, 99);
-    assertEqual(designScore, 424);
+    assertEqual(grade, 99, '19 grade');
+    assertEqual(designScore, 424, '19 design score');
   },
 
 ];
