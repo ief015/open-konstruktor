@@ -438,14 +438,28 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     seqT1.addPulse(240, 5);
     seqT1.addPulse(260, 5);
     sim.setInputSequence(pinT1, seqT1);
-    // Q0
-    sim.setOutputSequence(pinQ0, new Sequence()
-      .addTogglePoints(10, 40, 100, 120, 170, 250)
+    // Q0, Q1
+    const [ seqQ0, seqQ1 ] = createSequencesFromInputs(
+      [ seqT0, seqT1 ],
+      ({ inputs: [ t0, t1 ], state }) => {
+        // Rising edge triggered
+        if (t0 && !state.lastT0)
+          state.q0 = !state.q0;
+        if (t1 && !state.lastT1)
+          state.q1 = !state.q1;
+        state.lastT0 = t0;
+        state.lastT1 = t1;
+        return [ state.q0, state.q1 ];
+      },
+      {
+        lastT0: false,
+        lastT1: false,
+        q0: false,
+        q1: false,
+      },
     );
-    // Q1
-    sim.setOutputSequence(pinQ1, new Sequence()
-      .addTogglePoints(20, 30, 60, 110, 140, 220, 240, 260)
-    );
+    sim.setOutputSequence(pinQ0, seqQ0);
+    sim.setOutputSequence(pinQ1, seqQ1);
     return sim;
   },
 
