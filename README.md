@@ -1,17 +1,33 @@
-# open-constructor-prototype
- An abstract prototype for simulating the circuit logic of KOHCTPYKTOP: Engineer of the People
+# OPEN-KONSTRUKTOR
+An open implementation for simulating the circuit logic of KOHCTPYKTOP: Engineer of the People,
+and expanding on it.
 
-Compile TS:
-`npm run build`
+## Setup
 
-Run prototype:
-`npm start`
+Install the dependencies:
 
-Run unit tests:
-`npm test`
+```bash
+npm install
+```
 
-Run decode (save string to bin) utility:
-`npm run decoder`
+## Development
 
-Run encode (bin to save string) utility:
-`npm run encoder`
+Start the development server on `http://localhost:3000`:
+
+```bash
+npm run dev
+```
+
+## Production
+
+Build the application for production:
+
+```bash
+npm run build
+```
+
+Locally preview production build:
+
+```bash
+npm run preview
+```

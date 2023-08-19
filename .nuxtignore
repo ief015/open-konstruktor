@@ -1,0 +1,7 @@
+# Scripts
+decodeSave.ts
+encodeSave.ts
+test.ts
+
+# Unit tests
+tests/

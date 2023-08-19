@@ -1,0 +1,78 @@
+/*
+@tailwind base;
+*/
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Helvetica, Inter, system-ui, Avenir, Arial, sans-serif;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+a {
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+}
+
+@font-face {
+  font-family: Georgia10;
+  src: url('/ttf/Georgia10_Georgia_10pt_st.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: Georgia12;
+  src: url('/ttf/Georgia12_Georgia_12pt_st.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: Courier12;
+  src: url('/ttf/Courier12_CourierNew_12pt_st.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: TravelingTypewriter;
+  src: url('/ttf/Typewriter_Traveling_Typewriter.ttf') format('truetype');
+}
+
+.georgia10 {
+  font-family: Georgia10;
+  font-size: 10pt;
+}
+
+.georgia12 {
+  font-family: Georgia12;
+  font-size: 12pt;
+}
+
+.courier12 {
+  font-family: Courier12;
+  font-size: 12pt;
+}
