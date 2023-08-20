@@ -2,8 +2,11 @@
   <NuxtLayout>
     <template #top>
       <div class="h-[1.5em] bottom-border flex flex-row">
-        <div class="font-ttw select-none mx-1">
+        <div class="font-ttw select-none mx-1 self-center">
           open-konstruktor
+        </div>
+        <div class="flex-1">
+          <MenuBar />
         </div>
       </div>
     </template>
