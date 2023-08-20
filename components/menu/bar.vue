@@ -3,10 +3,9 @@
     class="undock font-ttw"
     :items="items"
     :theme="{
-      primary: '#00000000',
+      primary: '#242424',
       secondary: '#333',
       tertiary: '#444',
-      textColor: 'inherit',
     }"
     :on-selected="onSelected"
   />
@@ -16,41 +15,82 @@
 // @ts-ignore
 import { DockMenu } from "@/external/vue-dock-menu/vue-dock-menu.es";
 import "@/external/vue-dock-menu/assets/output-9689c4bb.css";
+import { kohctpyktop } from "@/circuits/kohctpyktop";
 
 const items = [
   {
-    id: 'file',
     name: "File",
     menu: [
-      { id: 'open', name: "Open" },
-      { id: 'new-window', name: "New Window" },
-      { id: 'exit', name: "Exit" }
+      { id: 'import', name: "Import" },
+      { id: 'export', name: "Export" },
+      { isDivider: true },
+      { id: 'clear', name: "Clear" }
     ]
   },
   {
-    id: 'edit',
-    name: "Edit",
+    name: "Levels",
     menu: [
-      { id: 'cut', name: "Cut" },
-      { id: 'cope', name: "Copy" },
-      { id: 'paste', name: "Paste" }
+      {
+        name: "01 - 05",
+        menu: [
+          { id: 'level:01 KT411I QUAD INVERTER GATE', name: "01 - KT411I - QUAD INVERTER GATE" },
+          { id: 'level:02 KT221A DUAL 2-INPUT AND GATE', name: "02 - KT221A - DUAL 2-INPUT AND GATE" },
+          { id: 'level:03 KT141AO 4-INPUT AND-OR GATE', name: "03 - KT141AO - 4-INPUT AND-OR GATE" },
+          { id: 'level:04 KO229 POWER ON RESET GENERATOR', name: "04 - KO229 - POWER ON RESET GENERATOR" },
+          { id: 'level:05 KO223 DUAL FIXED FREQUENCY OSCILLATOR', name: "05 - KO223 - DUAL FIXED FREQUENCY OSCILLATOR" },
+        ],
+      },
+      {
+        name: "06 - 10",
+        menu: [
+          { id: 'level:06 KL2S1 DUAL SET-RESET LATCH', name: "06 - KL2S1 - DUAL SET-RESET LATCH" },
+          { id: 'level:07 KL2T1 DUAL TOGGLE LATCH', name: "07 - KL2T1 - DUAL TOGGLE LATCH" },
+          { id: 'level:08 KO224X DUAL FREQUENCY OSCILLATOR', name: "08 - KO224X - DUAL FREQUENCY OSCILLATOR" },
+          { id: 'level:09 KD124 2-TO-4 LINE DECODER', name: "09 - KD124 - 2-TO-4 LINE DECODER" },
+          { id: 'level:10 KA180 2-BIT ADDER WITH CARRY', name: "10 - KA180 - 2-BIT ADDER WITH CARRY" },
+        ],
+      },
+      {
+        name: "11 - 16",
+        menu: [
+          { id: 'level:11 KC82F DIVIDE-BY-FOUR COUNTER', name: "11 - KC82F - DIVIDE-BY-FOUR COUNTER" },
+          { id: 'level:12 KM141P 4-TO-1 MULTIPLEXER', name: "12 - KM141P - 4-TO-1 MULTIPLEXER" },
+          { id: 'level:13 KC84C 4-BIT COUNTER WITH CLEAR', name: "13 - KC84C - 4-BIT COUNTER WITH CLEAR" },
+          { id: 'level:14 KC74S 4-BIT SHIFT REGISTER S-TO-P', name: "14 - KC74S - 4-BIT SHIFT REGISTER S-TO-P" },
+          { id: 'level:15 KR8S1 8-BIT ADDRESSABLE SRAM', name: "15 - KR8S1 - 8-BIT ADDRESSABLE SRAM" },
+          { id: 'level:16 KA181 2-BIT LOGICAL FUNCTION UNIT', name: "16 - KA181 - 2-BIT LOGICAL FUNCTION UNIT" },
+        ],
+      },
+      {
+        name: "17 - 19",
+        menu: [
+          { id: 'level:17 X901 RADIO MESSAGE STREAM DECODER', name: "17 - X901 - RADIO MESSAGE STREAM DECODER" },
+          { id: 'level:18 X902 GRENADE LAUNCHER AMMO COUNTER', name: "18 - X902 - GRENADE LAUNCHER AMMO COUNTER" },
+          { id: 'level:19 X903 GATLING CANNON FIRE CONTROLLER', name: "19 - X903 - GATLING CANNON FIRE CONTROLLER" },
+        ],
+      },
     ]
   },
 ];
 
-type OnSelectedParams = { name: string; path: string };
+const { field } = useFieldGraph();
+const { load } = useCircuitSimulator();
 
-const onSelected = (item: OnSelectedParams) => {
-  console.log('menubar:onSelected', item);
+const onSelected = ({ name, path, id }: { name: string; path: string, id: string }) => {
+  if (id.startsWith('level:')) {
+    if (!field.value) return;
+    const level = id.split(':')[1];
+    load(field.value, (net) => {
+      return kohctpyktop[level as keyof typeof kohctpyktop](net);
+    });
+  }
 }
 
 </script>
 
 <style scoped>
-
 .undock {
   position: static !important;
   height: 100% !important;
 }
-
 </style>

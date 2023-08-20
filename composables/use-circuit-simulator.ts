@@ -13,14 +13,17 @@ const stepsPerSecond = ref(40);
 const stepInterval = computed(() => 1000 / stepsPerSecond.value);
 const onRenderHandlers: RenderCallback[] = [];
 
+export type SimLoader = (network: Network) => CircuitSimulation;
+let currentSimLoader: SimLoader = (network: Network) => new CircuitSimulation(network);
+
 const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
 }
 
-const load = (field: FieldGraph) => {
+const load = (field: FieldGraph, simLoader: SimLoader = currentSimLoader) => {
+  currentSimLoader = simLoader;
   network.value = Network.from(field);
-  sim.value = kohctpyktop['15 KR8S1 8-BIT ADDRESSABLE SRAM'](network.value);
-  //sim.value = new CircuitSimulation(network.value);
+  sim.value = currentSimLoader(network.value);
 }
 
 const stop = () => {
