@@ -89,7 +89,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinA3.label = 'A3';
     pinY3.label = 'Y3';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     const seqA0 = new Sequence()
       .addOscillation(0, 14, 10, 10);
     const seqA1 = new Sequence()
@@ -135,7 +135,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinB1.label = 'B1';
     pinNC0.label = 'N/C';
     pinNC1.label = 'N/C';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     const seqA0 = new Sequence();
     for (let i = 0; i < 13; i++) {
@@ -191,7 +191,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinD.label = 'D';
     pinX.label = 'X';
     pinY.label = 'Y';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A
     const seqA = new Sequence();
@@ -261,7 +261,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinRRST.label = '/RST';
     pinNC6.label = 'N/C';
     pinNC7.label = 'N/C';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 80);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // RST
     const seqRST = new Sequence();
@@ -295,7 +295,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinOSC0.label = 'OSC0';
     pinOSC1.label = 'OSC1';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // EN0
     const seqEN0 = new Sequence();
@@ -343,7 +343,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinQ0.label = 'Q0';
     pinQ1.label = 'Q1';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // S0
     const seqS0 = new Sequence();
@@ -416,7 +416,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinQ0.label = 'Q0';
     pinQ1.label = 'Q1';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // T0
     const seqT0 = new Sequence();
@@ -484,7 +484,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinOSC0.label = 'OSC0';
     pinOSC1.label = 'OSC1';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // S0
     const seqS0 = new Sequence();
@@ -539,7 +539,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinNC6.label = 'N/C';
     pinY3.label = 'Y3';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A
     sim.setInputSequence(pinA, new Sequence()
@@ -598,7 +598,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinB1.label = 'B1';
     pinC.label = 'C';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A0
     const seqA0 = new Sequence();
@@ -664,7 +664,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinNC5.label = 'N/C';
     pinNC6.label = 'N/C';
     pinNC7.label = 'N/C';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // IN
     const seqIN = new Sequence();
@@ -702,7 +702,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinS0.label = 'S0';
     pinD.label = 'D';
     pinS1.label = 'S1';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A
     const seqA = new Sequence();
@@ -775,7 +775,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinNC6.label = 'N/C';
     pinY3.label = 'Y3';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // CLR
     sim.setInputSequence(pinCLR, new Sequence()
@@ -830,7 +830,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinQ2.label = 'Q2';
     pinNC6.label = 'N/C';
     pinQ3.label = 'Q3';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // D
     const seqD = new Sequence();
@@ -885,7 +885,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinDin.label = 'Din';
     pinNC0.label = 'N/C';
     pinDout.label = 'Dout';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A0
     const seqA0 = new Sequence();
@@ -967,7 +967,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinC0.label = 'C0';
     pinB1.label = 'B1';
     pinC1.label = 'C1';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // A0
     const seqA0 = new Sequence();
@@ -1035,7 +1035,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinOUT2.label = 'OUT2';
     pinIN.label = 'IN';
     pinCLK.label = 'CLK';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // K0
     const seqK0 = new Sequence();
@@ -1098,7 +1098,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinY2.label = 'Y2';
     pinLOW.label = 'LOW';
     pinY3.label = 'Y3';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // RST
     const seqRST = new Sequence();
@@ -1156,7 +1156,7 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     pinB.label = 'B+';
     pinTRIG.label = 'TRIG';
     pinBN.label = 'B-';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
     // FIRE
     const seqFIRE = new Sequence();
