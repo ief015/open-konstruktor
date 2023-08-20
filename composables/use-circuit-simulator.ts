@@ -1,17 +1,21 @@
 import { kohctpyktop } from "@/circuits/kohctpyktop";
 import { CircuitSimulation, FieldGraph, Network } from "@/simulation";
 
-export type RenderCallback = () => void;
+export type OnRenderHandler = () => void;
+
+const network = ref<Network>();
+network.value = new Network();
 
 const sim = ref<CircuitSimulation>();
-const network = ref<Network>();
+sim.value = new CircuitSimulation(network.value);
+
 const isRunning = ref(false);
 const isPaused = ref(false);
 const lastFrameTime = ref(0);
 const accumulatedTime = ref(0);
 const stepsPerSecond = ref(40);
 const stepInterval = computed(() => 1000 / stepsPerSecond.value);
-const onRenderHandlers: RenderCallback[] = [];
+const onRenderHandlers: OnRenderHandler[] = [];
 
 export type SimLoader = (network: Network) => CircuitSimulation;
 let currentSimLoader: SimLoader = (network: Network) => new CircuitSimulation(network);
@@ -42,7 +46,6 @@ const pause = () => {
 const resume = () => {
   isPaused.value = false;
   lastFrameTime.value = performance.now();
-  // requestAnimationFrame(onAnim);
 }
 
 const onAnim = (timestamp: number) => {
@@ -93,7 +96,7 @@ const step = (n: number = 1) => {
 
 export default function useCircuitSimulator() {
 
-  let onRenderHandler: RenderCallback|null = null;
+  let onRenderHandler: OnRenderHandler|null = null;
 
   const removeRenderHandler = () => {
     if (onRenderHandler) {
@@ -101,7 +104,7 @@ export default function useCircuitSimulator() {
     }
   }
 
-  const onRender = (handler: RenderCallback): (() => void) => {
+  const onRender = (handler: OnRenderHandler): (() => void) => {
     removeRenderHandler();
     onRenderHandler = handler;
     onRenderHandlers.push(handler);
