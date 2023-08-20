@@ -8,23 +8,41 @@
       tertiary: '#444',
       textColor: 'inherit',
     }"
+    :on-selected="onSelected"
   />
 </template>
 
 <script setup lang="ts">
-import { DockMenu } from "vue-dock-menu";
-import "vue-dock-menu/dist/vue-dock-menu.css";
+// @ts-ignore
+import { DockMenu } from "@/external/vue-dock-menu/vue-dock-menu.es";
+import "@/external/vue-dock-menu/assets/output-9689c4bb.css";
 
 const items = [
   {
+    id: 'file',
     name: "File",
-    menu: [{ name: "Open"}, {name: "New Window"}, {name: "Exit"}]
+    menu: [
+      { id: 'open', name: "Open" },
+      { id: 'new-window', name: "New Window" },
+      { id: 'exit', name: "Exit" }
+    ]
   },
   {
+    id: 'edit',
     name: "Edit",
-    menu: [{ name: "Cut"}, {name: "Copy"}, {name: "Paste"}]
+    menu: [
+      { id: 'cut', name: "Cut" },
+      { id: 'cope', name: "Copy" },
+      { id: 'paste', name: "Paste" }
+    ]
   },
 ];
+
+type OnSelectedParams = { name: string; path: string };
+
+const onSelected = (item: OnSelectedParams) => {
+  console.log('menubar:onSelected', item);
+}
 
 </script>
 
