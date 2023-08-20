@@ -1,7 +1,7 @@
-import { kohctpyktop } from "@/circuits/kohctpyktop";
-import { CircuitSimulation, FieldGraph, Network } from "@/simulation";
+import { CircuitSimulation, FieldGraph, Network, VerificationResult } from "@/simulation";
 
 export type OnRenderHandler = () => void;
+export type OnCompleteHandler = (result: VerificationResult) => void;
 
 const network = ref<Network>();
 network.value = new Network();
@@ -16,12 +16,17 @@ const accumulatedTime = ref(0);
 const stepsPerSecond = ref(40);
 const stepInterval = computed(() => 1000 / stepsPerSecond.value);
 const onRenderHandlers: OnRenderHandler[] = [];
+const onCompleteHandlers: OnCompleteHandler[] = [];
 
 export type SimLoader = (network: Network) => CircuitSimulation;
 let currentSimLoader: SimLoader = (network: Network) => new CircuitSimulation(network);
 
 const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
+}
+
+const invokeCompleteHandlers = (result: VerificationResult) => {
+  onCompleteHandlers.forEach(handler => handler(result));
 }
 
 const stop = () => {
@@ -51,11 +56,14 @@ const onAnim = (timestamp: number) => {
     accumulatedTime.value += dt;
     let stepped = false;
     while (accumulatedTime.value >= stepInterval.value) {
+      stepped = true;
       if (sim.value.step()) {
+        const verifyResult = sim.value.verify('kohctpyktop');
         stop();
+        invokeCompleteHandlers(verifyResult);
+        break;
       }
       accumulatedTime.value -= stepInterval.value;
-      stepped = true;
     }
     if (stepped) {
       invokeRenderers();
@@ -98,10 +106,17 @@ const step = (n: number = 1) => {
 export default function useCircuitSimulator() {
 
   let onRenderHandler: OnRenderHandler|null = null;
+  let onCompleteHandler: OnCompleteHandler|null = null;
 
   const removeRenderHandler = () => {
     if (onRenderHandler) {
       onRenderHandlers.splice(onRenderHandlers.indexOf(onRenderHandler), 1);
+    }
+  }
+
+  const removeCompleteHandler = () => {
+    if (onCompleteHandler) {
+      onCompleteHandlers.splice(onCompleteHandlers.indexOf(onCompleteHandler), 1);
     }
   }
 
@@ -112,7 +127,15 @@ export default function useCircuitSimulator() {
     return removeRenderHandler;
   }
 
+  const onComplete = (handler: OnCompleteHandler): (() => void) => {
+    removeCompleteHandler();
+    onCompleteHandler = handler;
+    onCompleteHandlers.push(handler);
+    return removeCompleteHandler;
+  }
+
   onUnmounted(removeRenderHandler);
+  onUnmounted(removeCompleteHandler);
 
   return {
     sim,
@@ -127,5 +150,6 @@ export default function useCircuitSimulator() {
     resume,
     step,
     onRender,
+    onComplete,
   };
 }
