@@ -46,7 +46,7 @@ import "@/external/vue-dock-menu/assets/output-9689c4bb.css";
 import { kohctpyktop } from "@/circuits/kohctpyktop";
 
 const { field, load, loadBlank } = useFieldGraph();
-const { load: loadSim } = useCircuitSimulator();
+const { load: loadSim, stop } = useCircuitSimulator();
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
 const exportCode = ref('');
@@ -119,13 +119,14 @@ const onClear = () => {
 }
 
 const onLoadLevel = (level: string) => {
-  if (!field.value) return;
-  loadSim(field.value, (net) => {
+  loadBlank();
+  loadSim(field.value!, (net) => {
     return kohctpyktop[level as keyof typeof kohctpyktop](net);
   });
 }
 
 const onShowImportDialog = () => {
+  importCode.value = '';
   showImportDialog.value = true;
 }
 

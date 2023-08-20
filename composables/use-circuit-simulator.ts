@@ -24,12 +24,6 @@ const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
 }
 
-const load = (field: FieldGraph, simLoader: SimLoader = currentSimLoader) => {
-  currentSimLoader = simLoader;
-  network.value = Network.from(field);
-  sim.value = currentSimLoader(network.value);
-}
-
 const stop = () => {
   if (!sim.value)
     return;
@@ -79,6 +73,13 @@ const start = () => {
   accumulatedTime.value = 0;
   sim.value.reset();
   requestAnimationFrame(onAnim);
+}
+
+const load = (field: FieldGraph, simLoader: SimLoader = currentSimLoader) => {
+  stop();
+  currentSimLoader = simLoader;
+  network.value = Network.from(field);
+  sim.value = currentSimLoader(network.value);
 }
 
 const step = (n: number = 1) => {
