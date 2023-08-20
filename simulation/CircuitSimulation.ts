@@ -73,7 +73,7 @@ export class CircuitSimulation {
     this.defaultRuntime = defaultRuntime;
   }
 
-  public step(record: boolean = true) {
+  public step(record: boolean = true): boolean {
     for (const [ pin, sequence ] of this.inputSequences) {
       const state = sequence.getFrames()[this.currentFrame];
       if (state !== undefined) {
@@ -83,6 +83,13 @@ export class CircuitSimulation {
     this.network.step();
     record && this.recordFrame();
     this.currentFrame++;
+    return this.currentFrame >= (this.defaultRuntime ?? this.sequenceLength);
+  }
+
+  public reset(clearRecordings: boolean = true) {
+    this.network.reset();
+    clearRecordings && this.clearRecordings();
+    this.currentFrame = 0;
   }
 
   public run(
@@ -90,9 +97,8 @@ export class CircuitSimulation {
     onPostStep?: (frame: number) => void,
     record: boolean = true
   ) {
-    this.network.reset();
-    record && this.clearRecordings();
-    for (this.currentFrame = 0; this.currentFrame < length;) {
+    this.reset(record);
+    while (this.currentFrame < length) {
       const curFrame = this.currentFrame;
       this.step(record);
       onPostStep?.(curFrame);
