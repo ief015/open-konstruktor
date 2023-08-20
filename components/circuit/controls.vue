@@ -23,8 +23,10 @@
       <select v-model="selectedRate">
         <option value="10">10 Hz</option>
         <option value="20">20 Hz</option>
-        <option value="40">40 Hz</option>
+        <option value="40">40 Hz (Classic)</option>
         <option value="60">60 Hz</option>
+        <option value="120">120 Hz</option>
+        <option value="144">144 Hz</option>
         <option value="1000">1000 Hz</option>
         <option value="vsync">V-Sync</option>
         <option value="realtime">Real-time</option>
