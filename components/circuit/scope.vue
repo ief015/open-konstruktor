@@ -44,7 +44,7 @@ type DrawMode = 'high' | 'low';
 const COLOR_CHART = '#FFF7E2';
 const COLOR_SCOPE_LINE = '#000';
 const COLOR_SCOPE_HINT = '#888';
-const COLOR_VERIFY_LINE = '#F00';
+const COLOR_SCOPE_TIME_LINE = '#F00';
 const COLOR_GRID_LINE = '#BFBBB1';
 const COLOR_VERIFY_PASS = '#080';
 const COLOR_VERIFY_FAIL = '#800';
@@ -72,6 +72,7 @@ const verifyResult = ref<VerificationResult>();
 const renderScope = () => {
   if (!ctx)
     return;
+  console.log('rendering scope');
   ctx.resetTransform();
   ctx.translate(0.5, 0);
   ctx.fillStyle = COLOR_CHART;
@@ -80,6 +81,8 @@ const renderScope = () => {
   if (!field.value || !network.value || !sim.value)
     return;
   const runningLength = sim.value.getRunningLength();
+  const scopeWidth = runningLength * TICK_WIDTH_PX;
+  const currentX = sim.value.getRecordingLength() * TICK_WIDTH_PX;
 
   // draw grid lines
   ctx.strokeStyle = COLOR_GRID_LINE;
@@ -104,25 +107,80 @@ const renderScope = () => {
   for (const offset of [ 0, 1 ]) {
     const baseline = -(HEIGHT_PX_SCOPE / 4 + 0.5);
     const highLine = baseline - Math.floor(HEIGHT_PX_SCOPE / 2);
-    const scopeWidth = runningLength * TICK_WIDTH_PX;
     for (let i = offset; i < numPins; i += 2) {
       const pin = pins[i];
       const { input, output } = sim.value.getSequence(pin);
       ctx.translate(0, HEIGHT_PX_SCOPE);
+
       // draw label
       ctx.beginPath();
       ctx.moveTo(0, baseline);
       ctx.lineTo(WIDTH_PX_LABELS, baseline);
       ctx.stroke();
       if (pin.label) {
-        ctx.font = '12px Courier12';
-        ctx.fillText(pin.label, 0, baseline - 4, WIDTH_PX_LABELS);
+        ctx.font = '10px Georgia10';
+        ctx.fillText(pin.label, -0.5, baseline - 4, WIDTH_PX_LABELS);
       }
+
+      // draw scopes on graph
       ctx.save();
       ctx.translate(WIDTH_PX_LABELS, 0);
       if (input) {
+        ctx.strokeStyle = COLOR_SCOPE_LINE;
+
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        let i = 0;
+        let lastY = baseline;
+        for (const state of input) {
+          const x = i * TICK_WIDTH_PX;
+          const y = (state ? highLine : baseline);
+          ctx.lineTo(x, y);
+          ctx.lineTo(x + TICK_WIDTH_PX, y);
+          i++;
+          lastY = y;
+        }
+        ctx.lineTo(scopeWidth, lastY);
+        ctx.stroke();
 
       } else if (output) {
+
+        // expected
+        ctx.strokeStyle = COLOR_SCOPE_HINT;
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        let i = 0;
+        let lastY = baseline;
+        for (const state of output) {
+          const x = i * TICK_WIDTH_PX;
+          const y = (state ? highLine : baseline);
+          ctx.lineTo(x, y);
+          ctx.lineTo(x + TICK_WIDTH_PX, y);
+          i++;
+          lastY = y;
+        }
+        ctx.lineTo(scopeWidth, lastY);
+        ctx.stroke();
+
+        // actual
+        const rec = sim.value.getRecording(pin);
+        if (rec) {
+          ctx.strokeStyle = COLOR_SCOPE_LINE;
+          ctx.beginPath();
+          ctx.moveTo(0, baseline);
+          let i = 0;
+          let lastY = baseline;
+          for (const state of rec) {
+            const x = i * TICK_WIDTH_PX;
+            const y = (state ? highLine : baseline);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x + TICK_WIDTH_PX, y);
+            i++;
+            lastY = y;
+          }
+          ctx.lineTo(currentX, lastY);
+          ctx.stroke();
+        }
 
       } else { // N/C
         ctx.beginPath();
@@ -134,11 +192,21 @@ const renderScope = () => {
     }
   }
   ctx.restore();
+
+  // draw current time line
+  if (isRunning.value) {
+    ctx.strokeStyle = COLOR_SCOPE_TIME_LINE;
+    ctx.beginPath();
+    ctx.moveTo(WIDTH_PX_LABELS + currentX, 0);
+    ctx.lineTo(WIDTH_PX_LABELS + currentX, ctx.canvas.height);
+    ctx.stroke();
+  }
 }
 
 const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
   if (isRunning.value) return;
-  renderScope();
+  // TODO: implement
+  // renderScope();
 }
 
 const mouseToGrid = (mx: number, my: number): Point => {
