@@ -59,8 +59,8 @@ let ctx: CanvasRenderingContext2D | null = null;
 
 const { field } = useFieldGraph();
 const {
-  network, sim, isRunning, isPaused,
-  onRender, onComplete, load,
+  network, sim, isRunning,
+  onRender, onComplete,
 } = useCircuitSimulator();
 
 const isDrawing = ref(false);
@@ -74,7 +74,7 @@ const renderScope = () => {
     return;
   console.log('rendering scope');
   ctx.resetTransform();
-  ctx.translate(0.5, 0);
+  ctx.translate(0.5, 0.25);
   ctx.fillStyle = COLOR_CHART;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.lineWidth = 1;
@@ -274,6 +274,7 @@ watch(isRunning, (running) => {
 
 watch(sim, (sim) => {
   if (!sim) return;
+  verifyResult.value = undefined;
   renderScope();
 });
 
