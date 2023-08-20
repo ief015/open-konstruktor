@@ -4,6 +4,7 @@
     @mousemove="onMouseMove"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
+    @oncontextmenu.prevent
   >
     Your browser must support the canvas tag.
   </canvas>
@@ -28,6 +29,7 @@ let prevDrawingCoords: Point = [0, 0];
 const renderField = () => {
   if (!ctx)
     return;
+  ctx.resetTransform();
   ctx.fillStyle = '#666';
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   if (!field.value || !network.value)
@@ -179,25 +181,31 @@ const mouseToGrid = (mx: number, my: number): Point => {
 const onMouseMove = (e: MouseEvent) => {
   if (!ctx) return;
   if (isRunning.value) return;
-  if (isDrawing.value && field.value) {
-    const coords = mouseToGrid(e.clientX, e.clientY);
-    draw(toolBoxMode.value, prevDrawingCoords, coords);
-    prevDrawingCoords = coords;
+  if (e.button === 0) {
+    if (isDrawing.value && field.value) {
+      const coords = mouseToGrid(e.clientX, e.clientY);
+      draw(toolBoxMode.value, prevDrawingCoords, coords);
+      prevDrawingCoords = coords;
+    }
   }
 }
 
 const onMouseDown = (e: MouseEvent) => {
   if (!ctx) return;
   if (isRunning.value) return;
-  isDrawing.value = true;
-  prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
-  draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
+  if (e.button === 0) {
+    isDrawing.value = true;
+    prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
+    draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
+  }
 }
 
 const onMouseUp = (e: MouseEvent) => {
   if (!ctx) return;
   if (isRunning.value) return;
-  isDrawing.value = false;
+  if (e.button === 0) {
+    isDrawing.value = false;
+  }
 }
 
 const onResize = () => {
@@ -228,12 +236,12 @@ onMounted(() => {
   ctx.canvas.width = ctx.canvas.clientWidth;
   ctx.canvas.height = ctx.canvas.clientHeight;
   ctx.imageSmoothingEnabled = false;
-  addEventListener('resize', onResize);
+  window.addEventListener('resize', onResize);
   renderField();
 });
 
 onUnmounted(() => {
-  removeEventListener('resize', onResize);
+  window.removeEventListener('resize', onResize);
 });
 
 </script>
