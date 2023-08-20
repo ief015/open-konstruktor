@@ -83,7 +83,7 @@ export class CircuitSimulation {
     this.network.step();
     record && this.recordFrame();
     this.currentFrame++;
-    return this.currentFrame >= (this.defaultRuntime ?? this.sequenceLength);
+    return this.currentFrame >= this.getRunningLength();
   }
 
   public reset(clearRecordings: boolean = true) {
@@ -93,7 +93,7 @@ export class CircuitSimulation {
   }
 
   public run(
-    length: number = this.defaultRuntime ?? this.sequenceLength,
+    length: number = this.getRunningLength(),
     onPostStep?: (frame: number) => void,
     record: boolean = true
   ) {
@@ -113,10 +113,16 @@ export class CircuitSimulation {
     return this.recording.get(pin) ?? null;
   }
 
+  /**
+   * The length of the longest I/O sequence, in frames.
+   */
   public getSequenceLength(): number {
     return this.sequenceLength;
   }
 
+  /**
+   * The length of recorded sequences, in frames.
+   */
   public getRecordingLength(): number {
     return this.recordingLength;
   }
@@ -127,6 +133,14 @@ export class CircuitSimulation {
 
   public getCurrentFrame(): number {
     return this.currentFrame;
+  }
+
+  /**
+   * The length of the simulation, in frames.
+   * Either the default runtime, or the length of the longest sequence.
+   */
+  public getRunningLength(): number {
+    return this.defaultRuntime ?? this.sequenceLength;
   }
 
   private updateSequenceLength() {
@@ -187,6 +201,19 @@ export class CircuitSimulation {
   public clearOutputSequences() {
     this.outputSequences.clear();
     this.updateSequenceLength();
+  }
+
+  public getSequence(pin: PinNode|number): { input?: Readonly<Sequence>, output?: Readonly<Sequence> } {
+    if (typeof pin === 'number') {
+      pin = this.network.getPinNodes()[pin];
+      if (!pin) {
+        throw new Error(`Pin ${pin} does not exist`);
+      }
+    }
+    return {
+      input: this.inputSequences.get(pin),
+      output: this.outputSequences.get(pin),
+    };
   }
 
   public clearRecordings() {
