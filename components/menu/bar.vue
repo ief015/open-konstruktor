@@ -1,5 +1,6 @@
 <template>
   <DockMenu
+    v-bind="$attrs"
     class="undock font-ttw"
     :items="items"
     :theme="{
@@ -8,7 +9,34 @@
       tertiary: '#444',
     }"
     :on-selected="onSelected"
-  />
+  >
+  </DockMenu>
+  <DialogModal v-if="showImportDialog">
+    <div class="flex flex-col gap-2">
+      <textarea class="max-w-sm w-[50vw] h-32 font-mono break-words" v-model="importCode" />
+      <div class="flex flex-row gap-2 justify-end">
+        <button @click="onImport">
+          Import
+        </button>
+        <button @click="showImportDialog = false">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </DialogModal>
+  <DialogModal v-if="showExportDialog">
+    <div class="flex flex-col gap-2">
+      <textarea readonly class="max-w-sm w-[50vw] h-32 font-mono break-words" :value="exportCode" />
+      <div class="flex flex-row gap-2 justify-end">
+        <button @click="onCopyExport">
+          {{ exportCopied ? 'Copied!' : 'Copy' }}
+        </button>
+        <button @click="showExportDialog = false">
+          Close
+        </button>
+      </div>
+    </div>
+  </DialogModal>
 </template>
 
 <script setup lang="ts">
@@ -17,6 +45,13 @@ import { DockMenu } from "@/external/vue-dock-menu/vue-dock-menu.es";
 import "@/external/vue-dock-menu/assets/output-9689c4bb.css";
 import { kohctpyktop } from "@/circuits/kohctpyktop";
 
+const { field, load, loadBlank } = useFieldGraph();
+const { load: loadSim } = useCircuitSimulator();
+const showImportDialog = ref(false);
+const showExportDialog = ref(false);
+const exportCode = ref('');
+const exportCopied = ref(false);
+const importCode = ref('');
 const items = [
   {
     name: "File",
@@ -73,16 +108,54 @@ const items = [
   },
 ];
 
-const { field } = useFieldGraph();
-const { load } = useCircuitSimulator();
+watch(importCode, (code) => {
+  // remove newlines
+  importCode.value = code.replace(/\r?\n|\r/g, '');
+});
+
+const onClear = () => {
+  loadBlank();
+  loadSim(field.value!);
+}
+
+const onLoadLevel = (level: string) => {
+  if (!field.value) return;
+  loadSim(field.value, (net) => {
+    return kohctpyktop[level as keyof typeof kohctpyktop](net);
+  });
+}
+
+const onShowImportDialog = () => {
+  showImportDialog.value = true;
+}
+
+const onShowExportDialog = () => {
+  exportCode.value = field.value?.toSaveString() ?? '';
+  showExportDialog.value = true;
+  exportCopied.value = false;
+}
+
+const onCopyExport = () => {
+  navigator.clipboard.writeText(exportCode.value);
+  exportCopied.value = true;
+}
+
+const onImport = () => {
+  if (!importCode.value) return;
+  load(importCode.value);
+  loadSim(field.value!);
+  showImportDialog.value = false;
+}
 
 const onSelected = ({ name, path, id }: { name: string; path: string, id: string }) => {
-  if (id.startsWith('level:')) {
-    if (!field.value) return;
-    const level = id.split(':')[1];
-    load(field.value, (net) => {
-      return kohctpyktop[level as keyof typeof kohctpyktop](net);
-    });
+  if (id === 'import') {
+    onShowImportDialog();
+  } else if (id === 'export') {
+    onShowExportDialog();
+  } else if (id === 'clear') {
+    onClear();
+  } else if (id.startsWith('level:')) {
+    onLoadLevel(id.split(':')[1]);
   }
 }
 
