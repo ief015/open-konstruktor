@@ -2,7 +2,7 @@
   <NuxtLayout>
     <template #top>
       <div class="h-[1.5em] bottom-border flex flex-row">
-        <div class="font-ttw select-none mx-1 self-center">
+        <div class="font-ttw select-none ml-2 mr-3 self-center">
           open-konstruktor
         </div>
         <div class="flex-1">
@@ -21,15 +21,17 @@
         <ToolboxControls />
       </div>
     </template>
-    <div class="flex flex-col w-full h-full">
-      <div class="h-[66%]">
+    <div class="flex flex-col h-full">
+      <div class="h-2/3">
         <CircuitField class="w-full h-full" />
       </div>
-      <div class="flex-1 top-border">
-        <CircuitScope class="w-full h-full" />
-      </div>
-      <div class="h-[2em] top-border">
-        <CircuitControls class="w-full h-full" />
+      <div class="flex-grow flex flex-col">
+        <div class="top-border flex-grow">
+          <CircuitScope class="w-full h-full" />
+        </div>
+        <div class="top-border py-2">
+          <CircuitControls class="w-full h-full" />
+        </div>
       </div>
     </div>
   </NuxtLayout>

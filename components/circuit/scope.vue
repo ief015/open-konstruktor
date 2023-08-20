@@ -1,9 +1,200 @@
 <template>
-  <div>
-    
+  <div class="flex flex-col">
+    <div
+      class="flex-grow p-[8px]"
+      :style="{ 'background-color': COLOR_CHART }"
+    >
+      <div ref="canvasContainer" class="h-full">
+        <canvas
+          ref="canvas"
+          @mousemove="onMouseMove"
+          @mousedown="onMouseDown"
+          @mouseup="onMouseUp"
+          @oncontextmenu.prevent
+        >
+          Your browser must support the canvas tag.
+        </canvas>
+      </div>
+    </div>
+    <div
+      class="h-[1em] p-2 font-georgia12 text-[12px] uppercase"
+      :style="{ 'background-color': COLOR_CHART }"
+    >
+      <span v-if="isRunning" class="text-black">
+        VERIFICATION TEST RUNNING...
+      </span>
+      <span v-else-if="!verifyResult" class="text-black">
+        VERIFICATION TEST NOT YET COMPLETED
+      </span>
+      <span v-else-if="verifyResult.gradePercent >= 97" :style="{ 'color': COLOR_VERIFY_PASS }">
+        VERIFICATION TEST PASSED ({{verifyResult.gradePercent}}%) - FLAGGED AS COMPLETED
+      </span>
+      <span v-else :style="{ 'color': COLOR_VERIFY_FAIL }">
+        VERIFICATION TEST FAILED ({{verifyResult.gradePercent}}%) 
+      </span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Point, VerificationResult } from '@/simulation'; 
+
+type DrawMode = 'high' | 'low';
+
+const COLOR_CHART = '#FFF7E2';
+const COLOR_SCOPE_LINE = '#000';
+const COLOR_SCOPE_HINT = '#888';
+const COLOR_VERIFY_LINE = '#F00';
+const COLOR_GRID_LINE = '#BFBBB1';
+const COLOR_VERIFY_PASS = '#080';
+const COLOR_VERIFY_FAIL = '#800';
+const TICK_WIDTH_PX = 2; // 2px per tick
+const HEIGHT_PX_SCOPE = 25; // 25px per scope
+const GRID_LINE_INTERVAL = 5; // Grid line every 5 ticks
+const MIN_WIDTH_PX_LABELS = 52; // Minimum width for labels
+
+const canvasContainer = ref<HTMLDivElement>();
+const canvas = ref<HTMLCanvasElement>();
+let ctx: CanvasRenderingContext2D | null = null;
+
+const { field } = useFieldGraph();
+const {
+  network, sim, isRunning, isPaused,
+  onRender, onComplete, load,
+} = useCircuitSimulator();
+
+const isDrawing = ref(false);
+const drawMode = ref<DrawMode>('high');
+let prevDrawingCoords: Point = [0, 0];
+
+const verifyResult = ref<VerificationResult>();
+
+const renderScope = () => {
+  if (!ctx)
+    return;
+  ctx.resetTransform();
+  ctx.translate(0.5, 0);
+  ctx.fillStyle = COLOR_CHART;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.lineWidth = 1;
+  if (!field.value || !network.value || !sim.value)
+    return;
+  const runningLength = sim.value.getRunningLength();
+
+  // draw grid lines
+  ctx.strokeStyle = COLOR_GRID_LINE;
+  ctx.setLineDash([ 2, 1 ]);
+  ctx.save();
+  ctx.translate(MIN_WIDTH_PX_LABELS, 0);
+  ctx.beginPath();
+  for (let i = 0; i < runningLength; i += GRID_LINE_INTERVAL) {
+    ctx.moveTo(i * TICK_WIDTH_PX, 0);
+    ctx.lineTo(i * TICK_WIDTH_PX, ctx.canvas.height);
+  }
+  ctx.stroke();
+  ctx.restore();
+  ctx.setLineDash([]);
+
+  const pins = network.value.getPinNodes()
+    .filter((node, idx) => idx > 1 && idx < network.value!.getPinNodes().length - 2);
+  const numPins = pins.length;
+  // draw scopes for each pin from top to bottom
+  ctx.strokeStyle = COLOR_SCOPE_LINE;
+  for (const offset of [ 0, 1 ]) {
+    for (let i = offset; i < numPins; i += 2) {
+      // within MIN_WIDTH_PX_LABELS, print the label in column with black 1px underline across the whole MIN_WIDTH_PX_LABELS
+      const baseline = i * HEIGHT_PX_SCOPE + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(0, baseline);
+      ctx.lineTo(ctx.canvas.width, baseline);
+      ctx.stroke();
+    }
+  }
+}
+
+const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
+  if (isRunning.value) return;
+  renderScope();
+}
+
+const mouseToGrid = (mx: number, my: number): Point => {
+  if (!ctx) return [0, 0];
+  const rect = ctx.canvas.getBoundingClientRect();
+  const x = Math.trunc((mx - rect.left) / 12);
+  const y = Math.trunc((my - rect.top) / 12);
+  return [x, y];
+}
+
+const onMouseMove = (e: MouseEvent) => {
+  if (!ctx) return;
+  if (isRunning.value) return;
+  if (isDrawing.value && field.value) {
+    const coords = mouseToGrid(e.clientX, e.clientY);
+    draw(drawMode.value, prevDrawingCoords, coords);
+    prevDrawingCoords = coords;
+  }
+}
+
+const onMouseDown = (e: MouseEvent) => {
+  if (!ctx) return;
+  if (isRunning.value) return;
+  if (e.button === 0) {
+    drawMode.value = 'high';
+  } else if (e.button === 2) {
+    drawMode.value = 'low';
+  } else {
+    return;
+  }
+  isDrawing.value = true;
+  prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
+  draw(drawMode.value, prevDrawingCoords, prevDrawingCoords);
+}
+
+const onMouseUp = (e: MouseEvent) => {
+  if (!ctx) return;
+  if (isRunning.value) return;
+  isDrawing.value = false;
+}
+
+const onResize = () => {
+  if (!ctx || !canvasContainer.value)
+    return;
+  console.log(canvasContainer.value.clientWidth, canvasContainer.value.clientHeight);
+  ctx.canvas.width = Math.trunc(canvasContainer.value.clientWidth);
+  ctx.canvas.height = Math.trunc(canvasContainer.value.clientHeight);
+  renderScope();
+}
+
+onRender(renderScope);
+
+onComplete((result) => {
+  verifyResult.value = result;
+  console.log(result);
+});
+
+watch(isRunning, (running) => {
+  if (running) {
+    isDrawing.value = false;
+    verifyResult.value = undefined;
+  }
+  renderScope();
+});
+
+watch(sim, (sim) => {
+  if (!sim) return;
+  renderScope();
+});
+
+onMounted(async () => {
+  ctx = canvas.value?.getContext('2d') ?? null;
+  if (!ctx) throw new Error('Could not get canvas context');
+  ctx.imageSmoothingEnabled = false;
+  onResize();
+  window.addEventListener('resize', onResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', onResize);
+});
 
 </script>
