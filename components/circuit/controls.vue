@@ -20,15 +20,15 @@
       <button @click="onStep(10)">+10</button>
     </div>
     <div>
-      <select>
-        <option>10 Hz</option>
-        <option>20 Hz</option>
-        <option>40 Hz</option>
-        <option>60 Hz</option>
-        <option>1000 Hz</option>
-        <option>V-Sync</option>
-        <option>Real-time</option>
-        <option>-- Custom --</option>
+      <select v-model="selectedRate">
+        <option value="10">10 Hz</option>
+        <option value="20">20 Hz</option>
+        <option value="40">40 Hz</option>
+        <option value="60">60 Hz</option>
+        <option value="1000">1000 Hz</option>
+        <option value="vsync">V-Sync</option>
+        <option value="realtime">Real-time</option>
+        <option value="custom">-- Custom --</option>
       </select>
     </div>
   </div>
@@ -41,6 +41,30 @@ const {
   sim, isRunning, isPaused, stepsPerSecond,
   load, start, stop, pause, resume, step,
 } = useCircuitSimulator();
+
+const selectedRate = ref('40');
+
+watch(selectedRate, (rate) => {
+  if (rate === 'custom') {
+    // TODO: not yet implemented
+    console.warn('Custom not yet implemented');
+    stepsPerSecond.value = 5;
+    return;
+  }
+  if (rate === 'realtime') {
+    // TODO: not yet implemented
+    console.warn('Real-time not yet implemented');
+    stepsPerSecond.value = 1000000;
+    return;
+  }
+  if (rate === 'vsync') {
+    // TODO: not yet implemented
+    console.warn('V-Sync not yet implemented');
+    stepsPerSecond.value = 60;
+    return;
+  }
+  stepsPerSecond.value = parseInt(rate);
+}, { immediate: true });
 
 const onStart = () => {
   if (isRunning.value) return;
