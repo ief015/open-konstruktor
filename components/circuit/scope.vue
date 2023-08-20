@@ -10,7 +10,7 @@
           @mousemove="onMouseMove"
           @mousedown="onMouseDown"
           @mouseup="onMouseUp"
-          @oncontextmenu.prevent
+          oncontextmenu="return false;"
         >
           Your browser must support the canvas tag.
         </canvas>
@@ -51,7 +51,7 @@ const COLOR_VERIFY_FAIL = '#800';
 const TICK_WIDTH_PX = 2; // 2px per tick
 const HEIGHT_PX_SCOPE = 25; // 25px per scope
 const GRID_LINE_INTERVAL = 5; // Grid line every 5 ticks
-const MIN_WIDTH_PX_LABELS = 52; // Minimum width for labels
+const WIDTH_PX_LABELS = 52; // Minimum width for labels
 
 const canvasContainer = ref<HTMLDivElement>();
 const canvas = ref<HTMLCanvasElement>();
@@ -83,33 +83,57 @@ const renderScope = () => {
 
   // draw grid lines
   ctx.strokeStyle = COLOR_GRID_LINE;
-  ctx.setLineDash([ 2, 1 ]);
   ctx.save();
-  ctx.translate(MIN_WIDTH_PX_LABELS, 0);
+  ctx.setLineDash([ 2, 1 ]);
+  ctx.translate(WIDTH_PX_LABELS, 0);
   ctx.beginPath();
-  for (let i = 0; i < runningLength; i += GRID_LINE_INTERVAL) {
+  for (let i = 0; i <= runningLength; i += GRID_LINE_INTERVAL) {
     ctx.moveTo(i * TICK_WIDTH_PX, 0);
     ctx.lineTo(i * TICK_WIDTH_PX, ctx.canvas.height);
   }
   ctx.stroke();
   ctx.restore();
-  ctx.setLineDash([]);
 
+  // draw scopes for each pin from top to bottom
   const pins = network.value.getPinNodes()
     .filter((node, idx) => idx > 1 && idx < network.value!.getPinNodes().length - 2);
   const numPins = pins.length;
-  // draw scopes for each pin from top to bottom
+  ctx.save();
   ctx.strokeStyle = COLOR_SCOPE_LINE;
+  ctx.fillStyle = COLOR_SCOPE_LINE;
   for (const offset of [ 0, 1 ]) {
+    const baseline = -(HEIGHT_PX_SCOPE / 4 + 0.5);
+    const highLine = baseline - Math.floor(HEIGHT_PX_SCOPE / 2);
+    const scopeWidth = runningLength * TICK_WIDTH_PX;
     for (let i = offset; i < numPins; i += 2) {
-      // within MIN_WIDTH_PX_LABELS, print the label in column with black 1px underline across the whole MIN_WIDTH_PX_LABELS
-      const baseline = i * HEIGHT_PX_SCOPE + 0.5;
+      const pin = pins[i];
+      const { input, output } = sim.value.getSequence(pin);
+      ctx.translate(0, HEIGHT_PX_SCOPE);
+      // draw label
       ctx.beginPath();
       ctx.moveTo(0, baseline);
-      ctx.lineTo(ctx.canvas.width, baseline);
+      ctx.lineTo(WIDTH_PX_LABELS, baseline);
       ctx.stroke();
+      if (pin.label) {
+        ctx.font = '12px Courier12';
+        ctx.fillText(pin.label, 0, baseline - 4, WIDTH_PX_LABELS);
+      }
+      ctx.save();
+      ctx.translate(WIDTH_PX_LABELS, 0);
+      if (input) {
+
+      } else if (output) {
+
+      } else { // N/C
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        ctx.lineTo(scopeWidth, baseline);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
   }
+  ctx.restore();
 }
 
 const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
