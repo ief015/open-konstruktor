@@ -734,3 +734,23 @@ test('2-to-4 line decoder', () => {
   });
 
 });
+
+
+// https://trello.com/c/eFq2LFRg/8-low-pins-should-not-overwrite-high-pins-see-example
+test('bug-pin-to-pin-overwrite', () => {
+
+  const path = new PathNode();
+  const pinVCC = new PinNode(path, true);
+  const pinNC = new PinNode(path);
+
+  // Works as expected
+  const networkWorking = new Network([pinNC, pinVCC ]);
+  networkWorking.step();
+  assertEqual(path.state, true, 'networkWorking');
+
+  // Bug: N/C state prioritized over VCC due to order
+  const networkBugged = new Network([ pinVCC, pinNC ]);
+  networkBugged.step();
+  assertEqual(path.state, true, 'networkBugged');
+
+});
