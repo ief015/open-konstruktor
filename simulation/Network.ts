@@ -53,8 +53,8 @@ export default class Network {
       path.state = false;
     }
     for (const pin of this.pins) {
-      if (pin.path) {
-        pin.path.state = pin.active;
+      if (pin.path && pin.active) {
+        pin.path.state = true;
       }
     }
 
