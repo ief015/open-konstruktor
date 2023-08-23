@@ -1,3 +1,4 @@
+import { test } from "vitest";
 import { assertPin } from "@/utils/assert";
 import { PathNode, GateNode, PinNode, Network, CircuitSimulation, Sequence } from "@/simulation";
 
@@ -12,7 +13,7 @@ IkfVbjadG22ecV8SlfGznu67x/EfAezBxvkBXnOXTOjadqXiTqaSDK0TKTJeEfjH
 pA==
 */
 
-export default async function() {
+test('dual-fixed-freq-oscillator', () => {
 
   const pathVCC = new PathNode();
   const pathEn0 = new PathNode();
@@ -138,4 +139,4 @@ export default async function() {
 
   // tl.printHistory();
 
-}
+});

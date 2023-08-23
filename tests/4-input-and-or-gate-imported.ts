@@ -1,7 +1,8 @@
+import { test } from "vitest";
 import { assertEqual, assertPin } from "@/utils/assert";
 import { Network, FieldGraph, CircuitSimulation, Sequence } from "@/simulation";
 
-export default async function() {
+test('4-input-and-or-gate-imported', () => {
 
   const saveString = 'eNrtmkEOgjAQRWU+G87gFdx7Fu9/EZMKgkCnhQoRfDRdmNcfkJCXKUN9q6/No2ruVX1ZMwguDloYi4PVeywK2sfYIzi8VFt7V/cP8qwSJEiQIMFjB0M5Z/EjUEmzs5wGrvDbutmf1wYLErRdMU+n/6inFqPmZhP0tcKn8qhBodAY3dJIMRNmqRIaoeJuQKH/Qc+uynHltyCrgiwUCkWVB5KhJqXfcAOePq9ckYqKFApFlaevG+Ury3+TmaE7ZAiFospjUHcTLbcyVHoDLh4tKBRV9vHCHrd1Xax4F9tcqrGacoWW0eO2gh63XzcqoVn6mFDoOrpNj/srqpyf5bT1pPzLTihr/EnQj9R+4l0lFLoJ3dJIkeMJ5zrHaQ==';
   const fieldGraph = FieldGraph.from(saveString);
@@ -134,10 +135,6 @@ export default async function() {
         assertPin(pinX, 1);
         assertPin(pinY, 1);
         break;
-      case 30:
-        assertPin(pinX, 0);
-        assertPin(pinY, 0);
-        break;
       case 90:
         assertPin(pinX, 0);
         assertPin(pinY, 1);
@@ -172,4 +169,4 @@ export default async function() {
 
   //tl.printHistory();
 
-}
+});

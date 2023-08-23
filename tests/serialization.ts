@@ -1,3 +1,4 @@
+import { test } from "vitest";
 import { assertEqual } from "@/utils/assert";
 import {
   ConnectionValue, DesignData, Layer, MetalValue, decodeSync, encodeSync
@@ -30,7 +31,7 @@ function checkMutations() {
   assertEqual(reencoded, target);
 }
 
-export default async function() {
+test('serialization', () => {
   checkMutations();
   checkEmpty();
-}
+});

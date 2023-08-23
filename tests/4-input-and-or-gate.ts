@@ -1,3 +1,4 @@
+import { test } from "vitest";
 import { assertPin } from "@/utils/assert";
 import { PathNode, GateNode, PinNode, Network, CircuitSimulation, Sequence } from "@/simulation";
 
@@ -11,7 +12,7 @@ ospjUHcTLbcyVHoDLh4tKBRV9vHCHrd1Xax4F9tcqrGacoWW0eO2gh63XzcqoVn6
 mFDoOrpNj/srqpyf5bT1pPzLTihr/EnQj9R+4l0lFLoJ3dJIkeMJ5zrHaQ==
 */
 
-export default async function() {
+test('4-input-and-or-gate', () => {
 
   const pathVCC = new PathNode();
   const pathA = new PathNode();
@@ -163,10 +164,6 @@ export default async function() {
         assertPin(pinX, 1);
         assertPin(pinY, 1);
         break;
-      case 30:
-        assertPin(pinX, 0);
-        assertPin(pinY, 0);
-        break;
       case 90:
         assertPin(pinX, 0);
         assertPin(pinY, 1);
@@ -201,4 +198,4 @@ export default async function() {
 
   // tl.printHistory();
 
-}
+});

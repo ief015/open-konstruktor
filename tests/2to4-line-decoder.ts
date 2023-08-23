@@ -1,5 +1,6 @@
+import { test } from "vitest";
+import { assertPin } from "@/utils/assert";
 import { PathNode, GateNode, PinNode, Network, CircuitSimulation, Sequence } from "@/simulation";
-import { assertEqual, assertEqualArray, assertPin } from "@/utils/assert";
 
 // Based on KD124 - 2-TO-4 LINE DECODER design:
 /*
@@ -13,7 +14,7 @@ oJUCtYX3uIWhhD3uVUohjlJazpixHXD2oeM/e9yHSGX8zKf3m7P4cvLeMziiUT/l
 y+/UW4N0Z/5OUUCRPmbMyDY=
 */
 
-export default async function() {
+test('2-to-4 line decoder', () => {
 
   const pathVCC = new PathNode();
   const pathA = new PathNode();
@@ -180,4 +181,4 @@ export default async function() {
 
   // tl.printHistory();
 
-}
+});

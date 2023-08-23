@@ -1,6 +1,7 @@
+import { test } from "vitest";
+import { assertEqual } from "@/utils/assert";
 import { kohctpyktop } from "@/circuits/kohctpyktop";
 import { Network, FieldGraph } from "@/simulation";
-import { assertEqual } from "@/utils/assert";
 
 function andGateFromString() {
   const saveString = 'eNrtmUEOgyAQRYVhwxm8gnvP4v0v0hSNSWWkBa2W8oa4ev4wIeTzCW5wvZ+MH43rSkb1QhNG0Yz27xcHIUKECBEivEFoy4SJI72JVQ1xzu5XoCKifsfpXDLXs6HNzOsfal/prqFQaC1UEnTxh0s9Sev5I7OEQqHQtumPWCW5EQqF5mfO1qxSIq/ESKFQzDB2B1IlmwcKxSq5gL9JlVglFArVU2VFF/ATXrnDuSGkSigUmvcC/uodX3zjPsUq9e84XRdKNsGSrQWFQmN3uMSRlHoA6/zGXw==';
@@ -49,7 +50,7 @@ function testCompareStringAndDrawing() {
   }
 }
 
-export default async function() {
+test('field-graph-drawing', () => {
 
   const source = 'eNrtmlFy2zAMRONd/+QMvUL/e5be/yKdSiYJAuBKlqIkbmmPJs6siEeQJgQSvv+8/3j/fXv/dbu/HXnPhrfhWzaEe5dGaMT+hsjDcnVqabjgl5s9sxhwfVBE5eOjYeuSbah8RBschK4qH2vDjPiEj+2WnT7C2Hx7xsecuMNH93Xa72PrJHZ+V92o9sSd86jWhpjH8frY9PG59Yij63H6OH2cPh70cSYPn91wSecwfi0qyfQ6q3J9Yblr+Wu5BOsLVmVVzR1E+cdYbq3rPaXt34+rtaoXlb51x2XUDbdZHnCTlru4KJZTLqS/oOIWy0Mu3EBbbh3DlNupkdvLnusaZ1xIru/XUM24kNxVHnIhuZDcMJpRHXMhuaXXAy4kF5Lr1hGDCsNlMoPmq23Vdkf5fGlEUpFwV6j851TOPk91qlN9Rn2dUEnzIT6zyhPIZMImb7QGMi4dlz3OcY3lyO0fw4FrLQcuNVf6C+2v5G6M8xl/9TifmN/JfTHuDJWfpIYNuMvuHxtwlESa64bBJvEqkLLL31jbJtzOcuCawJJynWW6vFFwTZ8zf6n8DZY5ejRkXO0v/GZJLTR+1PxO7rfmcobKrwuV8mnYH4c8Tufs8jfzuIaOPstqNiSXWYZWuUzCTuPqLw9DnwOXG1x3qOS42l/FHY7zLq7yd2ucJ/dluTOr/EK1K+DEA+fyPLShsmwYSuVoeO5nKkslfyNH3M5y4Poj9J6LvkDluNRc6S+0v5K7Mc5n/NXjfGJ+J/fFuP9JqDxVb0J/Wcv5vq+pNLlOVgFH21OSda5jjRttaypUmEp0sxwq4KHGPeBScR+b2kGNG6oCXmuvllsz0lJN7Limxp1z2yiOKqQPMXDtzi3h1kWWcrHNheRCcyG5kFxoLiQXkgtsVsDHXEguNHezAi640NxxjVurdjfDkAkzXhfWuD8kVObXWbVODeB+K9ROyfyviNwJm5WtZS9z/DRsZzBNZfL7paAm3Gw3w6QtGLm1z3Gr3C/wAZf2iZNyzR/nrzcd/BVcVyuI43yYi3NcXMfFdVxcx8V1XBzl2mU2ynVtlL02Iok+/wFi6M+0';
   const graph = FieldGraph.from(source);
@@ -72,5 +73,5 @@ export default async function() {
 
   testCompareStringAndDrawing();
 
-}
+});
 

@@ -1,8 +1,8 @@
+import { test } from "vitest";
 import { assertEqual } from "@/utils/assert";
 import { GateNode, PinNode, Network, PathNode } from "@/simulation";
 
-export default async function() {
-
+test('npn', () => {
 
   const pathVCC = new PathNode();
   const pathA = new PathNode();
@@ -75,4 +75,4 @@ export default async function() {
   assertEqual(pathA.state, false);
   assertEqual(pathY.state, false);
 
-}
+});
