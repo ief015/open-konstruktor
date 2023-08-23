@@ -4,6 +4,7 @@ import { Network } from "@/simulation";
 import FieldGraph from "@/simulation/FieldGraph";
 import { kohctpyktop } from "@/circuits/kohctpyktop";
 
+
 describe('01 KT411I QUAD INVERTER GATE', () => {
 
   test('empty', () => {
@@ -32,6 +33,7 @@ describe('01 KT411I QUAD INVERTER GATE', () => {
   });
 
 });
+
 
 describe('02 KT221A DUAL 2-INPUT AND GATE', () => {
 
@@ -72,6 +74,7 @@ describe('02 KT221A DUAL 2-INPUT AND GATE', () => {
   });
 
 });
+
 
 describe('03 KT141AO 4-INPUT AND-OR GATE', () => {
 
@@ -128,6 +131,7 @@ describe('04 KO229 POWER ON RESET GENERATOR', () => {
 
 });
 
+
 describe('05 KO223 DUAL FIXED FREQUENCY OSCILLATOR', () => {
 
   test('empty', () => {
@@ -155,6 +159,7 @@ describe('05 KO223 DUAL FIXED FREQUENCY OSCILLATOR', () => {
 
 });
 
+
 describe('06 KL2S1 DUAL SET-RESET LATCH', () => {
 
   test('empty', () => {
@@ -181,6 +186,7 @@ describe('06 KL2S1 DUAL SET-RESET LATCH', () => {
   });
 
 });
+
 
 describe('07 KL2T1 DUAL TOGGLE LATCH', () => {
 
@@ -222,6 +228,7 @@ describe('07 KL2T1 DUAL TOGGLE LATCH', () => {
 
 });
 
+
 describe('08 KO224X DUAL FREQUENCY OSCILLATOR', () => {
 
   test('empty', () => {
@@ -248,6 +255,7 @@ describe('08 KO224X DUAL FREQUENCY OSCILLATOR', () => {
   });
 
 });
+
 
 describe('09 KD124 2-TO-4 LINE DECODER', () => {
 
@@ -302,6 +310,7 @@ describe('09 KD124 2-TO-4 LINE DECODER', () => {
 
 });
 
+
 describe('10 KA180 2-BIT ADDER WITH CARRY', () => {
 
   test('empty', () => {
@@ -329,6 +338,7 @@ describe('10 KA180 2-BIT ADDER WITH CARRY', () => {
 
 });
 
+
 describe('11 KC82F DIVIDE-BY-FOUR COUNTER', () => {
 
   test('empty', () => {
@@ -355,6 +365,7 @@ describe('11 KC82F DIVIDE-BY-FOUR COUNTER', () => {
   });
 
 });
+
 
 describe('12 KM141P 4-TO-1 MULTIPLEXER', () => {
 
@@ -396,6 +407,7 @@ describe('12 KM141P 4-TO-1 MULTIPLEXER', () => {
 
 });
 
+
 describe('13 KC84C 4-BIT COUNTER WITH CLEAR', () => {
 
   test('empty', () => {
@@ -422,6 +434,7 @@ describe('13 KC84C 4-BIT COUNTER WITH CLEAR', () => {
   });
 
 });
+
 
 describe('14 KC74S 4-BIT SHIFT REGISTER S-TO-P', () => {
 
@@ -450,6 +463,7 @@ describe('14 KC74S 4-BIT SHIFT REGISTER S-TO-P', () => {
 
 });
 
+
 describe('15 KR8S1 8-BIT ADDRESSABLE SRAM', () => {
 
   test('empty', () => {
@@ -476,6 +490,7 @@ describe('15 KR8S1 8-BIT ADDRESSABLE SRAM', () => {
   });
 
 });
+
 
 describe('16 KA181 2-BIT LOGICAL FUNCTION UNIT', () => {
 
@@ -504,6 +519,7 @@ describe('16 KA181 2-BIT LOGICAL FUNCTION UNIT', () => {
 
 });
 
+
 describe('17 X901 RADIO MESSAGE STREAM DECODER', () => {
 
   test('empty', () => {
@@ -531,6 +547,7 @@ describe('17 X901 RADIO MESSAGE STREAM DECODER', () => {
 
 });
 
+
 describe('18 X902 GRENADE LAUNCHER AMMO COUNTER', () => {
 
   test('empty', () => {
@@ -557,6 +574,7 @@ describe('18 X902 GRENADE LAUNCHER AMMO COUNTER', () => {
   });
 
 });
+
 
 describe('19 X903 GATLING CANNON FIRE CONTROLLER', () => {
 
