@@ -7,7 +7,7 @@ import { traceLine } from '@/utils/traceLine';
 
 export type SiliconType = 'p' | 'n';
 export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
-export type EraseType = 'metal' | 'silicon' | 'via';
+export type EraseType = 'metal' | 'silicon' | 'via' | 'gate';
 export type Direction = 'h' | 'v';
 
 export interface QueryMetalResult {
@@ -312,6 +312,9 @@ export default class FieldGraph {
             break;
           case 'via':
             this.removeVia(point);
+            break;
+          case 'gate':
+            this.removeGate(point);
             break;
         }
       }

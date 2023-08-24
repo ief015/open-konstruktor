@@ -189,8 +189,8 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
       field.value.erase('via', coordA, coordB);
       break;
     case 'erase-gate':
-      console.warn('erase-gate: not yet implemented');
-      return;
+      field.value.erase('gate', coordA, coordB);
+      break;
     case 'select':
       console.warn('select: not yet implemented');
       return;
