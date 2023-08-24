@@ -14,6 +14,7 @@
 import { Layer, MetalValue, SiliconValue, ConnectionValue, ViaValue, GateValue } from '@/serialization';
 import { GateNode, PathNode, Point } from '@/simulation';
 import { ToolboxMode } from '@/composables/use-toolbox';
+import { createGzip } from 'zlib';
 
 const canvas = ref<HTMLCanvasElement>();
 let ctx: CanvasRenderingContext2D | null = null;
@@ -30,10 +31,12 @@ const renderField = () => {
   if (!ctx)
     return;
   ctx.resetTransform();
-  ctx.fillStyle = '#666';
+  
+  ctx.fillStyle = '#959595';
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   if (!field.value || !network.value)
     return;
+
   const data = field.value.getData();
   const dims = data.getDimensions();
   const siliconLayer = data.getLayer(Layer.Silicon);
@@ -46,9 +49,32 @@ const renderField = () => {
   const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
   const viaLayer = data.getLayer(Layer.Vias);
 
-  ctx.strokeStyle = '#000';
-  ctx.strokeRect(0.5, 0.5, dims.columns * TILE_SIZE, dims.rows * TILE_SIZE);
+  ctx.save();
+  ctx.translate(0.5, 0.5);
 
+  // draw grid lines
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#818181';
+  for (let x = 0; x < dims.columns; x++) {
+    ctx.beginPath();
+    ctx.moveTo(x * TILE_SIZE, 0);
+    ctx.lineTo(x * TILE_SIZE, dims.rows * TILE_SIZE);
+    ctx.stroke();
+  }
+  for (let y = 0; y < dims.rows; y++) {
+    ctx.beginPath();
+    ctx.moveTo(0, y * TILE_SIZE);
+    ctx.lineTo(dims.columns * TILE_SIZE, y * TILE_SIZE);
+    ctx.stroke();
+  }
+
+  // outline
+  ctx.strokeStyle = '#000';
+  ctx.strokeRect(0, 0, dims.columns * TILE_SIZE, dims.rows * TILE_SIZE);
+
+  ctx.restore();
+
+  // silicon layer
   for (let x = 0; x < dims.columns; x++) {
     for (let y = 0; y < dims.rows; y++) {
       const st = siliconLayer[x][y];
@@ -79,8 +105,9 @@ const renderField = () => {
       }
     }
   }
-  
-  const tileSizeHalf = TILE_SIZE / 2;
+
+  // metal layer
+  const tileSizeHalf = Math.floor(TILE_SIZE / 2);
   for (let x = 0; x < dims.columns; x++) {
     for (let y = 0; y < dims.rows; y++) {
       if (metalLayer[x][y] === MetalValue.Metal) {
@@ -99,15 +126,7 @@ const renderField = () => {
     }
   }
 
-  const pinNodes = network.value.getPinNodes()
-  for (let pid = 0; pid < pinNodes.length; pid++) {
-    const [ x, y ] = field.value.getPinPoint(pid);
-    const { label } = pinNodes[pid];
-    ctx.fillStyle = '#000';
-    ctx.font = '10px Georgia10';
-    ctx.fillText(label, x*TILE_SIZE+2, y*TILE_SIZE+10);
-  }
-
+  // current
   if (isRunning.value && network.value) {
     for (let x = 0; x < dims.columns; x++) {
       for (let y = 0; y < dims.rows; y++) {
@@ -127,6 +146,15 @@ const renderField = () => {
         }
       }
     }
+  }
+
+  const pinNodes = network.value.getPinNodes()
+  for (let pid = 0; pid < pinNodes.length; pid++) {
+    const [ x, y ] = field.value.getPinPoint(pid);
+    const { label } = pinNodes[pid];
+    ctx.fillStyle = '#000';
+    ctx.font = '10px Georgia10';
+    ctx.fillText(label, x*TILE_SIZE+2, y*TILE_SIZE+10);
   }
 }
 
