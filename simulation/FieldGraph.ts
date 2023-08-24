@@ -168,6 +168,12 @@ export default class FieldGraph {
       if (lastValue !== SiliconValue.None && lastValue !== val) {
         return;
       }
+      if (existing === lastValue) {
+        // Check if trying to connect to a gate of same silicon type
+        if (this.queryGate([x, y]) || this.queryGate([lastX, lastY])) {
+          return;
+        }
+      }
       if (x !== lastX) {
         if (requestingGate) {
           // Horizontal gate
@@ -392,6 +398,14 @@ export default class FieldGraph {
     return connections;
   }
 
+  public queryGate(point: Point): Direction | false {
+    const { data } = this;
+    const [ x, y ] = point;
+    return data.get(Layer.GatesH, x, y) === GateValue.Gate ? 'h' :
+      data.get(Layer.GatesV, x, y) === GateValue.Gate ? 'v' :
+      false;
+  }
+
   public query(point: Point): QueryResult {
     const { data } = this;
     const [ x, y ] = point;
@@ -401,9 +415,7 @@ export default class FieldGraph {
       siliconRaw === SiliconValue.NSilicon ? 'n' :
       false;
     const via = data.get(Layer.Vias, x, y) === ViaValue.Via;
-    const gate = data.get(Layer.GatesH, x, y) === GateValue.Gate ? 'h' :
-      data.get(Layer.GatesV, x, y) === GateValue.Gate ? 'v' :
-      false;
+    const gate = this.queryGate(point);
     const metalConnections = this.queryMetalConnections(point);
     const siliconConnections = this.querySiliconConnections(point);
     return {
