@@ -64,6 +64,54 @@ export default class FieldGraph {
     return this.data.getDesignScore();
   }
 
+  public isValidGateSpot(point: Point, direction: Direction): boolean {
+    const { data } = this;
+    const [ x, y ] = point;
+    if (direction === 'h') {
+      const prev = data.get(Layer.Silicon, x, y - 1);
+      const center = data.get(Layer.Silicon, x, y);
+      const next = data.get(Layer.Silicon, x, y + 1);
+      if (prev !== center || center !== next)
+        return false;
+      if (data.get(Layer.SiliconConnectionsV, x, y) !== ConnectionValue.Connected)
+        return false;
+      if (data.get(Layer.SiliconConnectionsV, x, y - 1) !== ConnectionValue.Connected)
+        return false;
+    } else {
+      const prev = data.get(Layer.Silicon, x - 1, y);
+      const center = data.get(Layer.Silicon, x, y);
+      const next = data.get(Layer.Silicon, x + 1, y);
+      if (prev !== center || center !== next)
+        return false;
+      if (data.get(Layer.SiliconConnectionsH, x, y) !== ConnectionValue.Connected)
+        return false;
+      if (data.get(Layer.SiliconConnectionsH, x - 1, y) !== ConnectionValue.Connected)
+        return false;
+    }
+    return true;
+  }
+
+  public checkAndRemoveInvalidGate(point: Point) {
+    const { data } = this;
+    const [ x, y ] = point;
+    if (data.get(Layer.GatesH, x, y) === GateValue.Gate) {
+      const hasNoConns =
+        data.get(Layer.SiliconConnectionsH, x, y) !== ConnectionValue.Connected &&
+        data.get(Layer.SiliconConnectionsH, x - 1, y) !== ConnectionValue.Connected;
+      if (hasNoConns || !this.isValidGateSpot(point, 'h')) {
+        this.removeGate(point);
+      }
+    } else if (data.get(Layer.GatesV, x, y) === GateValue.Gate) {
+      const hasNoConns =
+        data.get(Layer.SiliconConnectionsV, x, y) !== ConnectionValue.Connected &&
+        data.get(Layer.SiliconConnectionsV, x, y - 1) !== ConnectionValue.Connected;
+      if (hasNoConns || !this.isValidGateSpot(point, 'v')) {
+        this.removeGate(point);
+      }
+    }
+    
+  }
+
   public placeMetal(startPoint: Point, lastPoint?: Point) {
     const { data } = this;
     const [ x, y ] = startPoint;
@@ -204,19 +252,19 @@ export default class FieldGraph {
     data.set(Layer.Vias, x, y, ViaValue.None);
     if (data.get(Layer.SiliconConnectionsH, x, y) === ConnectionValue.Connected) {
       data.set(Layer.SiliconConnectionsH, x, y, ConnectionValue.None);
-      this.removeGate([ x + 1, y ]);
+      this.checkAndRemoveInvalidGate([x + 1, y]);
     }
     if (data.get(Layer.SiliconConnectionsV, x, y) === ConnectionValue.Connected) {
       data.set(Layer.SiliconConnectionsV, x, y, ConnectionValue.None);
-      this.removeGate([ x, y + 1 ]);
+      this.checkAndRemoveInvalidGate([x, y + 1]);
     }
     if (data.get(Layer.SiliconConnectionsH, x - 1, y) === ConnectionValue.Connected) {
       data.set(Layer.SiliconConnectionsH, x - 1, y, ConnectionValue.None);
-      this.removeGate([ x - 1, y ]);
+      this.checkAndRemoveInvalidGate([x - 1, y]);
     }
     if (data.get(Layer.SiliconConnectionsV, x, y - 1) === ConnectionValue.Connected) {
       data.set(Layer.SiliconConnectionsV, x, y - 1, ConnectionValue.None);
-      this.removeGate([ x, y - 1 ]);
+      this.checkAndRemoveInvalidGate([x, y - 1]);
     }
   }
 
