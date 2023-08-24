@@ -68,6 +68,7 @@ export default class FieldGraph {
     const { data } = this;
     const [ x, y ] = point;
     if (direction === 'h') {
+      // Ensure valid vertical strip of silicon
       const prev = data.get(Layer.Silicon, x, y - 1);
       const center = data.get(Layer.Silicon, x, y);
       const next = data.get(Layer.Silicon, x, y + 1);
@@ -77,7 +78,19 @@ export default class FieldGraph {
         return false;
       if (data.get(Layer.SiliconConnectionsV, x, y - 1) !== ConnectionValue.Connected)
         return false;
+      // Ensure no connected silicon of same type left or right of gate
+      if (center === data.get(Layer.Silicon, x + 1, y)) {
+        if (data.get(Layer.SiliconConnectionsH, x, y) === ConnectionValue.Connected) {
+          return false;
+        }
+      }
+      if (center === data.get(Layer.Silicon, x - 1, y)) {
+        if (data.get(Layer.SiliconConnectionsH, x - 1, y) === ConnectionValue.Connected) {
+          return false;
+        }
+      }
     } else {
+      // Ensure valid horizontal strip of silicon
       const prev = data.get(Layer.Silicon, x - 1, y);
       const center = data.get(Layer.Silicon, x, y);
       const next = data.get(Layer.Silicon, x + 1, y);
@@ -87,6 +100,17 @@ export default class FieldGraph {
         return false;
       if (data.get(Layer.SiliconConnectionsH, x - 1, y) !== ConnectionValue.Connected)
         return false;
+      // Ensure no connected silicon of same type above or below of gate
+      if (center === data.get(Layer.Silicon, x, y + 1)) {
+        if (data.get(Layer.SiliconConnectionsV, x, y) === ConnectionValue.Connected) {
+          return false;
+        }
+      }
+      if (center === data.get(Layer.Silicon, x, y - 1)) {
+        if (data.get(Layer.SiliconConnectionsV, x, y - 1) === ConnectionValue.Connected) {
+          return false;
+        }
+      }
     }
     return true;
   }
