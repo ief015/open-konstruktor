@@ -48,6 +48,13 @@ export default class Network {
   }
 
   public step() {
+
+    // Check for gates that should be toggled.
+    // This is done outside gated path propagation to introduce propagation delay.
+    for (const gate of this.gates) {
+      gate.active = gate.switchingPaths.some(p => p.state);
+    }
+
     // Reset state of all paths and pins
     for (const path of this.paths) {
       path.state = false;
@@ -61,12 +68,12 @@ export default class Network {
     while (true) {
       let anyChange = false;
       // Propagate path states from gates
-      for (const gate of this.gates) {
+      for (const { active, isNPN, gatedPaths } of this.gates) {
         // TODO: Gates that have already passed current could be skipped for performance?
         // Needs investigation after more unit tests are written.
-        const open = gate.isNPN ? gate.active : !gate.active;
-        if (open && gate.gatedPaths.some(p => p.state)) {
-          for (const path of gate.gatedPaths) {
+        const open = isNPN ? active : !active;
+        if (open && gatedPaths.some(p => p.state)) {
+          for (const path of gatedPaths) {
             if (!path.state) {
               path.state = true;
               anyChange = true;
@@ -77,11 +84,6 @@ export default class Network {
       if (!anyChange) {
         break;
       }
-    }
-    // Check for gates that should be toggled.
-    // This is done after gated path propagation to introduce propagation delay.
-    for (const gate of this.gates) {
-      gate.active = gate.switchingPaths.some(p => p.state);
     }
   }
 
