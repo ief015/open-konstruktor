@@ -72,7 +72,6 @@ const verifyResult = ref<VerificationResult>();
 const renderScope = () => {
   if (!ctx)
     return;
-  console.log('rendering scope');
   ctx.resetTransform();
   ctx.translate(0.5, 0.25);
   ctx.fillStyle = COLOR_CHART;
@@ -251,7 +250,6 @@ const onMouseUp = (e: MouseEvent) => {
 const onResize = () => {
   if (!ctx || !canvasContainer.value)
     return;
-  console.log(canvasContainer.value.clientWidth, canvasContainer.value.clientHeight);
   ctx.canvas.width = Math.trunc(canvasContainer.value.clientWidth);
   ctx.canvas.height = Math.trunc(canvasContainer.value.clientHeight);
   renderScope();
