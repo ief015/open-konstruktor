@@ -134,7 +134,7 @@ export default class FieldGraph {
     const [ x, y ] = startPoint;
     const val = type === 'p' ? SiliconValue.PSilicon : SiliconValue.NSilicon;
     const existing = data.get(Layer.Silicon, x, y);
-    const isGate = existing !== SiliconValue.None && existing !== val;
+    const requestingGate = existing !== SiliconValue.None && existing !== val;
     if (existing === SiliconValue.None) {
       data.set(Layer.Silicon, x, y, val);
     }
@@ -145,12 +145,9 @@ export default class FieldGraph {
         return;
       }
       if (x !== lastX) {
-        if (isGate) {
+        if (requestingGate) {
           // Horizontal gate
-          const prev = data.get(Layer.Silicon, x, y - 1);
-          const center = data.get(Layer.Silicon, x, y);
-          const next = data.get(Layer.Silicon, x, y + 1);
-          if (prev === center && center === next) {
+          if (this.isValidGateSpot([x, y], 'h')) {
             data.set(Layer.GatesH, x, y, GateValue.Gate);
           } else {
             return;
@@ -159,12 +156,9 @@ export default class FieldGraph {
         const minX = Math.min(x, lastX);
         data.set(Layer.SiliconConnectionsH, minX, y, ConnectionValue.Connected);
       } else if (y !== lastY) {
-        if (isGate) {
+        if (requestingGate) {
           // Vertical gate
-          const prev = data.get(Layer.Silicon, x - 1, y);
-          const center = data.get(Layer.Silicon, x, y);
-          const next = data.get(Layer.Silicon, x + 1, y);
-          if (prev === center && center === next) {
+          if (this.isValidGateSpot([x, y], 'v')) {
             data.set(Layer.GatesV, x, y, GateValue.Gate);
           } else {
             return;
