@@ -4,7 +4,7 @@
       class="flex-grow p-[8px]"
       :style="{ 'background-color': COLOR_CHART }"
     >
-      <div ref="canvasContainer">
+      <div ref="canvasContainer" class="overflow-hidden">
         <canvas
           ref="canvas"
           @mousemove="onMouseMove"
