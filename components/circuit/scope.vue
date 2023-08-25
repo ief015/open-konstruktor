@@ -21,7 +21,7 @@
       :style="{ 'background-color': COLOR_CHART }"
     >
       <span v-if="isRunning" class="text-black">
-        VERIFICATION TEST RUNNING...
+        VERIFICATION TEST RUNNING... {{ sim?.getCurrentFrame() ?? 0 }}
       </span>
       <span v-else-if="!verifyResult" class="text-black">
         VERIFICATION TEST NOT YET COMPLETED

@@ -14,6 +14,7 @@ const isPaused = ref(false);
 const lastFrameTime = ref(0);
 const accumulatedTime = ref(0);
 const stepsPerSecond = ref(40);
+const loop = ref(false);
 const stepInterval = computed(() => 1000 / stepsPerSecond.value);
 const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
@@ -61,7 +62,12 @@ const onAnim = (timestamp: number) => {
         const verifyResult = sim.value.verify('kohctpyktop');
         stop();
         invokeCompleteHandlers(verifyResult);
-        break;
+        if (loop.value) {
+          start();
+          return
+        } else {
+          break;
+        }
       }
       accumulatedTime.value -= stepInterval.value;
     }
@@ -143,6 +149,7 @@ export default function useCircuitSimulator() {
     isRunning,
     isPaused,
     stepsPerSecond,
+    loop,
     load,
     start,
     stop,

@@ -218,6 +218,7 @@ export class CircuitSimulation {
 
   public clearRecordings() {
     this.recording.clear();
+    this.recordingLength = 0;
     const pins = this.network.getPinNodes();
     for (const pin of pins) {
       this.recording.set(pin, new Sequence());
