@@ -14,7 +14,6 @@
 import { Layer, MetalValue, SiliconValue, ConnectionValue, ViaValue, GateValue } from '@/serialization';
 import { GateNode, PathNode, Point } from '@/simulation';
 import { ToolboxMode } from '@/composables/use-toolbox';
-import { createGzip } from 'zlib';
 
 const canvas = ref<HTMLCanvasElement>();
 let ctx: CanvasRenderingContext2D | null = null;
@@ -31,7 +30,6 @@ const renderField = () => {
   if (!ctx)
     return;
   ctx.resetTransform();
-  
   ctx.fillStyle = '#959595';
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   if (!field.value || !network.value)
