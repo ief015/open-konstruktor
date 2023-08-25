@@ -21,5 +21,8 @@
     "nuxt-vitest": "^0.10.2",
     "vite-plugin-node-polyfills": "^0.11.2",
     "vitest": "^0.33.0"
+  },
+  "dependencies": {
+    "@vueuse/nuxt": "^10.3.0"
   }
 }
