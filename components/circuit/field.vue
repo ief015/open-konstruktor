@@ -17,11 +17,16 @@ import { ToolboxMode } from '@/composables/use-toolbox';
 
 const canvas = ref<HTMLCanvasElement>();
 let ctx: CanvasRenderingContext2D | null = null;
-const TILE_SIZE = 12;
+const TILE_SIZE = 13;
 
 const { field } = useFieldGraph();
 const { network, sim, isRunning, isPaused, onRender, load } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
+const {
+  elementX: canvasMouseX,
+  elementY: canvasMouseY,
+  isOutside: canvasMouseOutside,
+} = useMouseInElement(canvas);
 
 const isDrawing = ref(false);
 let prevDrawingCoords: Point = [0, 0];
@@ -47,10 +52,9 @@ const renderField = () => {
   const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
   const viaLayer = data.getLayer(Layer.Vias);
 
+  // Draw grid lines + outline + mouse cursor
   ctx.save();
   ctx.translate(0.5, 0.5);
-
-  // draw grid lines
   ctx.lineWidth = 1;
   ctx.strokeStyle = '#818181';
   for (let x = 0; x < dims.columns; x++) {
@@ -65,14 +69,14 @@ const renderField = () => {
     ctx.lineTo(dims.columns * TILE_SIZE, y * TILE_SIZE);
     ctx.stroke();
   }
-
-  // outline
   ctx.strokeStyle = '#000';
   ctx.strokeRect(0, 0, dims.columns * TILE_SIZE, dims.rows * TILE_SIZE);
-
   ctx.restore();
 
-  // silicon layer
+  ctx.save();
+  ctx.translate(1, 1);
+
+  // Silicon layer
   for (let x = 0; x < dims.columns; x++) {
     for (let y = 0; y < dims.rows; y++) {
       const st = siliconLayer[x][y];
@@ -104,8 +108,8 @@ const renderField = () => {
     }
   }
 
-  // metal layer
-  const tileSizeHalf = Math.floor(TILE_SIZE / 2);
+  // Metal layer
+  const tileSizeHalf = TILE_SIZE / 2;
   for (let x = 0; x < dims.columns; x++) {
     for (let y = 0; y < dims.rows; y++) {
       if (metalLayer[x][y] === MetalValue.Metal) {
@@ -146,6 +150,21 @@ const renderField = () => {
     }
   }
 
+  ctx.restore();
+
+  // Draw mouse cursor
+  /*
+  ctx.save();
+  ctx.translate(0.5, 0.5);
+  if (!canvasMouseOutside.value) {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(255, 255, 255, calc(2/3))';
+    ctx.strokeRect(Math.floor(canvasMouseX.value / TILE_SIZE) * TILE_SIZE, Math.floor(canvasMouseY.value / TILE_SIZE) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  }
+  ctx.restore();
+  */
+
+  // Draw pin labels
   const pinNodes = network.value.getPinNodes()
   for (let pid = 0; pid < pinNodes.length; pid++) {
     const [ x, y ] = field.value.getPinPoint(pid);
@@ -199,8 +218,8 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
 const mouseToGrid = (mx: number, my: number): Point => {
   if (!ctx) return [0, 0];
   const rect = ctx.canvas.getBoundingClientRect();
-  const x = Math.trunc((mx - rect.left) / 12);
-  const y = Math.trunc((my - rect.top) / 12);
+  const x = Math.trunc((mx - rect.left) / TILE_SIZE);
+  const y = Math.trunc((my - rect.top) / TILE_SIZE);
   return [x, y];
 }
 
@@ -237,8 +256,8 @@ const onMouseUp = (e: MouseEvent) => {
 const onResize = () => {
   if (!ctx)
     return;
-  ctx.canvas.width = ctx.canvas.clientWidth;
-  ctx.canvas.height = ctx.canvas.clientHeight;
+  ctx.canvas.width = Math.trunc(ctx.canvas.clientWidth);
+  ctx.canvas.height = Math.trunc(ctx.canvas.clientHeight);
   renderField();
 }
 
@@ -259,11 +278,9 @@ watch(sim, (sim) => {
 onMounted(() => {
   ctx = canvas.value?.getContext('2d') ?? null;
   if (!ctx) throw new Error('Could not get canvas context');
-  ctx.canvas.width = ctx.canvas.clientWidth;
-  ctx.canvas.height = ctx.canvas.clientHeight;
-  ctx.imageSmoothingEnabled = false;
   window.addEventListener('resize', onResize);
-  renderField();
+  ctx.imageSmoothingEnabled = false;
+  onResize();
 });
 
 onUnmounted(() => {

@@ -4,7 +4,7 @@
       class="flex-grow p-[8px]"
       :style="{ 'background-color': COLOR_CHART }"
     >
-      <div ref="canvasContainer" class="h-full">
+      <div ref="canvasContainer">
         <canvas
           ref="canvas"
           @mousemove="onMouseMove"
@@ -250,8 +250,10 @@ const onMouseUp = (e: MouseEvent) => {
 const onResize = () => {
   if (!ctx || !canvasContainer.value)
     return;
+  const pinCount = network.value?.getPinNodes().length ?? 0;
+  const scopeHeight = pinCount * HEIGHT_PX_SCOPE;
   ctx.canvas.width = Math.trunc(canvasContainer.value.clientWidth);
-  ctx.canvas.height = Math.trunc(canvasContainer.value.clientHeight);
+  ctx.canvas.height = Math.max(scopeHeight, Math.trunc(canvasContainer.value.clientHeight));
   renderScope();
 }
 
@@ -274,6 +276,11 @@ watch(sim, (sim) => {
   if (!sim) return;
   verifyResult.value = undefined;
   renderScope();
+});
+
+watch(network, (network) => {
+  if (!network) return;
+  onResize();
 });
 
 onMounted(async () => {

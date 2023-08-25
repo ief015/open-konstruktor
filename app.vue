@@ -22,20 +22,32 @@
       </div>
     </template>
     <div class="flex flex-col h-full">
-      <div class="h-2/3">
-        <CircuitField class="w-full h-full" />
+      <div class="flex-1" ref="circuitFieldContainer">
+        <CircuitField
+          v-if="circuitFieldContainer"
+          :style="{
+            width: Math.floor(circuitFieldContainer.clientWidth ?? 400) + 'px',
+            height: Math.floor(circuitFieldContainer.clientHeight ?? 300) + 'px',
+          }"
+          :width="Math.floor(circuitFieldContainer.clientWidth ?? 400)"
+          :height="Math.floor(circuitFieldContainer.clientHeight ?? 300)"
+        />
       </div>
-      <div class="flex-grow flex flex-col">
-        <div class="top-border flex-grow">
-          <CircuitScope class="w-full h-full" />
-        </div>
-        <div class="top-border py-2">
-          <CircuitControls class="w-full h-full" />
-        </div>
+      <div class="top-border">
+        <CircuitScope />
+      </div>
+      <div class="top-border py-2">
+        <CircuitControls class="w-full h-full" />
       </div>
     </div>
   </NuxtLayout>
 </template>
+
+<script setup lang="ts">
+
+const circuitFieldContainer = ref<HTMLDivElement>();
+
+</script>
 
 <style scoped>
 .bottom-border {
