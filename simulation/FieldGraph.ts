@@ -212,13 +212,17 @@ export default class FieldGraph {
   }
 
   public draw(type: DrawType, startPoint: Point, ...points: Point[]) {
-    const trace = traceLine(startPoint, ...points);
     const layer = drawTypeToLayer[type];
     if (layer === null) {
       throw new Error('Invalid draw type');
     }
+    const { columns: width, rows: height} = this.data.getDimensions();
+    const trace = traceLine(startPoint, ...points);
     let lastPoint: Point|undefined = undefined;
     for (const point of trace) {
+      const [ x, y ] = point;
+      if (x < 0 || y < 0 || x >= width || y >= height)
+        continue;
       switch (type) {
         case 'metal':
           this.placeMetal(point, lastPoint);
