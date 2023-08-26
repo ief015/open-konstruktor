@@ -13,7 +13,12 @@
   </DockMenu>
   <DialogModal v-if="showImportDialog">
     <div class="flex flex-col gap-2">
-      <textarea class="max-w-sm w-[50vw] h-32 font-mono break-words" v-model="importCode" />
+      <textarea
+        ref="importTextArea"
+        class="max-w-sm w-[50vw] h-32 font-mono break-words"
+        v-model="importCode"
+        @keypress.enter="onImport"
+      />
       <div class="flex flex-row gap-2 justify-end">
         <button @click="onImport">
           Import
@@ -26,7 +31,11 @@
   </DialogModal>
   <DialogModal v-if="showExportDialog">
     <div class="flex flex-col gap-2">
-      <textarea readonly class="max-w-sm w-[50vw] h-32 font-mono break-words" :value="exportCode" />
+      <textarea readonly
+        ref="exportTextArea"
+        class="max-w-sm w-[50vw] h-32 font-mono break-words"
+        :value="exportCode"
+      />
       <div class="flex flex-row gap-2 justify-end">
         <button @click="onCopyExport">
           {{ exportCopied ? 'Copied!' : 'Copy' }}
@@ -49,6 +58,8 @@ const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim, stop } = useCircuitSimulator();
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
+const importTextArea = ref<HTMLTextAreaElement>();
+const exportTextArea = ref<HTMLTextAreaElement>();
 const exportCode = ref('');
 const exportCopied = ref(false);
 const importCode = ref('');
@@ -128,12 +139,24 @@ const onLoadLevel = (level: string) => {
 const onShowImportDialog = () => {
   importCode.value = '';
   showImportDialog.value = true;
+  nextTick(() => {
+    importTextArea.value?.focus();
+  });
 }
 
 const onShowExportDialog = () => {
   exportCode.value = field.value?.toSaveString() ?? '';
   showExportDialog.value = true;
   exportCopied.value = false;
+  nextTick(() => {
+    exportTextArea.value?.focus();
+    exportTextArea.value?.select();
+  });
+}
+
+const closeAllDialogs = () => {
+  showImportDialog.value = false;
+  showExportDialog.value = false;
 }
 
 const onCopyExport = () => {
@@ -159,6 +182,12 @@ const onSelected = ({ name, path, id }: { name: string; path: string, id: string
     onLoadLevel(id.split(':')[1]);
   }
 }
+
+useEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeAllDialogs();
+  }
+});
 
 </script>
 
