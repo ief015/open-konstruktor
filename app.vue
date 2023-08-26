@@ -14,7 +14,7 @@
       <div class="h-[1.5em] top-border"></div>
     </template>
     <template #left>
-      <div class="w-[15em] h-full right-border"></div>
+      <div class="w-[5em] h-full right-border"></div>
     </template>
     <template #right>
       <div class="w-[5em] h-full left-border">
