@@ -110,21 +110,21 @@ const renderField = () => {
   }
 
   // Metal layer
-  const tileSizeHalf = TILE_SIZE / 2;
+  const tileSizeHalf = Math.floor(TILE_SIZE / 2);
   for (let x = 0; x < dims.columns; x++) {
     for (let y = 0; y < dims.rows; y++) {
+      if (viaLayer[x][y] === ViaValue.Via) {
+        ctx.fillStyle = '#060000';
+        ctx.beginPath();
+        ctx.arc(x*TILE_SIZE+tileSizeHalf, y*TILE_SIZE+tileSizeHalf, 2.5, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.closePath();
+      }
       if (metalLayer[x][y] === MetalValue.Metal) {
         ctx.fillStyle = 'rgba(251, 251, 251, 0.51)';
         const w = metalConnHLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
         const h = metalConnVLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
         ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, w, h);
-      }
-      if (viaLayer[x][y] === ViaValue.Via) {
-        ctx.fillStyle = '#060000';
-        ctx.beginPath();
-        ctx.arc(x*TILE_SIZE+tileSizeHalf, y*TILE_SIZE+tileSizeHalf, 2, 0, 2 * Math.PI);
-        ctx.stroke();
-        ctx.closePath();
       }
     }
   }
