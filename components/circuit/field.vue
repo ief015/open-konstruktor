@@ -4,7 +4,6 @@
     @mousemove="onMouseMove"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
-    @resize="onResize"
     oncontextmenu="return false;"
   >
     Your browser must support the canvas tag.
@@ -275,6 +274,8 @@ watch(sim, (sim) => {
   if (!sim) return;
   renderField();
 });
+
+useResizeObserver(canvas, () => onResize());
 
 onMounted(() => {
   ctx = canvas.value?.getContext('2d') ?? null;

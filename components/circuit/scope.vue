@@ -3,7 +3,6 @@
     <div
       ref="canvasContainer"
       :class="`relative m-[8px] overflow-auto max-h-[${maxScopeHeight}px]`"
-      @resize="onResize"
     >
       <canvas
         ref="canvas"
@@ -287,6 +286,8 @@ watch(network, (network) => {
   if (!network) return;
   onResize();
 });
+
+useResizeObserver(canvasContainer, () => onResize());
 
 onMounted(async () => {
   ctx = canvas.value?.getContext('2d') ?? null;

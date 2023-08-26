@@ -26,7 +26,6 @@
         <div class="flex-1 overflow-hidden" ref="circuitFieldContainer">
           <CircuitField
             v-if="circuitFieldContainer"
-            class="w-full h-full"
           />
         </div>
         <div class="top-border">
