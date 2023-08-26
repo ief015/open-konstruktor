@@ -23,11 +23,8 @@
     </template>
     <div class="absolute inset-0">
       <div class="flex flex-col h-full">
-        <div class="flex-1 overflow-hidden" ref="circuitFieldContainer">
-          <CircuitField
-            v-if="circuitFieldContainer"
-            class="w-full h-full"
-          />
+        <div class="flex-1 overflow-hidden">
+          <CircuitField />
         </div>
         <div class="top-border">
           <CircuitScope />
@@ -39,12 +36,6 @@
     </div>
   </NuxtLayout>
 </template>
-
-<script setup lang="ts">
-
-const circuitFieldContainer = ref<HTMLDivElement>();
-
-</script>
 
 <style scoped>
 .bottom-border {

@@ -1,6 +1,7 @@
 <template>
   <canvas
     ref="canvas"
+            class="w-full h-full"
     @mousemove="onMouseMove"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
