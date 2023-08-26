@@ -132,7 +132,7 @@ export class DesignData {
   }
 
   public get(layer: Layer|number, col: number, row: number): number {
-    return this.layers[layer][col][row];
+    return this.layers[layer][col]?.[row];
   }
 
   public set(layer: Layer|number, col: number, row: number, value: number): void {
