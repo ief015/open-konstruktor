@@ -2,7 +2,7 @@
   <div class="flex flex-col" :style="{ 'background-color': COLOR_CHART }">
     <div
       ref="canvasContainer"
-      class="relative m-[8px] overflow-auto"
+      :class="`relative m-[8px] overflow-auto max-h-[${maxScopeHeight}px]`"
       @resize="onResize"
     >
       <canvas
@@ -72,6 +72,10 @@ const filteredPins = computed(() => {
   return (network.value?.getPinNodes() ?? [])
     .filter((node, idx) => idx > 1 && idx < network.value!.getPinNodes().length - 2);
 })
+
+const maxScopeHeight = computed(() => {
+  return filteredPins.value.length * HEIGHT_PX_SCOPE;
+});
 
 const renderScope = () => {
   if (!ctx)
@@ -253,10 +257,8 @@ const onMouseUp = (e: MouseEvent) => {
 const onResize = () => {
   if (!ctx || !canvasContainer.value)
     return;
-  const pinCount = filteredPins.value.length;
-  const scopeHeight = pinCount * HEIGHT_PX_SCOPE;
   ctx.canvas.width = Math.trunc(canvasContainer.value.clientWidth);
-  ctx.canvas.height = scopeHeight;
+  ctx.canvas.height = maxScopeHeight.value;
   renderScope();
 }
 
