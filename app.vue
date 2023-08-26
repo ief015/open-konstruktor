@@ -21,17 +21,12 @@
         <ToolboxControls />
       </div>
     </template>
-    <div class="h-full">
+    <div class="absolute inset-0">
       <div class="flex flex-col h-full">
         <div class="flex-1 overflow-hidden" ref="circuitFieldContainer">
           <CircuitField
             v-if="circuitFieldContainer"
-            :style="{
-              width: Math.floor(circuitFieldContainer.clientWidth ?? 400) + 'px',
-              height: Math.floor(circuitFieldContainer.clientHeight ?? 300) + 'px',
-            }"
-            :width="Math.floor(circuitFieldContainer.clientWidth ?? 400)"
-            :height="Math.floor(circuitFieldContainer.clientHeight ?? 300)"
+            class="w-full h-full"
           />
         </div>
         <div class="top-border">

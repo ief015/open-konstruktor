@@ -7,7 +7,7 @@
       <div>
         <slot name="left" />
       </div>
-      <div class="flex-1">
+      <div class="flex-1 relative">
         <slot />
       </div>
       <div>

@@ -4,6 +4,7 @@
     @mousemove="onMouseMove"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
+    @resize="onResize"
     oncontextmenu="return false;"
   >
     Your browser must support the canvas tag.

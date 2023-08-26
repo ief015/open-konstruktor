@@ -1,24 +1,23 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col" :style="{ 'background-color': COLOR_CHART }">
     <div
-      class="flex-grow p-[8px]"
-      :style="{ 'background-color': COLOR_CHART }"
+      ref="canvasContainer"
+      class="relative m-[8px] overflow-auto"
+      @resize="onResize"
     >
-      <div ref="canvasContainer" class="overflow-hidden">
-        <canvas
-          ref="canvas"
-          @mousemove="onMouseMove"
-          @mousedown="onMouseDown"
-          @mouseup="onMouseUp"
-          oncontextmenu="return false;"
-        >
-          Your browser must support the canvas tag.
-        </canvas>
-      </div>
+      <canvas
+        ref="canvas"
+        class="relative inset-0"
+        @mousemove="onMouseMove"
+        @mousedown="onMouseDown"
+        @mouseup="onMouseUp"
+        oncontextmenu="return false;"
+      >
+        Your browser must support the canvas tag.
+      </canvas>
     </div>
     <div
-      class="h-[1em] p-2 font-georgia12 text-[12px] uppercase"
-      :style="{ 'background-color': COLOR_CHART }"
+      class="px-[8px] font-georgia12 text-[12px] uppercase"
     >
       <span v-if="isRunning" class="text-black">
         VERIFICATION TEST RUNNING... {{ sim?.getCurrentFrame() ?? 0 }}
@@ -69,6 +68,11 @@ let prevDrawingCoords: Point = [0, 0];
 
 const verifyResult = ref<VerificationResult>();
 
+const filteredPins = computed(() => {
+  return (network.value?.getPinNodes() ?? [])
+    .filter((node, idx) => idx > 1 && idx < network.value!.getPinNodes().length - 2);
+})
+
 const renderScope = () => {
   if (!ctx)
     return;
@@ -97,8 +101,7 @@ const renderScope = () => {
   ctx.restore();
 
   // draw scopes for each pin from top to bottom
-  const pins = network.value.getPinNodes()
-    .filter((node, idx) => idx > 1 && idx < network.value!.getPinNodes().length - 2);
+  const pins = filteredPins.value;
   const numPins = pins.length;
   ctx.save();
   ctx.strokeStyle = COLOR_SCOPE_LINE;
@@ -250,10 +253,10 @@ const onMouseUp = (e: MouseEvent) => {
 const onResize = () => {
   if (!ctx || !canvasContainer.value)
     return;
-  const pinCount = network.value?.getPinNodes().length ?? 0;
+  const pinCount = filteredPins.value.length;
   const scopeHeight = pinCount * HEIGHT_PX_SCOPE;
   ctx.canvas.width = Math.trunc(canvasContainer.value.clientWidth);
-  ctx.canvas.height = Math.max(scopeHeight, Math.trunc(canvasContainer.value.clientHeight));
+  ctx.canvas.height = scopeHeight;
   renderScope();
 }
 
