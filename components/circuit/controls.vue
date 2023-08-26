@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row items-center gap-2 px-2 font-georgia10 text-[10px]">
+  <div class="flex flex-row items-baseline gap-2 px-2">
     <div>
       <button v-if="!isRunning" @click="onStart">
         Start
@@ -14,12 +14,12 @@
       </button>
     </div>
     <div>
-      <button @click="onStep()">Step +1</button>
+      <button @click="onStep()">Step+1</button>
     </div>
     <div>
       <button @click="onStep(10)">+10</button>
     </div>
-    <div class="flex flex-row items-center text-xs">
+    <div class="flex flex-row items-center text-sm">
       <label for="circuit-controls-loop-checkbox">Loop</label>
       <input id="circuit-controls-loop-checkbox" type="checkbox" v-model="loop" />
     </div>
