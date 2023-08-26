@@ -27,7 +27,6 @@
 import { Layer, MetalValue, SiliconValue, ConnectionValue, ViaValue, GateValue } from '@/serialization';
 import { GateNode, PathNode, Point } from '@/simulation';
 import { ToolboxMode } from '@/composables/use-toolbox';
-import { render } from 'nuxt/dist/app/compat/capi';
 
 const canvasBackground = ref<HTMLCanvasElement>();
 const canvasTiles = ref<HTMLCanvasElement>();
@@ -292,9 +291,7 @@ watch(sim, (sim) => {
   renderAll();
 });
 
-watch(isRunning, (isRunning) => {
-  renderOverlay();
-});
+watch(isRunning, (isRunning) => renderOverlay());
 
 watch(canvasBackground, (canvas) => {
   const ctx = canvas?.getContext('2d');
