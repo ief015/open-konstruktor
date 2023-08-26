@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row items-center gap-2 px-2">
+  <div class="flex flex-row items-center gap-2 px-2 font-georgia10 text-[10px]">
     <div>
       <button v-if="!isRunning" @click="onStart">
         Start

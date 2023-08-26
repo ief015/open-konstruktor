@@ -15,21 +15,26 @@
         Your browser must support the canvas tag.
       </canvas>
     </div>
-    <div
-      class="px-[8px] font-georgia12 text-[12px] uppercase"
-    >
-      <span v-if="isRunning" class="text-black">
-        VERIFICATION TEST RUNNING... {{ sim?.getCurrentFrame() ?? 0 }}
-      </span>
-      <span v-else-if="!verifyResult" class="text-black">
-        VERIFICATION TEST NOT YET COMPLETED
-      </span>
-      <span v-else-if="verifyResult.gradePercent >= 97" :style="{ 'color': COLOR_VERIFY_PASS }">
-        VERIFICATION TEST PASSED ({{verifyResult.gradePercent}}%) - FLAGGED AS COMPLETED
-      </span>
-      <span v-else :style="{ 'color': COLOR_VERIFY_FAIL }">
-        VERIFICATION TEST FAILED ({{verifyResult.gradePercent}}%) 
-      </span>
+    <div class="px-[8px] flex flex-row justify-between items-baseline text-black">
+      <div
+        class="font-georgia12 text-[12px] uppercase"
+      >
+        <span v-if="isRunning">
+          VERIFICATION TEST RUNNING... {{ sim?.getCurrentFrame() ?? 0 }}
+        </span>
+        <span v-else-if="!verifyResult">
+          VERIFICATION TEST NOT YET COMPLETED
+        </span>
+        <span v-else-if="verifyResult.gradePercent >= 97" :style="{ 'color': COLOR_VERIFY_PASS }">
+          VERIFICATION TEST PASSED ({{verifyResult.gradePercent}}%) - FLAGGED AS COMPLETED
+        </span>
+        <span v-else :style="{ 'color': COLOR_VERIFY_FAIL }">
+          VERIFICATION TEST FAILED ({{verifyResult.gradePercent}}%) 
+        </span>
+      </div>
+      <div class="font-georgia10 text-[10px] min-w-[20em]">
+        DESIGN SCORE (lower is better): {{ designScore }}
+      </div>
     </div>
   </div>
 </template>
@@ -55,7 +60,7 @@ const canvasContainer = ref<HTMLDivElement>();
 const canvas = ref<HTMLCanvasElement>();
 let ctx: CanvasRenderingContext2D | null = null;
 
-const { field } = useFieldGraph();
+const { field, designScore } = useFieldGraph();
 const {
   network, sim, isRunning,
   onRender, onComplete,

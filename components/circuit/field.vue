@@ -20,7 +20,7 @@ const canvas = ref<HTMLCanvasElement>();
 let ctx: CanvasRenderingContext2D | null = null;
 const TILE_SIZE = 13;
 
-const { field } = useFieldGraph();
+const { field, updateDesignScore } = useFieldGraph();
 const { network, sim, isRunning, isPaused, onRender, load } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
 const {
@@ -31,6 +31,8 @@ const {
 
 const isDrawing = ref(false);
 let prevDrawingCoords: Point = [0, 0];
+
+const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 
 const renderField = () => {
   if (!ctx)
@@ -213,6 +215,7 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
       console.warn('select: not yet implemented');
       return;
   }
+  updateDesignScoreThrottle();
   renderField();
 }
 
