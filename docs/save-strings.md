@@ -7,7 +7,7 @@ All values formatted as `code` are hexidecimal.
 Save data is compressed with zlib (deflate level 9) and encoded to base64.
 
 Uncompressed data length is varied ([possibly due to a bug](#layer-2-metal)) when exported by the
-game, but not by much. Position of EOF in an empty save is `332B`.
+game, but not by much. The minimum position of EOF is `332B`.
 
 The first 4 bytes are dimensions of the layers.
 They are `04 2C 04 1B`, representing the 44 (`2C`) columns of 27 (`1B`) elements. The `04` bytes
