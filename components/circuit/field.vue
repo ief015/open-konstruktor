@@ -278,10 +278,11 @@ const renderOverlay = () => {
   ctx.fillStyle = '#000';
   ctx.font = '10px Georgia10';
   const pinNodes = network.value.getPinNodes()
+  const textPadX = 3;
   for (let pid = 0; pid < pinNodes.length; pid++) {
     const [ x, y ] = field.value.getPinPoint(pid);
     const { label } = pinNodes[pid];
-    ctx.fillText(label, x*TILE_SIZE+3, y*TILE_SIZE+10);
+    ctx.fillText(label, x*TILE_SIZE+textPadX, y*TILE_SIZE+10, (TILE_SIZE*3)-(textPadX*2));
   }
 }
 
@@ -373,18 +374,20 @@ const onMouseUp = (e: MouseEvent) => {
   }
 }
 
-watch([ canvasMouseX, canvasMouseY, canvasMouseOutside ], ([x, y, outside]) => {
+watch([ canvasMouseX, canvasMouseY ], ([x, y]) => {
   const dbg: string[] = [];
 const col = Math.trunc(canvasMouseX.value/TILE_SIZE);
 const row = Math.trunc(canvasMouseY.value/TILE_SIZE);
-  dbg.push(`Mouse: ${x}, ${y} (${outside ? 'outside' : 'inside'})`);
+  dbg.push(`Mouse: ${x}, ${y}`);
   dbg.push(`Coord: ${col}, ${row}`);
+  /*
   const data = field.value?.getData();
   if (data) {
     data.getLayers().forEach((layer, idx) => {
       dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
     });
   }
+  */
   debugMsg.value = dbg.join('<br/>');
 });
 
