@@ -1,6 +1,6 @@
 import { CircuitSimulation, FieldGraph, Network, VerificationResult } from "@/simulation";
 
-export type OnPostStepHandler = () => void;
+export type OnRenderHandler = () => void;
 export type OnCompleteHandler = (result: VerificationResult) => void;
 
 const network = ref<Network>();
@@ -16,14 +16,14 @@ const accumulatedTime = ref(0);
 const stepsPerSecond = ref(40);
 const loop = ref(false);
 const stepInterval = computed(() => 1000 / stepsPerSecond.value);
-const onPostStepHandlers: OnPostStepHandler[] = [];
+const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
 
 export type SimLoader = (network: Network) => CircuitSimulation;
 let currentSimLoader: SimLoader = (network: Network) => new CircuitSimulation(network);
 
-const invokePostStepHandlers = () => {
-  onPostStepHandlers.forEach(handler => handler());
+const invokeRenderers = () => {
+  onRenderHandlers.forEach(handler => handler());
 }
 
 const invokeCompleteHandlers = (result: VerificationResult) => {
@@ -64,7 +64,7 @@ const onAnim = (timestamp: number) => {
         invokeCompleteHandlers(verifyResult);
         if (loop.value) {
           start();
-          return
+          return;
         } else {
           break;
         }
@@ -72,7 +72,7 @@ const onAnim = (timestamp: number) => {
       accumulatedTime.value -= stepInterval.value;
     }
     if (stepped) {
-      invokePostStepHandlers();
+      invokeRenderers();
     }
   }
   requestAnimationFrame(onAnim);
@@ -106,17 +106,17 @@ const step = (n: number = 1) => {
       break;
     }
   }
-  invokePostStepHandlers();
+  invokeRenderers();
 }
 
 export default function useCircuitSimulator() {
 
-  let onPostStepHandler: OnPostStepHandler|null = null;
+  let onRenderHandler: OnRenderHandler|null = null;
   let onCompleteHandler: OnCompleteHandler|null = null;
 
-  const removePostStepHandler = () => {
-    if (onPostStepHandler) {
-      onPostStepHandlers.splice(onPostStepHandlers.indexOf(onPostStepHandler), 1);
+  const removeRenderHandler = () => {
+    if (onRenderHandler) {
+      onRenderHandlers.splice(onRenderHandlers.indexOf(onRenderHandler), 1);
     }
   }
 
@@ -126,11 +126,11 @@ export default function useCircuitSimulator() {
     }
   }
 
-  const onPostStep = (handler: OnPostStepHandler): (() => void) => {
-    removePostStepHandler();
-    onPostStepHandler = handler;
-    onPostStepHandlers.push(handler);
-    return removePostStepHandler;
+  const onRender = (handler: OnRenderHandler): (() => void) => {
+    removeRenderHandler();
+    onRenderHandler = handler;
+    onRenderHandlers.push(handler);
+    return removeRenderHandler;
   }
 
   const onComplete = (handler: OnCompleteHandler): (() => void) => {
@@ -140,7 +140,7 @@ export default function useCircuitSimulator() {
     return removeCompleteHandler;
   }
 
-  onUnmounted(removePostStepHandler);
+  onUnmounted(removeRenderHandler);
   onUnmounted(removeCompleteHandler);
 
   return {
@@ -156,7 +156,7 @@ export default function useCircuitSimulator() {
     pause,
     resume,
     step,
-    onPostStep,
+    onRender,
     onComplete,
   };
 }

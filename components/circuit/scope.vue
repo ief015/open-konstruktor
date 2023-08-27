@@ -63,7 +63,7 @@ let ctx: CanvasRenderingContext2D | null = null;
 const { field, designScore } = useFieldGraph();
 const {
   network, sim, isRunning,
-  onPostStep, onComplete,
+  onRender: onCircuitRender, onComplete,
 } = useCircuitSimulator();
 
 const isDrawing = ref(false);
@@ -266,11 +266,10 @@ const onResize = () => {
   renderScope();
 }
 
-onPostStep(renderScope);
+onCircuitRender(renderScope);
 
 onComplete((result) => {
   verifyResult.value = result;
-  console.log(result);
 });
 
 watch(isRunning, (running) => {
