@@ -29,6 +29,7 @@
         <option value="20">20 Hz</option>
         <option value="40">40 Hz (Classic)</option>
         <option value="60">60 Hz</option>
+        <option value="72">72 Hz</option>
         <option value="120">120 Hz</option>
         <option value="144">144 Hz</option>
         <option value="1000">1000 Hz</option>
