@@ -98,7 +98,6 @@ const renderBackground = () => {
 }
 
 const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: number[]) => {
-  const t = performance.now();
   if (!field.value) throw new Error('Could not get field');
   const contextSiliconTiles = canvasSiliconTiles.value?.getContext('2d');
   const contextMetalTiles = canvasMetalTiles.value?.getContext('2d');
@@ -196,8 +195,6 @@ const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: 
     }
     ctx.restore();
   }
-  const t2 = performance.now();
-  console.log(`renderTiles: ${t2-t}ms`);
 }
 
 const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
