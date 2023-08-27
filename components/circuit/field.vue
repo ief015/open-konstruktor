@@ -203,9 +203,7 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
   //ctxMetalHot.fillStyle = 'rgba(0, 0, 0, 0.49)';
   // Draw current
   if (isRunning.value && network.value) {
-    const hotImage = images.findImage('/tiles/33_tile_hot.png');
-    const svgTest = images.findImage('/svg/tiles/spd.svg');
-    ctxMetalHot.drawImage(svgTest, TILE_SIZE-1, TILE_SIZE-1, 14, 14);
+    const hotImage = images.findImage('/tiles/hot.png');
     for (let x = 0; x < dims.columns; x++) {
       for (let y = 0; y < dims.rows; y++) {
         if (showSilicon) {
