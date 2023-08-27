@@ -975,21 +975,20 @@ const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
     sim.setInputSequence(pinA0, seqA0);
     // A1
     const seqA1 = new Sequence();
-    seqA1.addOscillation(30, 2, 10, 20);
-    seqA1.addOscillation(100, 2, 10, 20);
-    seqA1.addOscillation(170, 2, 10, 20);
-    seqA1.addOscillation(240, 2, 10, 20);
+    seqA1.addOscillation(30, 4, 10, 60);
+    seqA1.addOscillation(60, 3, 10, 60);
+    seqA1.setFrame(270, true);
     sim.setInputSequence(pinA1, seqA1);
     // B0
     const seqB0 = new Sequence();
-    seqB0.addOscillation(20, 2, 10, 30);
-    seqB0.addOscillation(90, 2, 10, 30);
-    seqB0.addOscillation(160, 2, 10, 30);
-    seqB0.addOscillation(230, 2, 10, 30);
+    seqB0.addOscillation(20, 4, 10, 60);
+    seqB0.addOscillation(60, 3, 10, 60);
+    seqB0.setFrame(270, true);
     sim.setInputSequence(pinB0, seqB0);
     // B1
     const seqB1 = new Sequence();
-    seqB1.addOscillation(30, 4, 40, 30);
+    seqB1.addOscillation(30, 3, 40, 30);
+    seqB1.setFrame(240, true);
     sim.setInputSequence(pinB1, seqB1);
     // F0
     const seqF0 = new Sequence();
