@@ -3,12 +3,23 @@
     class="flex items-center gap-2 p-2"
     :class="{ 'flex-row': props.horizontal, 'flex-col': !props.horizontal }"
   >
-    <div v-for="item in toolkit">
+    <div v-for="item in toolkit" class="w-full">
       <button
         @click="onClickTool(item)"
-        :class="{ 'border-white': item.mode === mode }"
+        class="flex items-center justify-center w-full h-[3em] rounded border-solid border-2"
+        :class="{
+          [item.classes ?? '']: true,
+          'border-white': item.mode === mode,
+          'border-neutral-600': item.mode !== mode,
+          'hover:border-neutral-300': item.mode !== mode,
+        }"
       >
-        {{ item.name }}
+        <img
+          v-if="item.icon"
+          :src="item.icon"
+          class="w-[12px] h-[12px]"
+        />
+        <span>{{ item.name }}</span>
       </button>
     </div>
   </div>
@@ -21,6 +32,8 @@ interface ToolkitItem {
   name: string
   icon?: string
   mode: ToolboxMode
+  classes?: string
+  labelClass?: string
 }
 
 const props = withDefaults(defineProps<{
@@ -41,18 +54,23 @@ const toolkit: ToolkitItem[] = [
   {
     name: "Metal",
     mode: 'draw-metal',
+    classes: 'bg-metal text-black font-bold',
   },
   {
     name: "P-Type",
     mode: 'draw-p-silicon',
+    classes: 'bg-ptype text-black font-bold',
   },
   {
     name: "N-Type",
     mode: 'draw-n-silicon',
+    classes: 'bg-ntype text-black font-bold',
   },
   {
     name: "Via",
     mode: 'draw-via',
+    icon: '/tiles/link.png',
+    classes: 'bg-neutral-400 text-black font-bold',
   },
   {
     name: "Erase",
@@ -93,3 +111,12 @@ const onClickTool = (item: ToolkitItem) => {
 }
 
 </script>
+
+<style scoped>
+
+button {
+  padding: 0;
+  cursor: pointer;
+}
+
+</style>
