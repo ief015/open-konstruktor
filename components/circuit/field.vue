@@ -30,6 +30,11 @@
     >
       Your browser must support the canvas tag.
     </canvas>
+    <div class="absolute w-full h-full pointer-events-none select-none">
+      <div class="flex flex-col justify-end w-full h-full">
+        <div class="font-georgia12 text-[12px] text-black m-1" v-html="debugMsg" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -57,6 +62,7 @@ const images = useImageLoader();
 const TILE_SIZE = 13;
 const isDrawing = ref(false);
 let prevDrawingCoords: Point = [0, 0];
+const debugMsg = ref('');
 
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 
@@ -91,22 +97,29 @@ const renderBackground = () => {
   ctx.restore();
 }
 
-const renderTiles = (options?: { metal?: boolean, silicon?: boolean }) => {
+const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: number[]) => {
+  const t = performance.now();
   if (!field.value) throw new Error('Could not get field');
   const contextSiliconTiles = canvasSiliconTiles.value?.getContext('2d');
   const contextMetalTiles = canvasMetalTiles.value?.getContext('2d');
   if (!contextSiliconTiles) throw new Error('Could not get background canvas context');
   if (!contextMetalTiles) throw new Error('Could not get background canvas context');
+  const data = field.value.getData();
+  const dims = data.getDimensions();
   const {
     metal: showMetal,
     silicon: showSilicon,
   } = Object.assign({ metal: true, silicon: true }, options);
-  const data = field.value.getData();
-  const dims = data.getDimensions();
-  contextSiliconTiles.clearRect(0, 0, contextSiliconTiles.canvas.width, contextSiliconTiles.canvas.height);
-  contextMetalTiles.clearRect(0, 0, contextMetalTiles.canvas.width, contextMetalTiles.canvas.height);
+  let [ left, top, right, bottom ] = bounds ?? [ 0, 0, dims.columns, dims.rows ];
+  left = Math.max(0, left);
+  top = Math.max(0, top);
+  right = Math.min(dims.columns, right+1);
+  bottom = Math.min(dims.rows, bottom+1);
+  contextSiliconTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
+  contextMetalTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
   if (showSilicon) {
     const ctx = contextSiliconTiles;
+    const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
     const siliconLayer = data.getLayer(Layer.Silicon);
     const siliconConnHLayer = data.getLayer(Layer.SiliconConnectionsH);
     const siliconConnVLayer = data.getLayer(Layer.SiliconConnectionsV);
@@ -114,48 +127,47 @@ const renderTiles = (options?: { metal?: boolean, silicon?: boolean }) => {
     const gatesVLayer = data.getLayer(Layer.GatesV);
     const viaLayer = data.getLayer(Layer.Vias);
     const tileSizeHalf = Math.floor(TILE_SIZE / 2);
+    const viaImage = images.findImage('/tiles/link.png');
     ctx.save();
-    ctx.translate(1, 1);
+    ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
     ctx.strokeStyle = '#060000';
     // Silicon layer + vias
-    for (let x = 0; x < dims.columns; x++) {
-      for (let y = 0; y < dims.rows; y++) {
+    for (let x = left; x < right; x++) {
+      ctx.save();
+      for (let y = top; y < bottom; y++) {
         const st = siliconLayer[x][y];
         if (st === SiliconValue.PSilicon) {
-          ctx.fillStyle = '#F7FE02';
-          const w = siliconConnHLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
-          const h = siliconConnVLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
-          ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, w, h);
+          const xdir = getDirectionX(siliconConnHLayer, x, y);
+          const ydir = getDirectionY(siliconConnVLayer, x, y);
           if (gatesHLayer[x][y] === GateValue.Gate) {
-            ctx.fillStyle = '#860000';
-            ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE+2, TILE_SIZE, TILE_SIZE-4);
+            renderTile(TileType.PGateH, xdir, ydir);
           } else if (gatesVLayer[x][y] === GateValue.Gate) {
-            ctx.fillStyle = '#860000';
-            ctx.fillRect(x*TILE_SIZE+2, y*TILE_SIZE, TILE_SIZE-4, TILE_SIZE);
+            renderTile(TileType.PGateV, xdir, ydir);
+          } else {
+            renderTile(TileType.PSilicon, xdir, ydir);
           }
         } else if (st === SiliconValue.NSilicon) {
-          ctx.fillStyle = '#B50000';
-          const w = siliconConnHLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
-          const h = siliconConnVLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
-          ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, w, h);
+          const xdir = getDirectionX(siliconConnHLayer, x, y);
+          const ydir = getDirectionY(siliconConnVLayer, x, y);
           if (gatesHLayer[x][y] === GateValue.Gate) {
-            ctx.fillStyle = '#EDC900';
-            ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE+2, TILE_SIZE, TILE_SIZE-4);
+            renderTile(TileType.NGateH, xdir, ydir);
           } else if (gatesVLayer[x][y] === GateValue.Gate) {
-            ctx.fillStyle = '#EDC900';
-            ctx.fillRect(x*TILE_SIZE+2, y*TILE_SIZE, TILE_SIZE-4, TILE_SIZE);
+            renderTile(TileType.NGateV, xdir, ydir);
+          } else {
+            renderTile(TileType.NSilicon, xdir, ydir);
           }
         }
         if (viaLayer[x][y] === ViaValue.Via) {
-          ctx.beginPath();
-          //ctx.arc(x*TILE_SIZE+tileSizeHalf, y*TILE_SIZE+tileSizeHalf, 2.5, 0, 2 * Math.PI);
-          ctx.roundRect(x*TILE_SIZE+tileSizeHalf-2.5, y*TILE_SIZE+tileSizeHalf-2.5, 5, 5, 1.5);
-          ctx.stroke();
-          ctx.closePath();
-          //const viaImage = images.findImage('/tiles/32_tile_link.png');
-          //ctx.drawImage(viaImage, x*TILE_SIZE, y*TILE_SIZE);
+          //ctx.beginPath();
+          //ctx.roundRect(tileSizeHalf-2.5, tileSizeHalf-2.5, 5, 5, 1.5);
+          //ctx.stroke();
+          //ctx.closePath();
+          ctx.drawImage(viaImage, 0, 0);
         }
+        ctx.translate(0, TILE_SIZE);
       }
+      ctx.restore();
+      ctx.translate(TILE_SIZE, 0);
     }
     ctx.restore();
   }
@@ -163,23 +175,29 @@ const renderTiles = (options?: { metal?: boolean, silicon?: boolean }) => {
   if (showMetal) {
     const ctx = contextMetalTiles;
     if (!ctx) throw new Error('Could not get background canvas context');
+    const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
     const metalLayer = data.getLayer(Layer.Metal);
     const metalConnHLayer = data.getLayer(Layer.MetalConnectionsH);
     const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
     ctx.save();
-    ctx.translate(1, 1);
-    ctx.fillStyle = `rgba(251, 251, 251, ${128/255})`;
-    for (let x = 0; x < dims.columns; x++) {
-      for (let y = 0; y < dims.rows; y++) {
+    ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
+    for (let x = left; x < right; x++) {
+      ctx.save();
+      for (let y = top; y < bottom; y++) {
         if (metalLayer[x][y] === MetalValue.Metal) {
-          const w = metalConnHLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
-          const h = metalConnVLayer[x][y] == ConnectionValue.Connected ? TILE_SIZE : TILE_SIZE-1;
-          ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, w, h);
+          const xdir = getDirectionX(metalConnHLayer, x, y);
+          const ydir = getDirectionY(metalConnVLayer, x, y);
+          renderTile(TileType.Metal, xdir, ydir);
         }
+        ctx.translate(0, TILE_SIZE);
       }
+      ctx.restore();
+      ctx.translate(TILE_SIZE, 0);
     }
     ctx.restore();
   }
+  const t2 = performance.now();
+  console.log(`renderTiles: ${t2-t}ms`);
 }
 
 const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
@@ -199,8 +217,6 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
   ctxSiliconHot.save();
   ctxMetalHot.translate(1, 1);
   ctxSiliconHot.translate(1, 1);
-  //ctxSiliconHot.fillStyle = 'rgba(0, 0, 0, 0.49)';
-  //ctxMetalHot.fillStyle = 'rgba(0, 0, 0, 0.49)';
   // Draw current
   if (isRunning.value && network.value) {
     const hotImage = images.findImage('/tiles/hot.png');
@@ -218,7 +234,6 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
             return false;
           });
           if (hot) {
-            //ctxSiliconHot.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
             ctxSiliconHot.drawImage(hotImage, x*TILE_SIZE, y*TILE_SIZE);
           }
         }
@@ -231,7 +246,6 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
             return false;
           });
           if (hot) {
-            //ctxMetalHot.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
             ctxMetalHot.drawImage(hotImage, x*TILE_SIZE, y*TILE_SIZE);
           }
         }
@@ -315,7 +329,9 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
       return;
   }
   updateDesignScoreThrottle();
-  renderTiles();
+  const start = [ Math.min(coordA[0], coordB[0]), Math.min(coordA[1], coordB[1]) ];
+  const end = [ Math.max(coordA[0], coordB[0]), Math.max(coordA[1], coordB[1]) ];
+  renderTiles(undefined, [ start[0], start[1], end[0], end[1] ]);
 }
 
 const mouseToGrid = (mx: number, my: number): Point => {
@@ -356,55 +372,19 @@ const onMouseUp = (e: MouseEvent) => {
   }
 }
 
-onCircuitRender(renderHot);
-
-watch(isRunning, (isRunning) => renderHot());
-
-watch(sim, (sim) => {
-  if (!sim) return;
-  renderAll();
-});
-
-watch(canvasBackground, (canvas) => {
-  const ctx = canvas?.getContext('2d');
-  if (!ctx) return;
-  ctx.imageSmoothingEnabled = false;
-  renderBackground()
-});
-
-watch(canvasSiliconTiles, (canvas) => {
-  const ctx = canvas?.getContext('2d');
-  if (!ctx) return;
-  ctx.imageSmoothingEnabled = false;
-  renderTiles();
-});
-
-watch(canvasSiliconHot, (canvas) => {
-  const ctx = canvas?.getContext('2d');
-  if (!ctx) return;
-  ctx.imageSmoothingEnabled = false;
-  renderHot();
-});
-
-watch(canvasMetalTiles, (canvas) => {
-  const ctx = canvas?.getContext('2d');
-  if (!ctx) return;
-  ctx.imageSmoothingEnabled = false;
-  renderTiles();
-});
-
-watch(canvasMetalHot, (canvas) => {
-  const ctx = canvas?.getContext('2d');
-  if (!ctx) return;
-  ctx.imageSmoothingEnabled = false;
-  renderHot();
-});
-
-watch(canvasOverlay, (canvas) => {
-  const ctx = canvas?.getContext('2d');
-  if (!ctx) return;
-  ctx.imageSmoothingEnabled = false;
-  renderOverlay();
+watch([ canvasMouseX, canvasMouseY, canvasMouseOutside ], ([x, y, outside]) => {
+  const dbg: string[] = [];
+const col = Math.trunc(canvasMouseX.value/TILE_SIZE);
+const row = Math.trunc(canvasMouseY.value/TILE_SIZE);
+  dbg.push(`Mouse: ${x}, ${y} (${outside ? 'outside' : 'inside'})`);
+  dbg.push(`Coord: ${col}, ${row}`);
+  const data = field.value?.getData();
+  if (data) {
+    data.getLayers().forEach((layer, idx) => {
+      dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
+    });
+  }
+  debugMsg.value = dbg.join('<br/>');
 });
 
 useResizeObserver(canvasBackground, (entries, obs) => {
@@ -455,6 +435,61 @@ useResizeObserver(canvasOverlay, (entries, obs) => {
   renderOverlay();
 });
 
-onMounted(renderAll);
+onMounted(() => {
+
+  onCircuitRender(renderHot);
+
+  watch(isRunning, (isRunning) => renderHot());
+
+  watch(sim, (sim) => {
+    if (!sim) return;
+    renderAll();
+  });
+
+  watch(canvasBackground, (canvas) => {
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    renderBackground()
+  });
+
+  watch(canvasSiliconTiles, (canvas) => {
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    renderTiles();
+  });
+
+  watch(canvasSiliconHot, (canvas) => {
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    renderHot();
+  });
+
+  watch(canvasMetalTiles, (canvas) => {
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    renderTiles();
+  });
+
+  watch(canvasMetalHot, (canvas) => {
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    renderHot();
+  });
+
+  watch(canvasOverlay, (canvas) => {
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    renderOverlay();
+  });
+
+  renderAll();
+
+});
 
 </script>
