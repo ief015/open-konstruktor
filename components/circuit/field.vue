@@ -70,7 +70,8 @@ const renderBackground = () => {
   const ctx = canvasBackground.value?.getContext('2d');
   if (!ctx) throw new Error('Could not get background canvas context');
   if (!field.value) throw new Error('Could not get field');
-  const dims = field.value?.getDimensions();
+  const { columns, rows } = field.value.getDimensions();
+  const [ minCol, maxCol ] = field.value.getMinMaxColumns();
   // Background colour
   ctx.fillStyle = '#959595';
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -79,22 +80,25 @@ const renderBackground = () => {
   ctx.translate(0.5, 0.5);
   ctx.lineWidth = 1;
   ctx.strokeStyle = '#818181';
-  for (let x = 0; x < dims.columns; x++) {
+  for (let x = 0; x < columns; x++) {
     ctx.beginPath();
     ctx.moveTo(x * TILE_SIZE, 0);
-    ctx.lineTo(x * TILE_SIZE, dims.rows * TILE_SIZE);
+    ctx.lineTo(x * TILE_SIZE, rows * TILE_SIZE);
     ctx.stroke();
   }
-  for (let y = 0; y < dims.rows; y++) {
+  for (let y = 0; y < rows; y++) {
     ctx.beginPath();
     ctx.moveTo(0, y * TILE_SIZE);
-    ctx.lineTo(dims.columns * TILE_SIZE, y * TILE_SIZE);
+    ctx.lineTo(columns * TILE_SIZE, y * TILE_SIZE);
     ctx.stroke();
   }
+  ctx.restore();
+  ctx.fillStyle = `rgba(0,0,0,${20/255})`;
+  ctx.fillRect(0, 0, minCol*TILE_SIZE+1, rows*TILE_SIZE+1);
+  ctx.fillRect((maxCol+1)*TILE_SIZE, 0, (columns-maxCol-1)*TILE_SIZE, rows*TILE_SIZE);
   // Draw border
   ctx.strokeStyle = '#000';
-  ctx.strokeRect(0, 0, dims.columns * TILE_SIZE, dims.rows * TILE_SIZE);
-  ctx.restore();
+  ctx.strokeRect(0.5, 0.5, columns * TILE_SIZE, rows * TILE_SIZE);
 }
 
 const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: number[]) => {
@@ -104,16 +108,16 @@ const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: 
   if (!contextSiliconTiles) throw new Error('Could not get background canvas context');
   if (!contextMetalTiles) throw new Error('Could not get background canvas context');
   const data = field.value.getData();
-  const dims = data.getDimensions();
+  const { columns, rows } = data.getDimensions();
   const {
     metal: showMetal,
     silicon: showSilicon,
   } = Object.assign({ metal: true, silicon: true }, options);
-  let [ left, top, right, bottom ] = bounds ?? [ 0, 0, dims.columns, dims.rows ];
+  let [ left, top, right, bottom ] = bounds ?? [ 0, 0, columns, rows ];
   left = Math.max(0, left-1);
   top = Math.max(0, top-1);
-  right = Math.min(dims.columns, right+2);
-  bottom = Math.min(dims.rows, bottom+2);
+  right = Math.min(columns, right+2);
+  bottom = Math.min(rows, bottom+2);
   contextSiliconTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
   contextMetalTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
   if (showSilicon) {
@@ -207,7 +211,7 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
     metal: showMetal,
     silicon: showSilicon,
   } = Object.assign({ metal: true, silicon: true }, options);
-  const dims = field.value.getDimensions();
+  const { columns, rows } = field.value.getDimensions();
   ctxMetalHot.clearRect(0, 0, ctxMetalHot.canvas.width, ctxMetalHot.canvas.height);
   ctxSiliconHot.clearRect(0, 0, ctxSiliconHot.canvas.width, ctxSiliconHot.canvas.height);
   ctxMetalHot.save();
@@ -217,8 +221,8 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
   // Draw current
   if (isRunning.value && network.value) {
     const hotImage = images.findImage('/tiles/hot.png');
-    for (let x = 0; x < dims.columns; x++) {
-      for (let y = 0; y < dims.rows; y++) {
+    for (let x = 0; x < columns; x++) {
+      for (let y = 0; y < rows; y++) {
         if (showSilicon) {
           const nodes = network.value.getNodesAt([x, y], 'silicon');
           const hot = nodes.some(n => {
@@ -277,7 +281,7 @@ const renderOverlay = () => {
   for (let pid = 0; pid < pinNodes.length; pid++) {
     const [ x, y ] = field.value.getPinPoint(pid);
     const { label } = pinNodes[pid];
-    ctx.fillText(label, x*TILE_SIZE+2, y*TILE_SIZE+10);
+    ctx.fillText(label, x*TILE_SIZE+3, y*TILE_SIZE+10);
   }
 }
 
