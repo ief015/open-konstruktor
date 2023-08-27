@@ -2,7 +2,7 @@ import {
   DesignData, ConnectionValue, GateValue, Layer, LayerDimensions, MetalValue, SiliconValue, ViaValue
 } from '@/serialization/DesignData';
 import { decodeSync, encodeSync } from '@/serialization';
-import { Point } from '@/simulation';
+import { GraphLayer, Point } from '@/simulation';
 import { traceLine } from '@/utils/traceLine';
 
 export type SiliconType = 'p' | 'n';
@@ -39,13 +39,23 @@ const drawTypeToLayer = {
 export default class FieldGraph {
 
   private data: DesignData;
+  private minDrawColumn;
+  private maxDrawColumn;
 
-  constructor() {
-    this.data = new DesignData();
+  constructor(data: DesignData = new DesignData()) {
+    this.data = data;
+    const { columns } = this.data.getDimensions();
+    const pinColumnWidth = 4;
+    this.minDrawColumn = pinColumnWidth;
+    this.maxDrawColumn = columns - pinColumnWidth - 1;
   }
 
   public getDimensions(): LayerDimensions {
     return this.data.getDimensions();
+  }
+
+  public getMinMaxColumns(): [ number, number ] {
+    return [ this.minDrawColumn, this.maxDrawColumn ];
   }
 
   public getPinCount(): number {
@@ -133,22 +143,33 @@ export default class FieldGraph {
         this.removeGate(point);
       }
     }
-    
   }
 
   public placeMetal(startPoint: Point, lastPoint?: Point) {
     const { data } = this;
     const [ x, y ] = startPoint;
-    data.set(Layer.Metal, x, y, MetalValue.Metal);
+    if (x >= this.minDrawColumn && x <= this.maxDrawColumn) {
+      data.set(Layer.Metal, x, y, MetalValue.Metal);
+    }
     if (lastPoint) {
       const [ lastX, lastY ] = lastPoint;
       if (x !== lastX) {
         const minX = Math.min(x, lastX);
-        data.set(Layer.MetalConnectionsH, minX, y, ConnectionValue.Connected);
+        const validConnection =
+          data.get(Layer.Metal, minX, y) === MetalValue.Metal &&
+          data.get(Layer.Metal, minX + 1, y) === MetalValue.Metal;
+        if (validConnection) {
+          data.set(Layer.MetalConnectionsH, minX, y, ConnectionValue.Connected);
+        }
       }
       if (y !== lastY) {
         const minY = Math.min(y, lastY);
-        data.set(Layer.MetalConnectionsV, x, minY, ConnectionValue.Connected);
+        const validConnection =
+          data.get(Layer.Metal, x, minY) === MetalValue.Metal &&
+          data.get(Layer.Metal, x, minY + 1) === MetalValue.Metal;
+        if (validConnection) {
+          data.set(Layer.MetalConnectionsV, x, minY, ConnectionValue.Connected);
+        }
       }
     }
   }
@@ -159,7 +180,7 @@ export default class FieldGraph {
     const val = type === 'p' ? SiliconValue.PSilicon : SiliconValue.NSilicon;
     const existing = data.get(Layer.Silicon, x, y);
     const requestingGate = existing !== SiliconValue.None && existing !== val;
-    if (existing === SiliconValue.None) {
+    if (existing === SiliconValue.None && x >= this.minDrawColumn && x <= this.maxDrawColumn) {
       data.set(Layer.Silicon, x, y, val);
     }
     if (lastPoint) {
@@ -175,27 +196,37 @@ export default class FieldGraph {
         }
       }
       if (x !== lastX) {
-        if (requestingGate) {
-          // Horizontal gate
-          if (this.isValidGateSpot([x, y], 'h')) {
-            data.set(Layer.GatesH, x, y, GateValue.Gate);
-          } else {
-            return;
-          }
-        }
         const minX = Math.min(x, lastX);
-        data.set(Layer.SiliconConnectionsH, minX, y, ConnectionValue.Connected);
-      } else if (y !== lastY) {
-        if (requestingGate) {
-          // Vertical gate
-          if (this.isValidGateSpot([x, y], 'v')) {
-            data.set(Layer.GatesV, x, y, GateValue.Gate);
-          } else {
-            return;
+        const validConnection =
+          data.get(Layer.Silicon, minX, y) !== SiliconValue.None &&
+          data.get(Layer.Silicon, minX + 1, y) !== SiliconValue.None;
+        if (validConnection) {
+          if (requestingGate) {
+            // Horizontal gate
+            if (this.isValidGateSpot([x, y], 'h')) {
+              data.set(Layer.GatesH, x, y, GateValue.Gate);
+            } else {
+              return;
+            }
           }
+          data.set(Layer.SiliconConnectionsH, minX, y, ConnectionValue.Connected);
         }
+      } else if (y !== lastY) {
         const minY = Math.min(y, lastY);
-        data.set(Layer.SiliconConnectionsV, x, minY, ConnectionValue.Connected);
+        const validConnection =
+          data.get(Layer.Silicon, x, minY) !== SiliconValue.None &&
+          data.get(Layer.Silicon, x, minY + 1) !== SiliconValue.None;
+        if (validConnection) {
+          if (requestingGate) {
+            // Vertical gate
+            if (this.isValidGateSpot([x, y], 'v')) {
+              data.set(Layer.GatesV, x, y, GateValue.Gate);
+            } else {
+              return;
+            }
+          }
+          data.set(Layer.SiliconConnectionsV, x, minY, ConnectionValue.Connected);
+        }
       }
     }
   }
@@ -244,6 +275,9 @@ export default class FieldGraph {
   public removeMetal(point: Point) {
     const { data } = this;
     const [ x, y ] = point;
+    if (x < this.minDrawColumn || x > this.maxDrawColumn) {
+      return;
+    }
     if (data.get(Layer.Metal, x, y) === MetalValue.None) {
       return;
     }
@@ -273,6 +307,9 @@ export default class FieldGraph {
     const { data } = this;
     const [ x, y ] = point;
     if (data.get(Layer.Silicon, x, y) === SiliconValue.None) {
+      return;
+    }
+    if (x < this.minDrawColumn || x > this.maxDrawColumn) {
       return;
     }
     this.removeGate(point);
