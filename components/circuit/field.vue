@@ -110,10 +110,10 @@ const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: 
     silicon: showSilicon,
   } = Object.assign({ metal: true, silicon: true }, options);
   let [ left, top, right, bottom ] = bounds ?? [ 0, 0, dims.columns, dims.rows ];
-  left = Math.max(0, left);
-  top = Math.max(0, top);
-  right = Math.min(dims.columns, right+1);
-  bottom = Math.min(dims.rows, bottom+1);
+  left = Math.max(0, left-1);
+  top = Math.max(0, top-1);
+  right = Math.min(dims.columns, right+2);
+  bottom = Math.min(dims.rows, bottom+2);
   contextSiliconTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
   contextMetalTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
   if (showSilicon) {
