@@ -1,29 +1,8 @@
-import { Network, PinNode } from "@/simulation";
+import { CircuitSimulationFactory } from "@/circuits";
+import { PinNode } from "@/simulation";
 import { CircuitSimulation } from "@/simulation/CircuitSimulation";
 import Sequence from "@/simulation/Sequence";
 import createSequencesFromInputs from "@/utils/createSequencesFromInputs";
-
-type KOHCTPYKTOPLevelName =
-    '01 KT411I QUAD INVERTER GATE'
-  | '02 KT221A DUAL 2-INPUT AND GATE'
-  | '03 KT141AO 4-INPUT AND-OR GATE'
-  | '04 KO229 POWER ON RESET GENERATOR'
-  | '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR'
-  | '06 KL2S1 DUAL SET-RESET LATCH'
-  | '07 KL2T1 DUAL TOGGLE LATCH'
-  | '08 KO224X DUAL FREQUENCY OSCILLATOR'
-  | '09 KD124 2-TO-4 LINE DECODER'
-  | '10 KA180 2-BIT ADDER WITH CARRY'
-  | '11 KC82F DIVIDE-BY-FOUR COUNTER'
-  | '12 KM141P 4-TO-1 MULTIPLEXER'
-  | '13 KC84C 4-BIT COUNTER WITH CLEAR'
-  | '14 KC74S 4-BIT SHIFT REGISTER S-TO-P'
-  | '15 KR8S1 8-BIT ADDRESSABLE SRAM'
-  | '16 KA181 2-BIT LOGICAL FUNCTION UNIT'
-  | '17 X901 RADIO MESSAGE STREAM DECODER'
-  | '18 X902 GRENADE LAUNCHER AMMO COUNTER'
-  | '19 X903 GATLING CANNON FIRE CONTROLLER';
-
 
 /*
 
@@ -49,14 +28,12 @@ type KOHCTPYKTOPLevelName =
     pinNC5.label = 'N/C';
     pinNC6.label = 'N/C';
     pinNC7.label = 'N/C';
-    const sim = new CircuitSimulation(network);
+    const sim = new CircuitSimulation(network, 280);
     // Add I/O sequences...
     return sim;
   },
 
 */
-
-type CircuitBuilder<T extends string|number|symbol> = Record<T, (network: Network) => CircuitSimulation>
 
 const assignVCC = (...pins: PinNode[]) => {
   pins.forEach((pin) => {
@@ -65,7 +42,28 @@ const assignVCC = (...pins: PinNode[]) => {
   });
 }
 
-const kohctpyktop: CircuitBuilder<KOHCTPYKTOPLevelName> = {
+type LevelNames =
+    '01 KT411I QUAD INVERTER GATE'
+  | '02 KT221A DUAL 2-INPUT AND GATE'
+  | '03 KT141AO 4-INPUT AND-OR GATE'
+  | '04 KO229 POWER ON RESET GENERATOR'
+  | '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR'
+  | '06 KL2S1 DUAL SET-RESET LATCH'
+  | '07 KL2T1 DUAL TOGGLE LATCH'
+  | '08 KO224X DUAL FREQUENCY OSCILLATOR'
+  | '09 KD124 2-TO-4 LINE DECODER'
+  | '10 KA180 2-BIT ADDER WITH CARRY'
+  | '11 KC82F DIVIDE-BY-FOUR COUNTER'
+  | '12 KM141P 4-TO-1 MULTIPLEXER'
+  | '13 KC84C 4-BIT COUNTER WITH CLEAR'
+  | '14 KC74S 4-BIT SHIFT REGISTER S-TO-P'
+  | '15 KR8S1 8-BIT ADDRESSABLE SRAM'
+  | '16 KA181 2-BIT LOGICAL FUNCTION UNIT'
+  | '17 X901 RADIO MESSAGE STREAM DECODER'
+  | '18 X902 GRENADE LAUNCHER AMMO COUNTER'
+  | '19 X903 GATLING CANNON FIRE CONTROLLER';
+
+const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
 
   '01 KT411I QUAD INVERTER GATE': (network) => {
     const pins = network.getPinNodes();

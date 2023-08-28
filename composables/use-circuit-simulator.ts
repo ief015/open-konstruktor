@@ -1,3 +1,4 @@
+import { CircuitSimulationFactory } from "@/circuits";
 import { CircuitSimulation, FieldGraph, Network, VerificationResult } from "@/simulation";
 
 export type OnRenderHandler = () => void;
@@ -19,8 +20,7 @@ const stepInterval = computed(() => 1000 / stepsPerSecond.value);
 const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
 
-export type SimLoader = (network: Network) => CircuitSimulation;
-let currentSimLoader: SimLoader = (network: Network) => new CircuitSimulation(network);
+let currentSimLoader: CircuitSimulationFactory = (network: Network) => new CircuitSimulation(network);
 
 const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
@@ -89,7 +89,7 @@ const start = () => {
   requestAnimationFrame(onAnim);
 }
 
-const load = (field: FieldGraph, simLoader: SimLoader = currentSimLoader) => {
+const load = (field: FieldGraph, simLoader: CircuitSimulationFactory = currentSimLoader) => {
   stop();
   currentSimLoader = simLoader;
   network.value = Network.from(field);
