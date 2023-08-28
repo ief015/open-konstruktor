@@ -64,6 +64,9 @@ const isDrawing = ref(false);
 let prevDrawingCoords: Point = [0, 0];
 const debugMsg = ref('');
 
+const frameRequestId = ref<number>();
+const queueRender: Set<()=>void> = new Set();
+
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 
 const renderBackground = () => {
@@ -101,7 +104,10 @@ const renderBackground = () => {
   ctx.strokeRect(0.5, 0.5, columns * TILE_SIZE, rows * TILE_SIZE);
 }
 
-const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: number[]) => {
+const renderTiles = (
+  options: { metal?: boolean, silicon?: boolean } = { metal: true, silicon: true },
+  bounds?: number[]
+) => {
   if (!field.value) throw new Error('Could not get field');
   const contextSiliconTiles = canvasSiliconTiles.value?.getContext('2d');
   const contextMetalTiles = canvasMetalTiles.value?.getContext('2d');
@@ -112,7 +118,7 @@ const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: 
   const {
     metal: showMetal,
     silicon: showSilicon,
-  } = Object.assign({ metal: true, silicon: true }, options);
+  } = Object.assign({ metal: false, silicon: false }, options);
   let [ left, top, right, bottom ] = bounds ?? [ 0, 0, columns, rows ];
   left = Math.max(0, left-1);
   top = Math.max(0, top-1);
@@ -201,7 +207,17 @@ const renderTiles = (options?: { metal?: boolean, silicon?: boolean }, bounds?: 
   }
 }
 
-const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
+const renderTilesMetalOnly = () => {
+  renderTiles({ metal: true });
+}
+
+const renderTilesSiliconOnly = () => {
+  renderTiles({ silicon: true });
+}
+
+const renderHot = (
+  options: { metal?: boolean, silicon?: boolean } = { metal: true, silicon: true }
+) => {
   if (!field.value) throw new Error('Could not get field');
   const ctxMetalHot = canvasMetalHot.value?.getContext('2d');
   const ctxSiliconHot = canvasSiliconHot.value?.getContext('2d');
@@ -210,7 +226,7 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
   const {
     metal: showMetal,
     silicon: showSilicon,
-  } = Object.assign({ metal: true, silicon: true }, options);
+  } = Object.assign({ metal: false, silicon: false }, options);
   const { columns, rows } = field.value.getDimensions();
   ctxMetalHot.clearRect(0, 0, ctxMetalHot.canvas.width, ctxMetalHot.canvas.height);
   ctxSiliconHot.clearRect(0, 0, ctxSiliconHot.canvas.width, ctxSiliconHot.canvas.height);
@@ -257,6 +273,14 @@ const renderHot = (options?: { metal?: boolean, silicon?: boolean }) => {
   ctxSiliconHot.restore();
 }
 
+const renderHotMetalOnly = () => {
+  renderHot({ metal: true });
+}
+
+const renderHotSiliconOnly = () => {
+  renderHot({ silicon: true });
+}
+
 const renderOverlay = () => {
   const ctx = canvasOverlay.value?.getContext('2d');
   if (!ctx) throw new Error('Could not get overlay canvas context');
@@ -291,6 +315,12 @@ const renderAll = () => {
   renderTiles();
   renderHot();
   renderOverlay();
+}
+
+const onFrame = () => {
+  queueRender.forEach(fn => fn());
+  queueRender.clear();
+  frameRequestId.value = requestAnimationFrame(onFrame);
 }
 
 const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
@@ -331,9 +361,11 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
       return;
   }
   updateDesignScoreThrottle();
-  const start = [ Math.min(coordA[0], coordB[0]), Math.min(coordA[1], coordB[1]) ];
-  const end = [ Math.max(coordA[0], coordB[0]), Math.max(coordA[1], coordB[1]) ];
-  renderTiles(undefined, [ start[0], start[1], end[0], end[1] ]);
+  const bounds = [
+    Math.min(coordA[0], coordB[0]), Math.min(coordA[1], coordB[1]),
+    Math.max(coordA[0], coordB[0]), Math.max(coordA[1], coordB[1]),
+  ];
+  queueRender.add(() => renderTiles(undefined, bounds));
 }
 
 const mouseToGrid = (mx: number, my: number): Point => {
@@ -374,20 +406,31 @@ const onMouseUp = (e: MouseEvent) => {
   }
 }
 
-watch([ canvasMouseX, canvasMouseY ], ([x, y]) => {
+onCircuitRender(() => queueRender.add(renderHot));
+
+watch(isRunning, (isRunning) => queueRender.add(renderHot));
+
+watch(sim, (sim) => {
+  if (!sim) return;
+  queueRender.add(renderAll);
+});
+
+watch([ canvasMouseX, canvasMouseY, canvasMouseOutside ], ([x, y, outside]) => {
   const dbg: string[] = [];
-const col = Math.trunc(canvasMouseX.value/TILE_SIZE);
-const row = Math.trunc(canvasMouseY.value/TILE_SIZE);
-  dbg.push(`Mouse: ${x}, ${y}`);
-  dbg.push(`Coord: ${col}, ${row}`);
-  /*
-  const data = field.value?.getData();
-  if (data) {
-    data.getLayers().forEach((layer, idx) => {
-      dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
-    });
+  if (!outside) {
+    const col = Math.trunc(canvasMouseX.value/TILE_SIZE);
+    const row = Math.trunc(canvasMouseY.value/TILE_SIZE);
+    dbg.push(`Mouse: ${x}, ${y}`);
+    dbg.push(`Coord: ${col}, ${row}`);
+    /*
+    const data = field.value?.getData();
+    if (data) {
+      data.getLayers().forEach((layer, idx) => {
+        dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
+      });
+    }
+    */
   }
-  */
   debugMsg.value = dbg.join('<br/>');
 });
 
@@ -439,61 +482,57 @@ useResizeObserver(canvasOverlay, (entries, obs) => {
   renderOverlay();
 });
 
+watch(canvasBackground, (canvas) => {
+  const ctx = canvas?.getContext('2d');
+  if (!ctx) return;
+  ctx.imageSmoothingEnabled = false;
+  queueRender.add(renderBackground);
+});
+
+watch(canvasSiliconTiles, (canvas) => {
+  const ctx = canvas?.getContext('2d');
+  if (!ctx) return;
+  ctx.imageSmoothingEnabled = false;
+  queueRender.add(renderTilesSiliconOnly);
+});
+
+watch(canvasSiliconHot, (canvas) => {
+  const ctx = canvas?.getContext('2d');
+  if (!ctx) return;
+  ctx.imageSmoothingEnabled = false;
+  queueRender.add(renderHotSiliconOnly);
+});
+
+watch(canvasMetalTiles, (canvas) => {
+  const ctx = canvas?.getContext('2d');
+  if (!ctx) return;
+  ctx.imageSmoothingEnabled = false;
+  queueRender.add(renderTilesMetalOnly);
+});
+
+watch(canvasMetalHot, (canvas) => {
+  const ctx = canvas?.getContext('2d');
+  if (!ctx) return;
+  ctx.imageSmoothingEnabled = false;
+  queueRender.add(renderHotMetalOnly);
+});
+
+watch(canvasOverlay, (canvas) => {
+  const ctx = canvas?.getContext('2d');
+  if (!ctx) return;
+  ctx.imageSmoothingEnabled = false;
+  queueRender.add(renderOverlay);
+});
+
 onMounted(() => {
+  queueRender.add(renderAll);
+  frameRequestId.value = requestAnimationFrame(onFrame);
+});
 
-  onCircuitRender(renderHot);
-
-  watch(isRunning, (isRunning) => renderHot());
-
-  watch(sim, (sim) => {
-    if (!sim) return;
-    renderAll();
-  });
-
-  watch(canvasBackground, (canvas) => {
-    const ctx = canvas?.getContext('2d');
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
-    renderBackground()
-  });
-
-  watch(canvasSiliconTiles, (canvas) => {
-    const ctx = canvas?.getContext('2d');
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
-    renderTiles();
-  });
-
-  watch(canvasSiliconHot, (canvas) => {
-    const ctx = canvas?.getContext('2d');
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
-    renderHot();
-  });
-
-  watch(canvasMetalTiles, (canvas) => {
-    const ctx = canvas?.getContext('2d');
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
-    renderTiles();
-  });
-
-  watch(canvasMetalHot, (canvas) => {
-    const ctx = canvas?.getContext('2d');
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
-    renderHot();
-  });
-
-  watch(canvasOverlay, (canvas) => {
-    const ctx = canvas?.getContext('2d');
-    if (!ctx) return;
-    ctx.imageSmoothingEnabled = false;
-    renderOverlay();
-  });
-
-  renderAll();
-
+onUnmounted(() => {
+  if (frameRequestId.value) {
+    cancelAnimationFrame(frameRequestId.value);
+  }
 });
 
 </script>
