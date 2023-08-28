@@ -19,8 +19,7 @@ const loop = ref(false);
 const stepInterval = computed(() => 1000 / stepsPerSecond.value);
 const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
-
-let currentSimLoader: CircuitSimulationFactory = (network: Network) => new CircuitSimulation(network);
+const currentFactory = ref<CircuitSimulationFactory>((network) => new CircuitSimulation(network));
 
 const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
@@ -89,11 +88,11 @@ const start = () => {
   requestAnimationFrame(onAnim);
 }
 
-const load = (field: FieldGraph, simLoader: CircuitSimulationFactory = currentSimLoader) => {
+const load = (field: FieldGraph, simFactory: CircuitSimulationFactory = currentFactory.value) => {
   stop();
-  currentSimLoader = simLoader;
+  currentFactory.value = simFactory;
   network.value = Network.from(field);
-  sim.value = currentSimLoader(network.value);
+  sim.value = currentFactory.value(network.value);
 }
 
 const step = (n: number = 1) => {
