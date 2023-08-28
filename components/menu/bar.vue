@@ -56,6 +56,7 @@ import { kohctpyktop } from "@/circuits/kohctpyktop";
 
 const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim, stop } = useCircuitSimulator();
+const { ignoreKeyShortcuts } = useToolbox();
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
 const importTextArea = ref<HTMLTextAreaElement>();
@@ -118,11 +119,6 @@ const items = [
     ]
   },
 ];
-
-watch(importCode, (code) => {
-  // remove newlines
-  importCode.value = code.replace(/\r?\n|\r/g, '');
-});
 
 const onClear = () => {
   loadBlank();
@@ -187,6 +183,16 @@ useEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeAllDialogs();
   }
+});
+
+watch(importCode, (code) => {
+  // remove newlines
+  importCode.value = code.replace(/\r?\n|\r/g, '');
+});
+
+watch([ showExportDialog, showImportDialog ], (values) => {
+  // ignore toolbox keyboard shortcuts while dialogs are open
+  ignoreKeyShortcuts.value = values.some((v) => v);
 });
 
 </script>
