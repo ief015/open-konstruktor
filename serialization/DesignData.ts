@@ -60,13 +60,10 @@ export class DesignData {
   private pinCount: number;
 
   constructor(
-    dimensions: LayerDimensions = {
-      columns: DEFAULT_NUM_COLUMNS,
-      rows: DEFAULT_NUM_ROWS,
-    },
+    columns: number = DEFAULT_NUM_COLUMNS,
+    rows: number = DEFAULT_NUM_ROWS,
     numPinRows: number = 6,
   ) {
-    const { columns, rows } = dimensions;
     this.dimensions = { columns, rows };
     this.pinCount = numPinRows * 2;
     for (let i = 0; i < NUM_LAYERS; i++) {
@@ -166,7 +163,7 @@ export class DesignData {
     const cols = data.readUInt8(1);
     const rows = data.readUInt8(3);
     let offset = 4;
-    const design = new DesignData({ columns: cols, rows: rows });
+    const design = new DesignData(cols, rows);
     for (let i = 0; i < NUM_LAYERS; i++) {
       const layer = design.layers[i];
       const layerMarker = data.readUInt8(offset++) - data.readUInt8(offset++) - data.readUInt8(offset++);

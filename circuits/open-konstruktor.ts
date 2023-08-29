@@ -17,6 +17,8 @@ type LevelNames =
 const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
 
   'Test': {
+    width: 50,
+    height: 50,
     setup: (network) => {
       const pins = network.getPinNodes();
       if (pins.length !== 12) {

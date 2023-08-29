@@ -133,12 +133,12 @@ const loaders: Record<string, CircuitSimulationFactory> = {
 };
 
 const onClear = () => {
-  loadBlank();
+  loadBlank(); // FIXME: this will load default canvas size
   loadSim(field.value!);
 }
 
 const onLoadCircuit = (loader: CircuitSimulationFactory) => {
-  loadBlank();
+  loadBlank(loader.width, loader.height, loader.pinRows);
   loadSim(field.value!, loader);
 }
 

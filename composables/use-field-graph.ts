@@ -1,3 +1,4 @@
+import { DesignData, LayerDimensions } from "@/serialization";
 import { FieldGraph } from "@/simulation";
 
 const field = ref<FieldGraph>();
@@ -7,8 +8,9 @@ const updateDesignScore = () => {
   designScore.value = field.value?.getDesignScore() ?? 0;
 }
 
-const loadBlank = () => {
-  field.value = new FieldGraph();
+const loadBlank = (columns?: number, rows?: number, pinRows?: number) => {
+  const data = new DesignData(columns, rows, pinRows);
+  field.value = new FieldGraph(data);
   updateDesignScore();
 }
 
