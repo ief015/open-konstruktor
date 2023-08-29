@@ -128,26 +128,8 @@ const items = [
   },
 ];
 const loaders: Record<string, CircuitSimulationFactory> = {
-  '01 KT411I QUAD INVERTER GATE':             (net) => kohctpyktop['01 KT411I QUAD INVERTER GATE'](net),
-  '02 KT221A DUAL 2-INPUT AND GATE':          (net) => kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net),
-  '03 KT141AO 4-INPUT AND-OR GATE':           (net) => kohctpyktop['03 KT141AO 4-INPUT AND-OR GATE'](net),
-  '04 KO229 POWER ON RESET GENERATOR':        (net) => kohctpyktop['04 KO229 POWER ON RESET GENERATOR'](net),
-  '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR': (net) => kohctpyktop['05 KO223 DUAL FIXED FREQUENCY OSCILLATOR'](net),
-  '06 KL2S1 DUAL SET-RESET LATCH':            (net) => kohctpyktop['06 KL2S1 DUAL SET-RESET LATCH'](net),
-  '07 KL2T1 DUAL TOGGLE LATCH':               (net) => kohctpyktop['07 KL2T1 DUAL TOGGLE LATCH'](net),
-  '08 KO224X DUAL FREQUENCY OSCILLATOR':      (net) => kohctpyktop['08 KO224X DUAL FREQUENCY OSCILLATOR'](net),
-  '09 KD124 2-TO-4 LINE DECODER':             (net) => kohctpyktop['09 KD124 2-TO-4 LINE DECODER'](net),
-  '10 KA180 2-BIT ADDER WITH CARRY':          (net) => kohctpyktop['10 KA180 2-BIT ADDER WITH CARRY'](net),
-  '11 KC82F DIVIDE-BY-FOUR COUNTER':          (net) => kohctpyktop['11 KC82F DIVIDE-BY-FOUR COUNTER'](net),
-  '12 KM141P 4-TO-1 MULTIPLEXER':             (net) => kohctpyktop['12 KM141P 4-TO-1 MULTIPLEXER'](net),
-  '13 KC84C 4-BIT COUNTER WITH CLEAR':        (net) => kohctpyktop['13 KC84C 4-BIT COUNTER WITH CLEAR'](net),
-  '14 KC74S 4-BIT SHIFT REGISTER S-TO-P':     (net) => kohctpyktop['14 KC74S 4-BIT SHIFT REGISTER S-TO-P'](net),
-  '15 KR8S1 8-BIT ADDRESSABLE SRAM':          (net) => kohctpyktop['15 KR8S1 8-BIT ADDRESSABLE SRAM'](net),
-  '16 KA181 2-BIT LOGICAL FUNCTION UNIT':     (net) => kohctpyktop['16 KA181 2-BIT LOGICAL FUNCTION UNIT'](net),
-  '17 X901 RADIO MESSAGE STREAM DECODER':     (net) => kohctpyktop['17 X901 RADIO MESSAGE STREAM DECODER'](net),
-  '18 X902 GRENADE LAUNCHER AMMO COUNTER':    (net) => kohctpyktop['18 X902 GRENADE LAUNCHER AMMO COUNTER'](net),
-  '19 X903 GATLING CANNON FIRE CONTROLLER':   (net) => kohctpyktop['19 X903 GATLING CANNON FIRE CONTROLLER'](net),
-  'Test': (net) => openkonstruktor['Test'](net),
+  ...kohctpyktop,
+  ...openkonstruktor,
 };
 
 const onClear = () => {

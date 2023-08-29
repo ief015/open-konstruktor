@@ -19,7 +19,9 @@ const loop = ref(false);
 const stepInterval = computed(() => 1000 / stepsPerSecond.value);
 const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
-const currentFactory = ref<CircuitSimulationFactory>((network) => new CircuitSimulation(network));
+
+const defaultFactory: CircuitSimulationFactory = { setup: (network) => new CircuitSimulation(network) };
+const currentFactory = ref<CircuitSimulationFactory>(defaultFactory);
 
 const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
@@ -59,12 +61,11 @@ const onAnim = (timestamp: number) => {
       stepped = true;
       if (sim.value.step()) {
         const verifyResult = sim.value.verify('kohctpyktop');
-        stop();
         invokeCompleteHandlers(verifyResult);
         if (loop.value) {
-          start();
-          return;
+          sim.value.reset();
         } else {
+          stop();
           break;
         }
       }
@@ -90,9 +91,9 @@ const start = () => {
 
 const load = (field: FieldGraph, simFactory: CircuitSimulationFactory = currentFactory.value) => {
   stop();
-  currentFactory.value = simFactory;
+  const { setup } = (currentFactory.value = simFactory);
   network.value = Network.from(field);
-  sim.value = currentFactory.value(network.value);
+  sim.value = setup(network.value);
 }
 
 const step = (n: number = 1) => {

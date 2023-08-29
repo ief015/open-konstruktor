@@ -76,7 +76,7 @@ watch(selectedRate, (rate) => {
 const onStart = () => {
   if (isRunning.value) return;
   if (!field.value) return;
-  load(field.value)
+  load(field.value);
   start();
 }
 
