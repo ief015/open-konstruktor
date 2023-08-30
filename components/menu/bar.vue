@@ -121,7 +121,7 @@ const items = [
       {
         name: "Open-Konstruktor",
         menu: [
-          { id: 'level:Test',   name: "Test" },
+          { id: 'level:OC2C1 DUAL FULL COMPARATOR',   name: "OC2C1 DUAL FULL COMPARATOR" },
         ],
       },
     ]
