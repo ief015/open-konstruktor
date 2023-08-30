@@ -14,7 +14,7 @@ export default class PinNode {
       label = '';
     }
     this.path = path;
-    this.label = label;
+    this.label = label || 'N/C';
     this.active = active;
   }
 }
