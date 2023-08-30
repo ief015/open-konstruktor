@@ -64,6 +64,8 @@ export class DesignData {
     rows: number = DEFAULT_NUM_ROWS,
     numPinRows: number = 6,
   ) {
+    const minHeight = numPinRows * 4 + 3;
+    rows = Math.max(rows, minHeight);
     this.dimensions = { columns, rows };
     this.pinCount = numPinRows * 2;
     for (let i = 0; i < NUM_LAYERS; i++) {
