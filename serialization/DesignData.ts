@@ -64,7 +64,7 @@ export class DesignData {
     rows: number = DEFAULT_NUM_ROWS,
     numPinRows: number = 6,
   ) {
-    const minHeight = numPinRows * 4 + 3;
+    const minHeight = numPinRows * (DEFAULT_PIN_SIZE + 1) + 3;
     rows = Math.max(rows, minHeight);
     this.dimensions = { columns, rows };
     this.pinCount = numPinRows * 2;
@@ -194,6 +194,17 @@ export class DesignData {
           offset += (i == 0 ? 2 : 1);
         }
       }
+    }
+    if (!design.isKOHCTPYKTOPCompatible()) {
+      let pinRows = 0;
+      for (let pin = 0; ; pin+=2) {
+        const loc = design.getPinPoint(pin);
+        design.layers[Layer.Metal][loc[0]][loc[1]] === MetalValue.Metal && pinRows++;
+        if (loc[1] >= rows - 1) {
+          break;
+        }
+      }
+      design.pinCount = pinRows * 2;
     }
     return design;
   }
