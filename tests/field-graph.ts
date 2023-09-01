@@ -33,7 +33,7 @@ test('KT221A-imported-vs-drawn', () => {
   function andGateFromString() {
     const saveString = 'eNrtmUEOgyAQRYVhwxm8gnvP4v0v0hSNSWWkBa2W8oa4ev4wIeTzCW5wvZ+MH43rSkb1QhNG0Yz27xcHIUKECBEivEFoy4SJI72JVQ1xzu5XoCKifsfpXDLXs6HNzOsfal/prqFQaC1UEnTxh0s9Sev5I7OEQqHQtumPWCW5EQqF5mfO1qxSIq/ESKFQzDB2B1IlmwcKxSq5gL9JlVglFArVU2VFF/ATXrnDuSGkSigUmvcC/uodX3zjPsUq9e84XRdKNsGSrQWFQmN3uMSRlHoA6/zGXw==';
     const net = Network.from(saveString);
-    const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net);
+    const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'].setup(net);
     sim.run(280);
     return sim.getRecordings();
   }
@@ -57,7 +57,7 @@ test('KT221A-imported-vs-drawn', () => {
     field.placeVia([38, 14]);
     field.placeVia([39, 15]);
     const net = Network.from(field);
-    const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'](net);
+    const sim = kohctpyktop['02 KT221A DUAL 2-INPUT AND GATE'].setup(net);
     sim.run(280);
     return sim.getRecordings();
   }
