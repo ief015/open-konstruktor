@@ -135,8 +135,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       pinY1.label = 'Y1';
       pinB0.label = 'B0';
       pinB1.label = 'B1';
-      pinNC0.label = 'N/C';
-      pinNC1.label = 'N/C';
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       const seqA0 = new Sequence();
@@ -188,8 +186,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinD, pinNC1,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
-      pinNC1.label = 'N/C';
       pinA.label = 'A';
       pinB.label = 'B';
       pinC.label = 'C';
@@ -261,14 +257,8 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinNC6, pinNC7,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
-      pinNC1.label = 'N/C';
-      pinNC2.label = 'N/C';
       pinRST.label = 'RST';
-      pinNC4.label = 'N/C';
       pinRRST.label = '/RST';
-      pinNC6.label = 'N/C';
-      pinNC7.label = 'N/C';
       const sim = new CircuitSimulation(network, 80);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       // RST
@@ -299,10 +289,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       ] = pins;
       pinEN0.label = 'EN0';
       pinEN1.label = 'EN1';
-      pinNC2.label = 'N/C';
-      pinNC3.label = 'N/C';
-      pinNC4.label = 'N/C';
-      pinNC5.label = 'N/C';
       pinOSC0.label = 'OSC0';
       pinOSC1.label = 'OSC1';
       const sim = new CircuitSimulation(network, 280);
@@ -351,8 +337,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       pinS1.label = 'S1';
       pinR0.label = 'R0';
       pinR1.label = 'R1';
-      pinNC4.label = 'N/C';
-      pinNC5.label = 'N/C';
       pinQ0.label = 'Q0';
       pinQ1.label = 'Q1';
       const sim = new CircuitSimulation(network, 280);
@@ -425,10 +409,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       ] = pins;
       pinT0.label = 'T0';
       pinT1.label = 'T1';
-      pinNC2.label = 'N/C';
-      pinNC3.label = 'N/C';
-      pinNC4.label = 'N/C';
-      pinNC5.label = 'N/C';
       pinQ0.label = 'Q0';
       pinQ1.label = 'Q1';
       const sim = new CircuitSimulation(network, 280);
@@ -496,10 +476,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       ] = pins;
       pinS0.label = 'S0';
       pinS1.label = 'S1';
-      pinNC2.label = 'N/C';
-      pinNC3.label = 'N/C';
-      pinNC4.label = 'N/C';
-      pinNC5.label = 'N/C';
       pinOSC0.label = 'OSC0';
       pinOSC1.label = 'OSC1';
       const sim = new CircuitSimulation(network, 280);
@@ -545,13 +521,11 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinNC6, pinY3,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
       pinY0.label = 'Y0';
       pinA.label = 'A';
       pinY1.label = 'Y1';
       pinB.label = 'B';
       pinY2.label = 'Y2';
-      pinNC6.label = 'N/C';
       pinY3.label = 'Y3';
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
@@ -606,7 +580,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       pinA1.label = 'A1';
       pinS1.label = 'S1';
       pinB0.label = 'B0';
-      pinNC5.label = 'N/C';
       pinB1.label = 'B1';
       pinC.label = 'C';
       const sim = new CircuitSimulation(network, 280);
@@ -672,14 +645,8 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinNC6, pinNC7,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
-      pinNC1.label = 'N/C';
       pinIN.label = 'IN';
       pinOUT.label = 'OUT';
-      pinNC4.label = 'N/C';
-      pinNC5.label = 'N/C';
-      pinNC6.label = 'N/C';
-      pinNC7.label = 'N/C';
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       // IN
@@ -728,7 +695,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       pinA.label = 'A';
       pinZ.label = 'Z';
       pinB.label = 'B';
-      pinNC3.label = 'N/C';
       pinC.label = 'C';
       pinS0.label = 'S0';
       pinD.label = 'D';
@@ -810,13 +776,11 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinNC6, pinY3,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
       pinY0.label = 'Y0';
       pinCLR.label = 'CLR';
       pinY1.label = 'Y1';
       pinINC.label = 'INC';
       pinY2.label = 'Y2';
-      pinNC6.label = 'N/C';
       pinY3.label = 'Y3';
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
@@ -875,13 +839,11 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinNC6, pinQ3,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
       pinQ0.label = 'Q0';
       pinD.label = 'D';
       pinQ1.label = 'Q1';
       pinCLK.label = 'CLK';
       pinQ2.label = 'Q2';
-      pinNC6.label = 'N/C';
       pinQ3.label = 'Q3';
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
@@ -944,7 +906,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       pinCLK.label = 'CLK';
       pinA2.label = 'A2';
       pinDin.label = 'Din';
-      pinNC0.label = 'N/C';
       pinDout.label = 'Dout';
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
@@ -1183,7 +1144,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinLOW, pinY3,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
       pinY0.label = 'Y0';
       pinRST.label = 'RST';
       pinY1.label = 'Y1';
@@ -1251,7 +1211,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         pinTRIG, pinBN,
         pinVCC2, pinVCC3,
       ] = pins;
-      pinNC0.label = 'N/C';
       pinA.label = 'A+';
       pinFIRE.label = 'FIRE';
       pinAN.label = 'A-';
