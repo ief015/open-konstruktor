@@ -101,6 +101,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       const [ seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
         [ seqA0, seqA1, seqA2, seqA3 ],
         ({ inputs }) => inputs.map(s => !s),
+        280,
       );
       sim.setInputSequence(pinA0, seqA0);
       sim.setInputSequence(pinA1, seqA1);
@@ -161,10 +162,11 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setInputSequence(pinB1, seqB1);
       const [ seqY0, seqY1 ] = createSequencesFromInputs(
         [ seqA0, seqB0, seqA1, seqB1 ],
-        ({ inputs, }) => [
-          inputs[0] && inputs[1],
-          inputs[2] && inputs[3],
+        ({ inputs: [ A0, B0, A1, B1 ] }) => [
+          A0 && B0,
+          A1 && B1,
         ],
+        280,
       );
       sim.setOutputSequence(pinY0, seqY0);
       sim.setOutputSequence(pinY1, seqY1);
@@ -233,10 +235,11 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // X, Y
       const [ seqX, seqY ] = createSequencesFromInputs(
         [ seqA, seqB, seqC, seqD ],
-        ({ inputs, }) => [
-          inputs[0] && inputs[1] && inputs[2] && inputs[3],
-          inputs[0] || inputs[1] || inputs[2] || inputs[3],
+        ({ inputs: [ A, B, C, D ] }) => [
+          A && B && C && D,
+          A || B || C || D,
         ],
+        280,
       );
       sim.setOutputSequence(pinX, seqX);
       sim.setOutputSequence(pinY, seqY);
@@ -315,12 +318,14 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqEN1.addPulse(120, 40);
       seqEN1.addPulse(200, 50);
       sim.setInputSequence(pinEN1, seqEN1);
+      // OSC0, OSC1
       const [ seqOSC0, seqOSC1 ] = createSequencesFromInputs(
         [ seqEN0, seqEN1 ],
-        ({ inputs, frame }) => [
-          inputs[0] && Math.floor(frame / 10) % 2 === 0,
-          inputs[1] && Math.floor(frame / 10) % 2 === 0,
+        ({ inputs: [ EN0, EN1 ], frame }) => [
+          EN0 && Math.floor(frame / 10) % 2 === 0,
+          EN1 && Math.floor(frame / 10) % 2 === 0,
         ],
+        280,
       );
       sim.setOutputSequence(pinOSC0, seqOSC0);
       sim.setOutputSequence(pinOSC1, seqOSC1);
@@ -381,14 +386,14 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // Q0, Q1
       const [ seqQ0, seqQ1 ] = createSequencesFromInputs(
         [ seqS0, seqR0, seqS1, seqR1 ],
-        ({ inputs: [ s0, r0, s1, r1 ], state }) => {
-          if (s0)
+        ({ inputs: [ S0, R0, S1, R1 ], state }) => {
+          if (S0)
             state.q0 = true;
-          if (r0)
+          if (R0)
             state.q0 = false;
-          if (s1)
+          if (S1)
             state.q1 = true;
-          if (r1)
+          if (R1)
             state.q1 = false;
           return [ state.q0, state.q1 ];
         },
@@ -396,6 +401,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
           q0: false,
           q1: false,
         },
+        280,
       );
       sim.setOutputSequence(pinQ0, seqQ0);
       sim.setOutputSequence(pinQ1, seqQ1);
@@ -450,14 +456,14 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // Q0, Q1
       const [ seqQ0, seqQ1 ] = createSequencesFromInputs(
         [ seqT0, seqT1 ],
-        ({ inputs: [ t0, t1 ], state }) => {
+        ({ inputs: [ T0, T1 ], state }) => {
           // Rising edge triggered
-          if (t0 && !state.lastT0)
+          if (T0 && !state.lastT0)
             state.q0 = !state.q0;
-          if (t1 && !state.lastT1)
+          if (T1 && !state.lastT1)
             state.q1 = !state.q1;
-          state.lastT0 = t0;
-          state.lastT1 = t1;
+          state.lastT0 = T0;
+          state.lastT1 = T1;
           return [ state.q0, state.q1 ];
         },
         {
@@ -466,6 +472,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
           q0: false,
           q1: false,
         },
+        280,
       );
       sim.setOutputSequence(pinQ0, seqQ0);
       sim.setOutputSequence(pinQ1, seqQ1);
@@ -508,24 +515,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqS1.addPulseRange(120, 160);
       seqS1.addPulseRange(200, 240);
       sim.setInputSequence(pinS1, seqS1);
-      // OSC0
-      sim.setOutputSequence(pinOSC0, new Sequence()
-        .addOscillation(0, 2, 10, 10)
-        .addOscillation(40, 10, 5, 5)
-        .addOscillation(140, 2, 10, 10)
-        .addOscillation(180, 8, 5, 5)
-        .addOscillation(260, 1, 10, 10)
+      // OSC0, OSC1
+      
+      const [ seqOSC0, seqOSC1 ] = createSequencesFromInputs(
+        [ seqS0, seqS1 ],
+        ({ inputs: [ S0, S1 ], frame }) => [
+          Math.floor(frame / (S0 ? 5 : 10)) % 2 === 0,
+          Math.floor(frame / (S1 ? 5 : 10)) % 2 === 0,
+        ],
+        280
       );
-      // OSC1
-      sim.setOutputSequence(pinOSC1, new Sequence()
-        .addOscillation(0, 1, 10, 10)
-        .addOscillation(20, 6, 5, 5)
-        .addOscillation(80, 2, 10, 10)
-        .addOscillation(120, 4, 5, 5)
-        .addOscillation(160, 2, 10, 10)
-        .addOscillation(200, 4, 5, 5)
-        .addOscillation(240, 2, 10, 10)
-      );
+      sim.setOutputSequence(pinOSC0, seqOSC0);
+      sim.setOutputSequence(pinOSC1, seqOSC1);
       return sim;
     }
   },
@@ -555,38 +556,33 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       // A
-      sim.setInputSequence(pinA, new Sequence()
+      const seqA = new Sequence()
         .addOscillation(10, 10, 10, 10)
         .addPulse(210, 30)
-        .addPulse(250, 10)
-      );
+        .addPulse(250, 10);
+      sim.setInputSequence(pinA, seqA);
       // B
-      sim.setInputSequence(pinB, new Sequence()
+      const seqB = new Sequence()
         .addOscillation(20, 4, 20, 20)
         .addPulse(190, 10)
         .addPulse(220, 20)
-        .addPulse(260, 10)
+        .addPulse(260, 10);
+      sim.setInputSequence(pinB, seqB);
+      // Y0, Y1, Y2, Y3
+      const [ seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
+        [ seqA, seqB ],
+        ({ inputs: [ A, B ] }) => [
+          !A && !B,
+           A && !B,
+          !A &&  B,
+           A &&  B,
+        ],
+        280,
       );
-      // Y0
-      sim.setOutputSequence(pinY0, new Sequence()
-        .addOscillation(0, 7, 10, 30)
-        .addPulse(180, 10)
-        .setFrame(270, true)
-      );
-      // Y1
-      sim.setOutputSequence(pinY1, new Sequence()
-        .addOscillation(10, 7, 10, 30)
-      );
-      // Y2
-      sim.setOutputSequence(pinY2, new Sequence()
-        .addOscillation(20, 4, 10, 30)
-        .addPulse(260, 10)
-      );
-      // Y3
-      sim.setOutputSequence(pinY3, new Sequence()
-        .addOscillation(30, 5, 10, 30)
-        .addPulse(220, 20)
-      );
+      sim.setOutputSequence(pinY0, seqY0);
+      sim.setOutputSequence(pinY1, seqY1);
+      sim.setOutputSequence(pinY2, seqY2);
+      sim.setOutputSequence(pinY3, seqY3);
       return sim;
     }
   },
@@ -639,22 +635,25 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqB1.addPulse(220, 10);
       seqB1.addPulse(250, 20);
       sim.setInputSequence(pinB1, seqB1);
-      // S0
-      sim.setOutputSequence(pinS0, new Sequence()
-        .repeatTogglePoints(10, 2, 20, [0, 10, 20, 40, 50, 60])
-        .addTogglePoints(170, 180, 190, 210, 250, 260)
+      // S0, S1, C
+      const [ seqS0, seqS1, seqC ] = createSequencesFromInputs(
+        [ seqA0, seqA1, seqB0, seqB1 ],
+        ({ inputs: [ A0, A1, B0, B1 ] }) => {
+          const a = (A0 ? 1 : 0) + (A1 ? 2 : 0);
+          const b = (B0 ? 1 : 0) + (B1 ? 2 : 0);
+          const sum = (a + b) % 4;
+          const carry = (a + b) >= 4;
+          return [
+            sum % 2 === 1,
+            sum >= 2,
+            carry,
+          ];
+        },
+        280,
       );
-      // S1
-      sim.setOutputSequence(pinS1, new Sequence()
-        .addOscillation(20, 3, 20, 10)
-        .addOscillation(120, 2, 10, 20)
-        .addTogglePoints(190, 230, 250, 260)
-      );
-      // C
-      sim.setOutputSequence(pinC, new Sequence()
-        .addTogglePoints(70, 80, 100, 120, 130, 160)
-        .addTogglePoints(220, 240, 260, 270)
-      );
+      sim.setOutputSequence(pinS0, seqS0);
+      sim.setOutputSequence(pinS1, seqS1);
+      sim.setOutputSequence(pinC, seqC);
       return sim;
     }
   },
@@ -692,9 +691,22 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqIN.addPulse(250, 5);
       sim.setInputSequence(pinIN, seqIN);
       // OUT
-      sim.setOutputSequence(pinOUT, new Sequence()
-        .addTogglePoints(10, 30, 50, 70, 120, 160, 200, 220)
+      const [ seqOUT ] = createSequencesFromInputs(
+        [ seqIN ],
+        ({ inputs: [ IN ], state }) => {
+          if (IN && !state.lastIN) {
+            state.counter++;
+          }
+          state.lastIN = IN;
+          return [ ((state.counter % 4) + 4) % 4 < 2 ];
+        },
+        {
+          lastIN: false,
+          counter: -1,
+        },
+        280,
       );
+      sim.setOutputSequence(pinOUT, seqOUT);
       return sim;
     }
   },
@@ -765,11 +777,21 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqS1.addPulse(260, 10);
       sim.setInputSequence(pinS1, seqS1);
       // Z
-      sim.setOutputSequence(pinZ, new Sequence()
-        .addTogglePoints(10, 20, 30, 40, 60, 70)
-        .addTogglePoints(110, 120, 140, 160)
-        .addTogglePoints(200, 210, 220, 230, 250, 270)
+      const [ seqZ ] = createSequencesFromInputs(
+        [ seqA, seqB, seqC, seqD, seqS0, seqS1 ],
+        ({ inputs: [ A, B, C, D, S0, S1 ] }) => {
+          const s = (S0 ? 1 : 0) + (S1 ? 2 : 0);
+          switch (s) {
+            default: return [ false ];
+            case 0: return [ A ];
+            case 1: return [ B ];
+            case 2: return [ C ];
+            case 3: return [ D ];
+          }
+        },
+        280,
       );
+      sim.setOutputSequence(pinZ, seqZ);
       return sim;
     }
   },
@@ -799,34 +821,42 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       const sim = new CircuitSimulation(network, 280);
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       // CLR
-      sim.setInputSequence(pinCLR, new Sequence()
+      const seqCLR = new Sequence()
         .addPulse(0, 10)
         .addPulse(190, 10)
-        .addPulse(260, 10)
-      );
+        .addPulse(260, 10);
+      sim.setInputSequence(pinCLR, seqCLR);
       // INC
-      sim.setInputSequence(pinINC, new Sequence()
+      const seqINC = new Sequence()
         .addOscillation(20, 15, 5, 5)
-        .addOscillation(210, 3, 5, 5)
+        .addOscillation(210, 3, 5, 5);
+      sim.setInputSequence(pinINC, seqINC);
+      // Y0, Y1, Y2, Y3
+      const [ seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
+        [ seqCLR, seqINC ],
+        ({ inputs: [ CLR, INC ], state }) => {
+          if (INC && !state.lastINC) {
+            state.counter++;
+          }
+          state.lastINC = INC;
+          CLR && (state.counter = 0);
+          return [
+            (state.counter % 2) >= 1,
+            (state.counter % 4) >= 2,
+            (state.counter % 8) >= 4,
+            (state.counter % 16) >= 8,
+          ];
+        },
+        {
+          counter: 0,
+          lastINC: false,
+        },
+        280,
       );
-      // Y0
-      sim.setOutputSequence(pinY0, new Sequence()
-        .addOscillation(20, 7, 10, 10)
-        .addTogglePoints(160, 190, 210, 220, 230, 260)
-      );
-      // Y1
-      sim.setOutputSequence(pinY1, new Sequence()
-        .addOscillation(30, 3, 20, 20)
-        .addTogglePoints(150, 190, 220, 260)
-      );
-      // Y2
-      sim.setOutputSequence(pinY2, new Sequence()
-        .addTogglePoints(50, 90, 130, 190)
-      );
-      // Y3
-      sim.setOutputSequence(pinY3, new Sequence()
-        .addTogglePoints(90, 190)
-      );
+      sim.setOutputSequence(pinY0, seqY0);
+      sim.setOutputSequence(pinY1, seqY1);
+      sim.setOutputSequence(pinY2, seqY2);
+      sim.setOutputSequence(pinY3, seqY3);
       return sim;
     }
   },
@@ -864,26 +894,32 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqCLK.addOscillation(20, 15, 5, 5);
       seqCLK.addOscillation(210, 3, 5, 5);
       sim.setInputSequence(pinCLK, seqCLK);
-      // Q0
-      sim.setOutputSequence(pinQ0, new Sequence()
-        .repeatTogglePoints(20, 1, 0, [0, 20, 30, 40, 60, 70, 90, 120])
-        .addTogglePoints(160, 210, 220, 230)
+      // Q0, Q1, Q2, Q3
+      const [ seqQ0, seqQ1, seqQ2, seqQ3 ] = createSequencesFromInputs(
+        [ seqD, seqCLK ],
+        ({ inputs: [ D, CLK ], state }) => {
+          if (CLK && !state.lastCLK) {
+            state.q3 = state.q2;
+            state.q2 = state.q1;
+            state.q1 = state.q0;
+            state.q0 = D;
+          }
+          state.lastCLK = CLK;
+          return [ state.q0, state.q1, state.q2, state.q3 ];
+        },
+        {
+          lastCLK: false,
+          q0: false,
+          q1: false,
+          q2: false,
+          q3: false,
+        },
+        280,
       );
-      // Q1
-      sim.setOutputSequence(pinQ1, new Sequence()
-        .repeatTogglePoints(30, 1, 0, [0, 20, 30, 40, 60, 70, 90, 120])
-        .addTogglePoints(210, 220, 230)
-      );
-      // Q2
-      sim.setOutputSequence(pinQ2, new Sequence()
-        .repeatTogglePoints(40, 1, 0, [0, 20, 30, 40, 60, 70, 90, 120])
-        .addPulse(220, 10)
-      );
-      // Q3
-      sim.setOutputSequence(pinQ3, new Sequence()
-        .repeatTogglePoints(50, 1, 0, [0, 20, 30, 40, 60, 70])
-        .addTogglePoints(140, 210, 230)
-      );
+      sim.setOutputSequence(pinQ0, seqQ0);
+      sim.setOutputSequence(pinQ1, seqQ1);
+      sim.setOutputSequence(pinQ2, seqQ2);
+      sim.setOutputSequence(pinQ3, seqQ3);
       return sim;
     }
   },
@@ -963,11 +999,21 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqDin.addPulse(140, 10);
       sim.setInputSequence(pinDin, seqDin);
       // Dout
-      sim.setOutputSequence(pinDout, new Sequence()
-        .addPulse(130, 10)
-        .addPulse(150, 10)
-        .addPulse(200, 30)
+      const [ seqDout ] = createSequencesFromInputs(
+        [ seqA0, seqA1, seqA2, seqRW, seqCLK, seqDin ],
+        ({ inputs: [ A0, A1, A2, RW, CLK, Din ], state }) => {
+          const addr = (A0 ? 1 : 0) + (A1 ? 2 : 0) + (A2 ? 4 : 0);
+          if (CLK && RW) {
+            state.memory[addr] = Din;
+          }
+          return [ CLK && !RW ? state.memory[addr] : false ];
+        },
+        {
+          memory: new Array<boolean>(8).fill(false),
+        },
+        280,
       );
+      sim.setOutputSequence(pinDout, seqDout);
       return sim;
     }
   },
@@ -1025,18 +1071,23 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       const seqF1 = new Sequence();
       seqF1.setFrame(140, true);
       sim.setInputSequence(pinF1, seqF1);
-      // C0
-      sim.setOutputSequence(pinC0, new Sequence()
-        .addTogglePoints(60, 70, 80, 100, 120, 140, 150, 170)
-        .addTogglePoints(190, 200, 210, 220, 230, 260)
+      // C0, C1
+      const [ seqC0, seqC1 ] = createSequencesFromInputs(
+        [ seqA0, seqA1, seqB0, seqB1, seqF0, seqF1 ],
+        ({ inputs: [ A0, A1, B0, B1, F0, F1 ] }) => {
+          const f = (F0 ? 1 : 0) + (F1 ? 2 : 0);
+          switch (f) {
+            default: return [ false, false ];
+            case 0: return [ A0 && B0, A1 && B1 ];
+            case 1: return [ A0 || B0, A1 || B1 ];
+            case 2: return [ A0 !== B0, A1 !== B1 ];
+            case 3: return [ !A0, !A1 ];
+          }
+        },
+        280,
       );
-      // C1
-      sim.setOutputSequence(pinC1, new Sequence()
-        .addPulse(30, 10)
-        .addPulse(60, 10)
-        .addPulse(100, 40)
-        .addTogglePoints(180, 200, 210, 240, 250, 270)
-      );
+      sim.setOutputSequence(pinC0, seqC0);
+      sim.setOutputSequence(pinC1, seqC1);
       return sim;
     }
   },
