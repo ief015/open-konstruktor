@@ -315,17 +315,15 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqEN1.addPulse(120, 40);
       seqEN1.addPulse(200, 50);
       sim.setInputSequence(pinEN1, seqEN1);
-      // OSC0
-      sim.setOutputSequence(pinOSC0, new Sequence()
-        .addOscillation(40, 5, 10, 10)
-        .addOscillation(180, 4, 10, 10)
+      const [ seqOSC0, seqOSC1 ] = createSequencesFromInputs(
+        [ seqEN0, seqEN1 ],
+        ({ inputs, frame }) => [
+          inputs[0] && Math.floor(frame / 10) % 2 === 0,
+          inputs[1] && Math.floor(frame / 10) % 2 === 0,
+        ],
       );
-      // OSC1
-      sim.setOutputSequence(pinOSC1, new Sequence()
-        .addOscillation(20, 3, 10, 10)
-        .addOscillation(120, 2, 10, 10)
-        .addOscillation(200, 3, 10, 10)
-      );
+      sim.setOutputSequence(pinOSC0, seqOSC0);
+      sim.setOutputSequence(pinOSC1, seqOSC1);
       return sim;
     }
   },
