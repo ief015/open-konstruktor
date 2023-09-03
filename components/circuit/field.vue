@@ -492,7 +492,7 @@ watch(isRunning, (isRunning) => {
 watch(
   [ sim, circuitFactory ],
   async ([ sim, factory ], [ oldSim, oldFactory ]) => {
-    await nextTick();
+    await nextTick(); // Wait for resize observer to update canvas size
     if (factory !== oldFactory) {
       invalidateCanvasSizes();
       resetView();
