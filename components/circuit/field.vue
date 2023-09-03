@@ -158,8 +158,8 @@ const renderTiles = (
   right = Math.min(columns, right+2);
   bottom = Math.min(rows, bottom+2);
   if (bounds) {
-    contextSiliconTiles.clearRect(viewX.value+left*TILE_SIZE+1, viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
-    contextMetalTiles.clearRect(viewX.value+left*TILE_SIZE+1, viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
+    contextSiliconTiles.clearRect(-viewX.value+left*TILE_SIZE+1, -viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
+    contextMetalTiles.clearRect(-viewX.value+left*TILE_SIZE+1, -viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
   } else {
     contextSiliconTiles.clearRect(0, 0, contextSiliconTiles.canvas.width, contextSiliconTiles.canvas.height);
     contextMetalTiles.clearRect(0, 0, contextMetalTiles.canvas.width, contextMetalTiles.canvas.height);
@@ -412,8 +412,8 @@ const resetView = () => {
 const mouseToGrid = (mx: number, my: number): Point => {
   if (!canvas.value) return [0, 0];
   const rect = canvas.value.getBoundingClientRect();
-  const x = Math.trunc((mx - rect.left - viewX.value) / TILE_SIZE);
-  const y = Math.trunc((my - rect.top - viewY.value) / TILE_SIZE);
+  const x = Math.trunc((mx - rect.left + viewX.value) / TILE_SIZE);
+  const y = Math.trunc((my - rect.top + viewY.value) / TILE_SIZE);
   return [ x, y ];
 }
 
@@ -425,6 +425,9 @@ const onMouseMove = (e: MouseEvent) => {
       const coords = mouseToGrid(e.clientX, e.clientY);
       draw(toolBoxMode.value, prevDrawingCoords, coords);
       prevDrawingCoords = coords;
+      if (toolBoxMode.value == 'select') {
+        panView(-e.movementX, -e.movementY);
+      }
     }
   }
 }
@@ -436,6 +439,7 @@ const onMouseDown = (e: MouseEvent) => {
     isDrawing.value = true;
     prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
     draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
+    e.preventDefault();
   }
 }
 
