@@ -24,6 +24,9 @@ import { GateNode, PathNode, Point } from '@/simulation';
 import { ToolboxMode } from '@/composables/use-toolbox';
 import useImageLoader from '@/composables/use-image-loader';
 
+const TILE_SIZE = 13;
+const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);
+
 const canvas = ref<HTMLCanvasElement>();
 const canvasDirty = ref(false);
 const canvasLayers = {
@@ -46,7 +49,6 @@ const {
   isOutside: canvasMouseOutside,
 } = useMouseInElement(canvas);
 const images = useImageLoader();
-const TILE_SIZE = 13;
 const isDrawing = ref(false);
 let prevDrawingCoords: Point = [0, 0];
 const debugMsg = ref('');
@@ -122,7 +124,6 @@ const renderTiles = (
     const gatesHLayer = data.getLayer(Layer.GatesH);
     const gatesVLayer = data.getLayer(Layer.GatesV);
     const viaLayer = data.getLayer(Layer.Vias);
-    const tileSizeHalf = Math.floor(TILE_SIZE / 2);
     const viaImage = images.findImage('/tiles/link.png');
     ctx.save();
     ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
@@ -155,7 +156,7 @@ const renderTiles = (
         }
         if (viaLayer[x][y] === ViaValue.Via) {
           //ctx.beginPath();
-          //ctx.roundRect(tileSizeHalf-2.5, tileSizeHalf-2.5, 5, 5, 1.5);
+          //ctx.roundRect(TILE_SIZE_HALF - 2.5, TILE_SIZE_HALF - 2.5, 5, 5, 1.5);
           //ctx.stroke();
           //ctx.closePath();
           ctx.drawImage(viaImage, 0, 0);
