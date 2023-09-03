@@ -483,6 +483,10 @@ onCircuitRender(() => {
   renderHot();
 });
 
+useResizeObserver(canvas, (entries, obs) => {
+  onResize();
+});
+
 watch(isRunning, (isRunning) => {
   renderHot();
 });
@@ -497,10 +501,6 @@ watch(
     }
   }
 );
-
-useResizeObserver(canvas, (entries, obs) => {
-  onResize();
-});
 
 watch(circuitFactory, (factory) => {
   resetView();
