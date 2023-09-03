@@ -38,23 +38,24 @@ const canvasLayers = {
   'overlay':       document.createElement('canvas'),
 };
 const { field, dimensions, updateDesignScore } = useFieldGraph();
+const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 const {
   network, sim, circuitFactory, isRunning, isPaused,
   onRender: onCircuitRender, load,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
+const canvasWidth = ref(0);
+const canvasHeight = ref(0);
 const fieldWidth = computed(() => dimensions.columns * TILE_SIZE);
 const fieldHeight = computed(() => dimensions.rows * TILE_SIZE);
 const viewX = ref(0);
 const viewY = ref(0);
 const viewBounds = computed(() => {
-  const canvasWidth  = canvas.value?.width ?? 0;
-  const canvasHeight = canvas.value?.height ?? 0;
   return {
-    minX: Math.min(fieldWidth.value - canvasWidth + 1, Math.trunc(fieldWidth.value / 2), 0),
-    minY: Math.min(fieldHeight.value - canvasHeight + 1, Math.trunc(fieldHeight.value / 2), 0),
-    maxX: Math.max(fieldWidth.value - canvasWidth + 1, 0),
-    maxY: Math.max(fieldHeight.value - canvasHeight + 1, 0),
+    minX: Math.min(fieldWidth.value - canvasWidth.value + 1, Math.trunc(fieldWidth.value / 2), 0),
+    minY: Math.min(fieldHeight.value - canvasHeight.value + 1, Math.trunc(fieldHeight.value / 2), 0),
+    maxX: Math.max(fieldWidth.value - canvasWidth.value + 1, 0),
+    maxY: Math.max(fieldHeight.value - canvasHeight.value + 1, 0),
   }
 });
 const {
@@ -88,12 +89,12 @@ const debugMsg = computed(() => {
   const panX = viewX.value.toFixed(0);
   const panY = viewY.value.toFixed(0);
   const { minX, minY, maxX, maxY } = viewBounds.value;
+  const { columns, rows } = dimensions;
+  dbg.push(`Grid: [${columns}, ${rows}]`);
   dbg.push(`View: [${panX}, ${panY}]`);
   dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
   return dbg.join('<br/>');
 });
-
-const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 
 const renderBackground = () => {
   const ctx = canvasLayers['background']?.getContext('2d');
@@ -112,18 +113,16 @@ const renderBackground = () => {
   ctx.translate(0.5, 0.5);
   ctx.lineWidth = 1;
   ctx.strokeStyle = '#818181';
+  ctx.beginPath();
   for (let x = 0; x < columns; x++) {
-    ctx.beginPath();
     ctx.moveTo(x * TILE_SIZE, 0);
     ctx.lineTo(x * TILE_SIZE, rows * TILE_SIZE);
-    ctx.stroke();
   }
   for (let y = 0; y < rows; y++) {
-    ctx.beginPath();
     ctx.moveTo(0, y * TILE_SIZE);
     ctx.lineTo(columns * TILE_SIZE, y * TILE_SIZE);
-    ctx.stroke();
   }
+  ctx.stroke();
   ctx.restore();
   // Draw pin column boundaries
   ctx.fillStyle = `rgba(0,0,0,${20/255})`;
@@ -398,16 +397,28 @@ const panView = (dx: number, dy: number) => {
 }
 
 const resetView = () => {
-  if (!canvas.value) return;
   const { columns, rows } = dimensions;
   const { minX, minY, maxX, maxY } = viewBounds.value;
-  viewX.value = fieldWidth.value < canvas.value.width ?
-    Math.max(minX, Math.min(maxX, -Math.trunc((canvas.value.width - columns * TILE_SIZE) / 2))) :
+  viewX.value = fieldWidth.value < canvasWidth.value ?
+    Math.max(minX, Math.min(maxX, -Math.trunc((canvasWidth.value - columns * TILE_SIZE) / 2))) :
     0;
-  viewY.value = fieldHeight.value < canvas.value.height ?
-    Math.max(minY, Math.min(maxY, -Math.trunc((canvas.value.height - rows * TILE_SIZE) / 2))) :
+  viewY.value = fieldHeight.value < canvasHeight.value ?
+    Math.max(minY, Math.min(maxY, -Math.trunc((canvasHeight.value - rows * TILE_SIZE) / 2))) :
     0;
-  renderAll();
+}
+
+const invalidateCanvasSizes = () => {
+  if (!canvas.value) return;
+  const { clientWidth, clientHeight } = canvas.value;
+  canvasWidth.value = Math.trunc(clientWidth);
+  canvasHeight.value = Math.trunc(clientHeight);
+  canvas.value.width = canvasWidth.value;
+  canvas.value.height = canvasHeight.value;
+  for (const canvas of Object.values(canvasLayers)) {
+    if (!canvas) continue;
+    canvas.width = canvasWidth.value;
+    canvas.height = canvasHeight.value;
+  }
 }
 
 const mouseToGrid = (mx: number, my: number): Point => {
@@ -452,19 +463,10 @@ const onMouseUp = (e: MouseEvent) => {
   }
 }
 
-const onResize = () => {
-  const ctx = canvas.value?.getContext('2d');
-  if (!ctx) return;
-  const { clientWidth, clientHeight } = ctx.canvas;
-  ctx.canvas.width = Math.trunc(clientWidth);
-  ctx.canvas.height = Math.trunc(clientHeight);
-  for (const canvas of Object.values(canvasLayers)) {
-    if (!canvas) continue;
-    canvas.width = Math.trunc(clientWidth);
-    canvas.height = Math.trunc(clientHeight);
-  }
+useResizeObserver(canvas, (entries, obs) => {
+  invalidateCanvasSizes();
   renderAll();
-}
+});
 
 useRafFn(({ delta, timestamp }) => {
   if (!canvasDirty.value) return;
@@ -483,23 +485,19 @@ onCircuitRender(() => {
   renderHot();
 });
 
-useResizeObserver(canvas, (entries, obs) => {
-  onResize();
-});
-
 watch(isRunning, (isRunning) => {
   renderHot();
 });
 
 watch(
   [ sim, circuitFactory ],
-  ([ sim, factory ], [ oldSim, oldFactory ]) => {
+  async ([ sim, factory ], [ oldSim, oldFactory ]) => {
+    await nextTick();
     if (factory !== oldFactory) {
-      // TODO: seems to use old bounds. delay it?
+      invalidateCanvasSizes();
       resetView();
-    } else if (sim) {
-      renderAll();
     }
+    renderAll();
   }
 );
 
@@ -507,11 +505,9 @@ watch(canvas, (canvas) => {
   const ctx = canvas?.getContext('2d');
   if (!ctx) return;
   ctx.imageSmoothingEnabled = false;
+  invalidateCanvasSizes();
   resetView();
-});
-
-onMounted(() => {
-  onResize();
+  renderAll();
 });
 
 </script>
