@@ -495,16 +495,13 @@ watch(
   [ sim, circuitFactory ],
   ([ sim, factory ], [ oldSim, oldFactory ]) => {
     if (factory !== oldFactory) {
+      // TODO: seems to use old bounds. delay it?
       resetView();
     } else if (sim) {
       renderAll();
     }
   }
 );
-
-watch(circuitFactory, (factory) => {
-  resetView();
-});
 
 watch(canvas, (canvas) => {
   const ctx = canvas?.getContext('2d');
