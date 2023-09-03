@@ -95,6 +95,7 @@ const debugMsg = computed(() => {
   dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
   return dbg.join('<br/>');
 });
+const queueAnimFuncs: Set<()=>void> = new Set();
 
 const renderBackground = () => {
   const ctx = canvasLayers['background']?.getContext('2d');
@@ -386,14 +387,14 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
     Math.min(coordA[0], coordB[0]), Math.min(coordA[1], coordB[1]),
     Math.max(coordA[0], coordB[0]), Math.max(coordA[1], coordB[1]),
   ];
-  renderTiles(undefined, bounds);
+  queueAnimFuncs.add(() => renderTiles(undefined, bounds));
 }
 
 const panView = (dx: number, dy: number) => {
   const { minX, minY, maxX, maxY } = viewBounds.value;
   viewX.value = Math.max(minX, Math.min(maxX, viewX.value + dx));
   viewY.value = Math.max(minY, Math.min(maxY, viewY.value + dy));
-  renderAll(); // TODO: Draw only the parts that need to be drawn
+  queueAnimFuncs.add(renderAll); // TODO: Draw only the parts that need to be drawn
 }
 
 const resetView = () => {
@@ -465,10 +466,12 @@ const onMouseUp = (e: MouseEvent) => {
 
 useResizeObserver(canvas, (entries, obs) => {
   invalidateCanvasSizes();
-  renderAll();
+  queueAnimFuncs.add(renderAll);
 });
 
 useRafFn(({ delta, timestamp }) => {
+  queueAnimFuncs.forEach(fn => fn());
+  queueAnimFuncs.clear();
   if (!canvasDirty.value) return;
   canvasDirty.value = false;
   const ctx = canvas.value?.getContext('2d');
@@ -482,11 +485,11 @@ useRafFn(({ delta, timestamp }) => {
 });
 
 onCircuitRender(() => {
-  renderHot();
+  queueAnimFuncs.add(renderHot);
 });
 
 watch(isRunning, (isRunning) => {
-  renderHot();
+  queueAnimFuncs.add(renderHot);
 });
 
 watch(
@@ -497,7 +500,7 @@ watch(
       invalidateCanvasSizes();
       resetView();
     }
-    renderAll();
+    queueAnimFuncs.add(renderAll);
   }
 );
 
@@ -507,7 +510,7 @@ watch(canvas, (canvas) => {
   ctx.imageSmoothingEnabled = false;
   invalidateCanvasSizes();
   resetView();
-  renderAll();
+  queueAnimFuncs.add(renderAll);
 });
 
 </script>
