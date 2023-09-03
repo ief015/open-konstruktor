@@ -68,6 +68,7 @@ const coordMouseY = computed(() => Math.trunc((canvasMouseY.value + viewY.value)
 const images = useImageLoader();
 const isDrawing = ref(false);
 let prevDrawingCoords: Point = [0, 0];
+const perfRenderTime = ref(0);
 const debugMsg = computed(() => {
   const dbg: string[] = [];
   if (!canvasMouseOutside.value) {
@@ -90,12 +91,22 @@ const debugMsg = computed(() => {
   const panY = viewY.value.toFixed(0);
   const { minX, minY, maxX, maxY } = viewBounds.value;
   const { columns, rows } = dimensions;
-  dbg.push(`Grid: [${columns}, ${rows}]`);
+  // dbg.push(`Grid: [${columns}, ${rows}]`);
   dbg.push(`View: [${panX}, ${panY}]`);
-  dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
+  // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
+  dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
   return dbg.join('<br/>');
 });
 const queueAnimFuncs: Set<()=>void> = new Set();
+
+const getTileViewport = (): { left:number, top:number, right:number, bottom:number } => {
+  const { columns, rows } = dimensions;
+  const left = Math.max(0, Math.floor(viewX.value / TILE_SIZE));
+  const top = Math.max(0, Math.floor(viewY.value / TILE_SIZE));
+  const right = Math.min(columns, Math.ceil((viewX.value + canvasWidth.value) / TILE_SIZE)) - 1;
+  const bottom = Math.min(rows, Math.ceil((viewY.value + canvasHeight.value) / TILE_SIZE)) - 1;
+  return { left, top, right, bottom };
+}
 
 const renderBackground = () => {
   const ctx = canvasLayers['background']?.getContext('2d');
@@ -104,6 +115,7 @@ const renderBackground = () => {
   canvasDirty.value = true;
   const { columns, rows } = dimensions;
   const [ minCol, maxCol ] = field.value.getMinMaxColumns();
+  const { left, top, right, bottom } = getTileViewport();
   // Background colour
   ctx.fillStyle = '#959595';
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -115,11 +127,11 @@ const renderBackground = () => {
   ctx.lineWidth = 1;
   ctx.strokeStyle = '#818181';
   ctx.beginPath();
-  for (let x = 0; x < columns; x++) {
+  for (let x = left; x <= right; x++) {
     ctx.moveTo(x * TILE_SIZE, 0);
     ctx.lineTo(x * TILE_SIZE, rows * TILE_SIZE);
   }
-  for (let y = 0; y < rows; y++) {
+  for (let y = top; y <= bottom; y++) {
     ctx.moveTo(0, y * TILE_SIZE);
     ctx.lineTo(columns * TILE_SIZE, y * TILE_SIZE);
   }
@@ -151,18 +163,29 @@ const renderTiles = (
     metal: showMetal,
     silicon: showSilicon,
   } = Object.assign({ metal: false, silicon: false }, options);
-  let [ left, top, right, bottom ] = bounds ?? [ 0, 0, columns, rows ];
-  left = Math.max(0, left-1);
-  top = Math.max(0, top-1);
-  right = Math.min(columns, right+2);
-  bottom = Math.min(rows, bottom+2);
-  if (bounds) {
-    contextSiliconTiles.clearRect(-viewX.value+left*TILE_SIZE+1, -viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
-    contextMetalTiles.clearRect(-viewX.value+left*TILE_SIZE+1, -viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
-  } else {
-    contextSiliconTiles.clearRect(0, 0, contextSiliconTiles.canvas.width, contextSiliconTiles.canvas.height);
-    contextMetalTiles.clearRect(0, 0, contextMetalTiles.canvas.width, contextMetalTiles.canvas.height);
-  }
+  const tileViewport = getTileViewport();
+  let [ left, top, right, bottom ] = bounds ?? [
+    tileViewport.left,
+    tileViewport.top,
+    tileViewport.right,
+    tileViewport.bottom,
+  ];
+  left = Math.max(0, left-2);
+  top = Math.max(0, top-2);
+  right = Math.min(columns-1, right+2);
+  bottom = Math.min(rows-1, bottom+2);
+  contextSiliconTiles.clearRect(
+    -viewX.value + (left * TILE_SIZE) + 1,
+    -viewY.value + (top * TILE_SIZE) + 1,
+    (right - left + 1) * TILE_SIZE,
+    (bottom - top + 1) * TILE_SIZE,
+  );
+  contextMetalTiles.clearRect(
+    -viewX.value + (left * TILE_SIZE) + 1,
+    -viewY.value + (top * TILE_SIZE) + 1,
+    (right - left + 1) * TILE_SIZE ,
+    (bottom - top + 1) * TILE_SIZE,
+  );
   if (showSilicon) {
     const ctx = contextSiliconTiles;
     const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
@@ -178,9 +201,9 @@ const renderTiles = (
     ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
     ctx.strokeStyle = '#060000';
     // Silicon layer + vias
-    for (let x = left; x < right; x++) {
+    for (let x = left; x <= right; x++) {
       ctx.save();
-      for (let y = top; y < bottom; y++) {
+      for (let y = top; y <= bottom; y++) {
         const st = siliconLayer[x][y];
         if (st === SiliconValue.PSilicon) {
           const xdir = getDirectionX(siliconConnHLayer, x, y);
@@ -227,9 +250,9 @@ const renderTiles = (
     ctx.save();
     ctx.translate(-viewX.value, -viewY.value);
     ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
-    for (let x = left; x < right; x++) {
+    for (let x = left; x <= right; x++) {
       ctx.save();
-      for (let y = top; y < bottom; y++) {
+      for (let y = top; y <= bottom; y++) {
         if (metalLayer[x][y] === MetalValue.Metal) {
           const xdir = getDirectionX(metalConnHLayer, x, y);
           const ydir = getDirectionY(metalConnVLayer, x, y);
@@ -257,7 +280,7 @@ const renderHot = (
     metal: showMetal,
     silicon: showSilicon,
   } = Object.assign({ metal: false, silicon: false }, options);
-  const { columns, rows } = dimensions;
+  const { left, top, right, bottom } = getTileViewport();
   ctxMetalHot.clearRect(0, 0, ctxMetalHot.canvas.width, ctxMetalHot.canvas.height);
   ctxSiliconHot.clearRect(0, 0, ctxSiliconHot.canvas.width, ctxSiliconHot.canvas.height);
   ctxMetalHot.save();
@@ -269,8 +292,8 @@ const renderHot = (
   // Draw current
   if (isRunning.value && network.value) {
     const hotImage = images.findImage('/tiles/hot.png');
-    for (let x = 0; x < columns; x++) {
-      for (let y = 0; y < rows; y++) {
+    for (let x = left; x <= right; x++) {
+      for (let y = top; y <= bottom; y++) {
         if (showSilicon) {
           const nodes = network.value.getNodesAt([x, y], 'silicon');
           const hot = nodes.some(n => {
@@ -394,7 +417,8 @@ const panView = (dx: number, dy: number) => {
   const { minX, minY, maxX, maxY } = viewBounds.value;
   viewX.value = Math.max(minX, Math.min(maxX, viewX.value + dx));
   viewY.value = Math.max(minY, Math.min(maxY, viewY.value + dy));
-  queueAnimFuncs.add(renderAll); // TODO: Draw only the parts that need to be drawn
+  // TODO: Draw only the parts that need to be drawn for performance on large fields+screens.
+  queueAnimFuncs.add(renderAll);
 }
 
 const resetView = () => {
@@ -470,6 +494,7 @@ useResizeObserver(canvas, (entries, obs) => {
 });
 
 useRafFn(({ delta, timestamp }) => {
+  const start = performance.now();
   queueAnimFuncs.forEach(fn => fn());
   queueAnimFuncs.clear();
   if (!canvasDirty.value) return;
@@ -482,6 +507,7 @@ useRafFn(({ delta, timestamp }) => {
   ctx.drawImage(canvasLayers['metal-tiles'], 0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(canvasLayers['metal-hot'], 0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.drawImage(canvasLayers['overlay'], 0, 0, ctx.canvas.width, ctx.canvas.height);
+  perfRenderTime.value = performance.now() - start;
 });
 
 onCircuitRender(() => {
