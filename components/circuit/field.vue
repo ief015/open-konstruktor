@@ -50,13 +50,11 @@ const viewY = ref(0);
 const viewBounds = computed(() => {
   const canvasWidth  = canvas.value?.width ?? 0;
   const canvasHeight = canvas.value?.height ?? 0;
-  const fieldWidth  = dimensions.columns * TILE_SIZE;
-  const fieldHeight = dimensions.rows * TILE_SIZE;
   return {
-    minX: Math.min(fieldWidth - canvasWidth + 1, Math.trunc(fieldWidth / 2), 0),
-    minY: Math.min(fieldHeight - canvasHeight + 1, Math.trunc(fieldHeight / 2), 0),
-    maxX: Math.max(fieldWidth - canvasWidth + 1, 0),
-    maxY: Math.max(fieldHeight - canvasHeight + 1, 0),
+    minX: Math.min(fieldWidth.value - canvasWidth + 1, Math.trunc(fieldWidth.value / 2), 0),
+    minY: Math.min(fieldHeight.value - canvasHeight + 1, Math.trunc(fieldHeight.value / 2), 0),
+    maxX: Math.max(fieldWidth.value - canvasWidth + 1, 0),
+    maxY: Math.max(fieldHeight.value - canvasHeight + 1, 0),
   }
 });
 const {
