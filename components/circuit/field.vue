@@ -37,21 +37,62 @@ const canvasLayers = {
   'metal-hot':     document.createElement('canvas'),
   'overlay':       document.createElement('canvas'),
 };
-const { field, updateDesignScore } = useFieldGraph();
+const { field, dimensions, updateDesignScore } = useFieldGraph();
 const {
-  network, sim, isRunning, isPaused,
+  network, sim, circuitFactory, isRunning, isPaused,
   onRender: onCircuitRender, load,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
+const viewX = ref(0);
+const viewY = ref(0);
+const viewBounds = computed(() => {
+  const dims = field.value?.getDimensions();
+  const canvasWidth  = canvas.value?.width ?? 0;
+  const canvasHeight = canvas.value?.height ?? 0;
+  const fieldWidth  = dimensions.columns * TILE_SIZE;
+  const fieldHeight = dimensions.rows * TILE_SIZE;
+  return {
+    minX: Math.min(fieldWidth - canvasWidth + 1, fieldWidth / 2, 0),
+    minY: Math.min(fieldHeight - canvasHeight + 1, fieldHeight / 2, 0),
+    maxX: Math.max(fieldWidth - canvasWidth + 1, 0),
+    maxY: Math.max(fieldHeight - canvasHeight + 1, 0),
+  }
+});
 const {
   elementX: canvasMouseX,
   elementY: canvasMouseY,
   isOutside: canvasMouseOutside,
 } = useMouseInElement(canvas);
+const coordMouseX = computed(() => Math.trunc((canvasMouseX.value + viewX.value) / TILE_SIZE));
+const coordMouseY = computed(() => Math.trunc((canvasMouseY.value + viewY.value) / TILE_SIZE));
 const images = useImageLoader();
 const isDrawing = ref(false);
 let prevDrawingCoords: Point = [0, 0];
-const debugMsg = ref('');
+const debugMsg = computed(() => {
+  const dbg: string[] = [];
+  if (!canvasMouseOutside.value) {
+    const mouseX = canvasMouseX.value.toFixed(0);
+    const mouseY = canvasMouseY.value.toFixed(0);
+    const coordX = coordMouseX.value;
+    const coordY = coordMouseY.value;
+    dbg.push(`Mouse: [${mouseX}, ${mouseY}]`);
+    dbg.push(`Coord: [${coordX}, ${coordY}]`);
+    /*
+    const data = field.value?.getData();
+    if (data) {
+      data.getLayers().forEach((layer, idx) => {
+        dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
+      });
+    }
+    */
+  }
+  const panX = viewX.value.toFixed(0);
+  const panY = viewY.value.toFixed(0);
+  const { minX, minY, maxX, maxY } = viewBounds.value;
+  dbg.push(`View: [${panX}, ${panY}]`);
+  dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
+  return dbg.join('<br/>');
+});
 
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 
@@ -60,11 +101,13 @@ const renderBackground = () => {
   if (!ctx) throw new Error('Could not get background canvas context');
   if (!field.value) throw new Error('Could not get field');
   canvasDirty.value = true;
-  const { columns, rows } = field.value.getDimensions();
+  const { columns, rows } = dimensions;
   const [ minCol, maxCol ] = field.value.getMinMaxColumns();
   // Background colour
   ctx.fillStyle = '#959595';
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.save();
+  ctx.translate(-viewX.value, -viewY.value);
   // Draw grid lines
   ctx.save();
   ctx.translate(0.5, 0.5);
@@ -90,6 +133,7 @@ const renderBackground = () => {
   // Draw border
   ctx.strokeStyle = '#000';
   ctx.strokeRect(0.5, 0.5, columns * TILE_SIZE, rows * TILE_SIZE);
+  ctx.restore();
 }
 
 const renderTiles = (
@@ -103,7 +147,7 @@ const renderTiles = (
   if (!contextMetalTiles) throw new Error('Could not get background canvas context');
   canvasDirty.value = true;
   const data = field.value.getData();
-  const { columns, rows } = data.getDimensions();
+  const { columns, rows } = dimensions;
   const {
     metal: showMetal,
     silicon: showSilicon,
@@ -113,8 +157,13 @@ const renderTiles = (
   top = Math.max(0, top-1);
   right = Math.min(columns, right+2);
   bottom = Math.min(rows, bottom+2);
-  contextSiliconTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
-  contextMetalTiles.clearRect(left*TILE_SIZE+1, top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
+  if (bounds) {
+    contextSiliconTiles.clearRect(viewX.value+left*TILE_SIZE+1, viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
+    contextMetalTiles.clearRect(viewX.value+left*TILE_SIZE+1, viewY.value+top*TILE_SIZE+1, (right-left)*TILE_SIZE, (bottom - top)*TILE_SIZE);
+  } else {
+    contextSiliconTiles.clearRect(0, 0, contextSiliconTiles.canvas.width, contextSiliconTiles.canvas.height);
+    contextMetalTiles.clearRect(0, 0, contextMetalTiles.canvas.width, contextMetalTiles.canvas.height);
+  }
   if (showSilicon) {
     const ctx = contextSiliconTiles;
     const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
@@ -126,6 +175,7 @@ const renderTiles = (
     const viaLayer = data.getLayer(Layer.Vias);
     const viaImage = images.findImage('/tiles/link.png');
     ctx.save();
+    ctx.translate(-viewX.value, -viewY.value);
     ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
     ctx.strokeStyle = '#060000';
     // Silicon layer + vias
@@ -171,12 +221,12 @@ const renderTiles = (
   // Metal layer
   if (showMetal) {
     const ctx = contextMetalTiles;
-    if (!ctx) throw new Error('Could not get background canvas context');
     const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
     const metalLayer = data.getLayer(Layer.Metal);
     const metalConnHLayer = data.getLayer(Layer.MetalConnectionsH);
     const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
     ctx.save();
+    ctx.translate(-viewX.value, -viewY.value);
     ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
     for (let x = left; x < right; x++) {
       ctx.save();
@@ -208,11 +258,13 @@ const renderHot = (
     metal: showMetal,
     silicon: showSilicon,
   } = Object.assign({ metal: false, silicon: false }, options);
-  const { columns, rows } = field.value.getDimensions();
+  const { columns, rows } = dimensions;
   ctxMetalHot.clearRect(0, 0, ctxMetalHot.canvas.width, ctxMetalHot.canvas.height);
   ctxSiliconHot.clearRect(0, 0, ctxSiliconHot.canvas.width, ctxSiliconHot.canvas.height);
   ctxMetalHot.save();
   ctxSiliconHot.save();
+  ctxMetalHot.translate(-viewX.value, -viewY.value);
+  ctxSiliconHot.translate(-viewX.value, -viewY.value);
   ctxMetalHot.translate(1, 1);
   ctxSiliconHot.translate(1, 1);
   // Draw current
@@ -261,6 +313,8 @@ const renderOverlay = () => {
   if (!field.value) throw new Error('Could not get field');
   canvasDirty.value = true;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.save();
+  ctx.translate(-viewX.value, -viewY.value);
   /*
   // Draw mouse cursor
   ctx.save();
@@ -282,6 +336,7 @@ const renderOverlay = () => {
     const { label } = pinNodes[pid];
     ctx.fillText(label, x*TILE_SIZE+textPadX, y*TILE_SIZE+10, (TILE_SIZE*3)-(textPadX*2));
   }
+  ctx.restore();
 }
 
 const renderAll = () => {
@@ -336,12 +391,30 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   renderTiles(undefined, bounds);
 }
 
+const panView = (dx: number, dy: number) => {
+  const { minX, minY, maxX, maxY } = viewBounds.value;
+  viewX.value = Math.max(minX, Math.min(maxX, viewX.value + dx));
+  viewY.value = Math.max(minY, Math.min(maxY, viewY.value + dy));
+  renderAll(); // TODO: Draw only the parts that need to be drawn
+}
+
+const resetView = () => {
+  if (!canvas.value) return;
+  const { columns, rows } = dimensions;
+  const { minX, minY, maxX, maxY } = viewBounds.value;
+  // viewX.value = Math.max(minX, Math.min(maxX, Math.trunc((canvas.value.width - columns * TILE_SIZE) / 2)));
+  // viewY.value = Math.max(minY, Math.min(maxY, Math.trunc((canvas.value.height - rows * TILE_SIZE) / 2)));
+  viewX.value = 0;
+  viewY.value = 0;
+  renderAll();
+}
+
 const mouseToGrid = (mx: number, my: number): Point => {
   if (!canvas.value) return [0, 0];
   const rect = canvas.value.getBoundingClientRect();
-  const x = Math.trunc((mx - rect.left) / TILE_SIZE);
-  const y = Math.trunc((my - rect.top) / TILE_SIZE);
-  return [x, y];
+  const x = Math.trunc((mx - rect.left - viewX.value) / TILE_SIZE);
+  const y = Math.trunc((my - rect.top - viewY.value) / TILE_SIZE);
+  return [ x, y ];
 }
 
 const onMouseMove = (e: MouseEvent) => {
@@ -409,38 +482,30 @@ watch(isRunning, (isRunning) => {
   renderHot();
 });
 
-watch(sim, (sim) => {
-  sim && renderAll();
-});
-
-watch([ canvasMouseX, canvasMouseY, canvasMouseOutside ], ([x, y, outside]) => {
-  const dbg: string[] = [];
-  if (!outside) {
-    const col = Math.trunc(canvasMouseX.value/TILE_SIZE);
-    const row = Math.trunc(canvasMouseY.value/TILE_SIZE);
-    dbg.push(`Mouse: ${x}, ${y}`);
-    dbg.push(`Coord: ${col}, ${row}`);
-    /*
-    const data = field.value?.getData();
-    if (data) {
-      data.getLayers().forEach((layer, idx) => {
-        dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
-      });
+watch(
+  [ sim, circuitFactory ],
+  ([ sim, factory ], [ oldSim, oldFactory ]) => {
+    if (factory !== oldFactory) {
+      resetView();
+    } else if (sim) {
+      renderAll();
     }
-    */
   }
-  debugMsg.value = dbg.join('<br/>');
-});
+);
 
 useResizeObserver(canvas, (entries, obs) => {
   onResize();
+});
+
+watch(circuitFactory, (factory) => {
+  resetView();
 });
 
 watch(canvas, (canvas) => {
   const ctx = canvas?.getContext('2d');
   if (!ctx) return;
   ctx.imageSmoothingEnabled = false;
-  renderAll();
+  resetView();
 });
 
 onMounted(() => {

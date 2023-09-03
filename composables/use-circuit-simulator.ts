@@ -146,6 +146,7 @@ export default function useCircuitSimulator() {
   return {
     sim,
     network,
+    circuitFactory: readonly(currentFactory),
     isRunning,
     isPaused,
     stepsPerSecond,
