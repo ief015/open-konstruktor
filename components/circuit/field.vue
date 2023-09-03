@@ -174,18 +174,23 @@ const renderTiles = (
   top = Math.max(0, top-2);
   right = Math.min(columns-1, right+2);
   bottom = Math.min(rows-1, bottom+2);
-  contextSiliconTiles.clearRect(
-    -viewX.value + (left * TILE_SIZE) + 1,
-    -viewY.value + (top * TILE_SIZE) + 1,
-    (right - left + 1) * TILE_SIZE,
-    (bottom - top + 1) * TILE_SIZE,
-  );
-  contextMetalTiles.clearRect(
-    -viewX.value + (left * TILE_SIZE) + 1,
-    -viewY.value + (top * TILE_SIZE) + 1,
-    (right - left + 1) * TILE_SIZE ,
-    (bottom - top + 1) * TILE_SIZE,
-  );
+  if (bounds) {
+    contextSiliconTiles.clearRect(
+      -viewX.value + (left * TILE_SIZE) + 1,
+      -viewY.value + (top * TILE_SIZE) + 1,
+      (right - left + 1) * TILE_SIZE,
+      (bottom - top + 1) * TILE_SIZE,
+    );
+    contextMetalTiles.clearRect(
+      -viewX.value + (left * TILE_SIZE) + 1,
+      -viewY.value + (top * TILE_SIZE) + 1,
+      (right - left + 1) * TILE_SIZE ,
+      (bottom - top + 1) * TILE_SIZE,
+    );
+  } else {
+    contextSiliconTiles.clearRect(0, 0, contextSiliconTiles.canvas.width, contextSiliconTiles.canvas.height);
+    contextMetalTiles.clearRect(0, 0, contextMetalTiles.canvas.width, contextMetalTiles.canvas.height);
+  }
   if (showSilicon) {
     const ctx = contextSiliconTiles;
     const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
