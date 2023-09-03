@@ -20,14 +20,6 @@ import createSequencesFromInputs from "@/utils/createSequencesFromInputs";
       pinVCC2, pinVCC3,
     ] = pins;
     assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
-    pinNC0.label = 'N/C';
-    pinNC1.label = 'N/C';
-    pinNC2.label = 'N/C';
-    pinNC3.label = 'N/C';
-    pinNC4.label = 'N/C';
-    pinNC5.label = 'N/C';
-    pinNC6.label = 'N/C';
-    pinNC7.label = 'N/C';
     const sim = new CircuitSimulation(network, 280);
     // Add I/O sequences...
     return sim;
