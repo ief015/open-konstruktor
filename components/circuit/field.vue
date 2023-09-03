@@ -67,6 +67,7 @@ const coordMouseX = computed(() => Math.trunc((canvasMouseX.value + viewX.value)
 const coordMouseY = computed(() => Math.trunc((canvasMouseY.value + viewY.value) / TILE_SIZE));
 const images = useImageLoader();
 const isDrawing = ref(false);
+const isPanning = ref(false);
 let prevDrawingCoords: Point = [0, 0];
 const perfRenderTime = ref(0);
 const debugMsg = computed(() => {
@@ -461,35 +462,44 @@ const mouseToGrid = (mx: number, my: number): Point => {
 
 const onMouseMove = (e: MouseEvent) => {
   if (!canvas.value) return;
-  if (isRunning.value) return;
-  if (e.button === 0) {
-    if (isDrawing.value && field.value) {
+  if (isDrawing.value) {
+    if (field.value && !isRunning.value) {
       const coords = mouseToGrid(e.clientX, e.clientY);
       draw(toolBoxMode.value, prevDrawingCoords, coords);
       prevDrawingCoords = coords;
-      if (toolBoxMode.value == 'select') {
-        panView(-e.movementX, -e.movementY);
-      }
     }
+  } else if (isPanning.value) {
+    panView(-e.movementX, -e.movementY);
   }
 }
 
 const onMouseDown = (e: MouseEvent) => {
   if (!canvas.value) return;
-  if (isRunning.value) return;
-  if (e.button === 0) {
-    isDrawing.value = true;
-    prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
-    draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
-    e.preventDefault();
+  e.preventDefault();
+  switch (e.button) {
+    case 0:
+      if (!isRunning.value) {
+        isDrawing.value = true;
+        prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
+        draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
+      }
+      break;
+    case 2:
+      isPanning.value = true;
+      break;
   }
 }
 
 const onMouseUp = (e: MouseEvent) => {
   if (!canvas.value) return;
-  if (isRunning.value) return;
-  if (e.button === 0) {
-    isDrawing.value = false;
+  e.preventDefault();
+  switch (e.button) {
+    case 0:
+      isDrawing.value = false;
+      break;
+    case 2:
+      isPanning.value = false;
+      break;
   }
 }
 
