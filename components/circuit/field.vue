@@ -43,17 +43,18 @@ const {
   onRender: onCircuitRender, load,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
+const fieldWidth = computed(() => dimensions.columns * TILE_SIZE);
+const fieldHeight = computed(() => dimensions.rows * TILE_SIZE);
 const viewX = ref(0);
 const viewY = ref(0);
 const viewBounds = computed(() => {
-  const dims = field.value?.getDimensions();
   const canvasWidth  = canvas.value?.width ?? 0;
   const canvasHeight = canvas.value?.height ?? 0;
   const fieldWidth  = dimensions.columns * TILE_SIZE;
   const fieldHeight = dimensions.rows * TILE_SIZE;
   return {
-    minX: Math.min(fieldWidth - canvasWidth + 1, fieldWidth / 2, 0),
-    minY: Math.min(fieldHeight - canvasHeight + 1, fieldHeight / 2, 0),
+    minX: Math.min(fieldWidth - canvasWidth + 1, Math.trunc(fieldWidth / 2), 0),
+    minY: Math.min(fieldHeight - canvasHeight + 1, Math.trunc(fieldHeight / 2), 0),
     maxX: Math.max(fieldWidth - canvasWidth + 1, 0),
     maxY: Math.max(fieldHeight - canvasHeight + 1, 0),
   }
@@ -402,10 +403,12 @@ const resetView = () => {
   if (!canvas.value) return;
   const { columns, rows } = dimensions;
   const { minX, minY, maxX, maxY } = viewBounds.value;
-  // viewX.value = Math.max(minX, Math.min(maxX, Math.trunc((canvas.value.width - columns * TILE_SIZE) / 2)));
-  // viewY.value = Math.max(minY, Math.min(maxY, Math.trunc((canvas.value.height - rows * TILE_SIZE) / 2)));
-  viewX.value = 0;
-  viewY.value = 0;
+  viewX.value = fieldWidth.value < canvas.value.width ?
+    Math.max(minX, Math.min(maxX, -Math.trunc((canvas.value.width - columns * TILE_SIZE) / 2))) :
+    0;
+  viewY.value = fieldHeight.value < canvas.value.height ?
+    Math.max(minY, Math.min(maxY, -Math.trunc((canvas.value.height - rows * TILE_SIZE) / 2))) :
+    0;
   renderAll();
 }
 
