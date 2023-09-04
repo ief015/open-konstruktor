@@ -80,29 +80,30 @@ const items = [
     name: "Levels",
     menu: [
       {
-        name: "01 - 05",
+        name: "01 - 06",
         menu: [
           { id: 'level:01 KT411I QUAD INVERTER GATE',             name: "01 - KT411I - QUAD INVERTER GATE" },
           { id: 'level:02 KT221A DUAL 2-INPUT AND GATE',          name: "02 - KT221A - DUAL 2-INPUT AND GATE" },
           { id: 'level:03 KT141AO 4-INPUT AND-OR GATE',           name: "03 - KT141AO - 4-INPUT AND-OR GATE" },
           { id: 'level:04 KO229 POWER ON RESET GENERATOR',        name: "04 - KO229 - POWER ON RESET GENERATOR" },
           { id: 'level:05 KO223 DUAL FIXED FREQUENCY OSCILLATOR', name: "05 - KO223 - DUAL FIXED FREQUENCY OSCILLATOR" },
+          { id: 'level:06 KL2S1 DUAL SET-RESET LATCH',            name: "06 - KL2S1 - DUAL SET-RESET LATCH" },
         ],
       },
       {
-        name: "06 - 10",
+        name: "07 - 11",
         menu: [
-          { id: 'level:06 KL2S1 DUAL SET-RESET LATCH',       name: "06 - KL2S1 - DUAL SET-RESET LATCH" },
+          
           { id: 'level:07 KL2T1 DUAL TOGGLE LATCH',          name: "07 - KL2T1 - DUAL TOGGLE LATCH" },
           { id: 'level:08 KO224X DUAL FREQUENCY OSCILLATOR', name: "08 - KO224X - DUAL FREQUENCY OSCILLATOR" },
           { id: 'level:09 KD124 2-TO-4 LINE DECODER',        name: "09 - KD124 - 2-TO-4 LINE DECODER" },
           { id: 'level:10 KA180 2-BIT ADDER WITH CARRY',     name: "10 - KA180 - 2-BIT ADDER WITH CARRY" },
+          { id: 'level:11 KC82F DIVIDE-BY-FOUR COUNTER',     name: "11 - KC82F - DIVIDE-BY-FOUR COUNTER" },
         ],
       },
       {
-        name: "11 - 16",
+        name: "12 - 16",
         menu: [
-          { id: 'level:11 KC82F DIVIDE-BY-FOUR COUNTER',      name: "11 - KC82F - DIVIDE-BY-FOUR COUNTER" },
           { id: 'level:12 KM141P 4-TO-1 MULTIPLEXER',         name: "12 - KM141P - 4-TO-1 MULTIPLEXER" },
           { id: 'level:13 KC84C 4-BIT COUNTER WITH CLEAR',    name: "13 - KC84C - 4-BIT COUNTER WITH CLEAR" },
           { id: 'level:14 KC74S 4-BIT SHIFT REGISTER S-TO-P', name: "14 - KC74S - 4-BIT SHIFT REGISTER S-TO-P" },
@@ -122,6 +123,7 @@ const items = [
         name: "Open-Konstruktor",
         menu: [
           { id: 'level:OC2C1 DUAL FULL COMPARATOR',   name: "OC2C1 DUAL FULL COMPARATOR" },
+          { id: 'level:Very large test',   name: "Very large test" },
         ],
       },
     ]
