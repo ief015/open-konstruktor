@@ -38,6 +38,10 @@
         <option value="custom">-- Custom --</option>
       </select>
     </div>
+    <div v-if="selectedRate == 'custom'" class="flex flex-row items-center text-sm gap-1">
+      <input id="circuit-controls-custom-rate" class="w-[5em]" placeholder="Hz" type="number" min="0" v-model="customRate" />
+      <label for="circuit-controls-custom-rate">Hz</label>
+    </div>
   </div>
 </template>
 
@@ -48,14 +52,18 @@ const {
   sim, isRunning, isPaused, stepsPerSecond, loop,
   load, start, stop, pause, resume, step,
 } = useCircuitSimulator();
-
+const customRate = ref(40);
 const selectedRate = ref('40');
+
+watch(customRate, (rate) => {
+  if (selectedRate.value === 'custom') {
+    stepsPerSecond.value = Math.max(0, rate);
+  }
+});
 
 watch(selectedRate, (rate) => {
   if (rate === 'custom') {
-    // TODO: not yet implemented
-    console.warn('Custom not yet implemented');
-    stepsPerSecond.value = 5;
+    stepsPerSecond.value = Math.max(0, customRate.value);
     return;
   }
   if (rate === 'realtime') {
