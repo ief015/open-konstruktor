@@ -13,6 +13,10 @@ const sim = ref<CircuitSimulation>();
 sim.value = new CircuitSimulation(network.value);
 
 let accumulatedTime = 0;
+const profiler = reactive({
+  steps: 0,
+  elapsed: 0,
+});
 
 const isRunning = ref(false);
 const isPaused = ref(false);
@@ -25,7 +29,7 @@ const elapsedTime = ref(0);
 const realTimeTargetFrameRate = ref(60);
 const realTimeTargetFrameInterval = computed(() => 1000 / realTimeTargetFrameRate.value);
 const stepsPerSecond = computed(() => {
-  return stepCounter.value / elapsedTime.value * 1000;
+  return profiler.steps / profiler.elapsed * 1000;
 });
 const stepInterval = computed(() => {
   if (stepMode.value == 'realtime') {
@@ -46,6 +50,11 @@ const invokeRenderers = () => {
 
 const invokeCompleteHandlers = (result: VerificationResult) => {
   onCompleteHandlers.forEach(handler => handler(result));
+}
+
+const resetProfiler = () => {
+  profiler.steps = 0;
+  profiler.elapsed = 0;
 }
 
 const stop = () => {
@@ -72,6 +81,8 @@ const onAnim = (timestamp: number) => {
   if (!isPaused.value) {
     const dt = timestamp - lastFrameTime.value;
     lastFrameTime.value = timestamp;
+    elapsedTime.value += dt;
+    profiler.elapsed += dt;
     if (stepMode.value == 'vsync') {
       // Always step only once per animation frame
       accumulatedTime = stepInterval.value;
@@ -86,6 +97,7 @@ const onAnim = (timestamp: number) => {
     while (accumulatedTime >= interval) {
       const ts = isRealTime ? performance.now() : 0;
       stepCounter.value++;
+      profiler.steps++;
       stepped = true;
       if (sim.value.step()) {
         const verifyResult = sim.value.verify('kohctpyktop');
@@ -107,7 +119,6 @@ const onAnim = (timestamp: number) => {
     if (stepped) {
       invokeRenderers();
     }
-    elapsedTime.value += dt;
   }
   requestAnimationFrame(onAnim);
 }
@@ -115,13 +126,14 @@ const onAnim = (timestamp: number) => {
 const start = () => {
   if (!sim.value)
     return;
+  sim.value.reset();
   isRunning.value = true;
   isPaused.value = false;
   lastFrameTime.value = performance.now();
   stepCounter.value = 0;
   elapsedTime.value = 0;
   accumulatedTime = 0;
-  sim.value.reset();
+  resetProfiler();
   requestAnimationFrame(onAnim);
 }
 
@@ -199,6 +211,7 @@ export default function useCircuitSimulator() {
     pause,
     resume,
     step,
+    resetProfiler,
     onRender,
     onComplete,
   };

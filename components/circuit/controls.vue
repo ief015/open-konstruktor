@@ -64,7 +64,7 @@
 const { field } = useFieldGraph();
 const {
   sim, isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop,
-  load, start, stop, pause, resume, step,
+  load, start, stop, pause, resume, step, resetProfiler,
 } = useCircuitSimulator();
 const customRate = ref(40);
 const realtimeRate = ref(60);
@@ -74,12 +74,14 @@ watchDebounced(customRate, (rate) => {
   if (selectedRate.value === 'custom') {
     stepRate.value = Math.max(0, rate);
   }
+  resetProfiler();
 }, { debounce: 500 });
 
 watchDebounced(realtimeRate, (rate) => {
   if (selectedRate.value === 'realtime') {
     realTimeTargetFrameRate.value = Math.max(1, rate);
   }
+  resetProfiler();
 }, { debounce: 500 });
 
 watch(selectedRate, (rate) => {
@@ -99,6 +101,7 @@ watch(selectedRate, (rate) => {
       stepMode.value = 'fixed';
       break;
   }
+  resetProfiler();
 }, { immediate: true });
 
 const onStart = () => {
