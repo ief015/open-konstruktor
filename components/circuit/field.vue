@@ -3,9 +3,7 @@
     <canvas
       ref="canvas"
       class="absolute w-full h-full"
-      @mousemove="onMouseMove"
       @mousedown="onMouseDown"
-      @mouseup="onMouseUp"
       oncontextmenu="return false;"
     >
       Your browser must support the canvas tag.
@@ -454,23 +452,9 @@ const invalidateCanvasSizes = () => {
 
 const mouseToGrid = (mx: number, my: number): Point => {
   if (!canvas.value) return [0, 0];
-  const rect = canvas.value.getBoundingClientRect();
-  const x = Math.trunc((mx - rect.left + viewX.value) / TILE_SIZE);
-  const y = Math.trunc((my - rect.top + viewY.value) / TILE_SIZE);
+  const x = Math.trunc((mx + viewX.value) / TILE_SIZE);
+  const y = Math.trunc((my + viewY.value) / TILE_SIZE);
   return [ x, y ];
-}
-
-const onMouseMove = (e: MouseEvent) => {
-  if (!canvas.value) return;
-  if (isDrawing.value) {
-    if (field.value && !isRunning.value) {
-      const coords = mouseToGrid(e.clientX, e.clientY);
-      draw(toolBoxMode.value, prevDrawingCoords, coords);
-      prevDrawingCoords = coords;
-    }
-  } else if (isPanning.value) {
-    panView(-e.movementX, -e.movementY);
-  }
 }
 
 const onMouseDown = (e: MouseEvent) => {
@@ -480,7 +464,7 @@ const onMouseDown = (e: MouseEvent) => {
     case 0:
       if (!isRunning.value) {
         isDrawing.value = true;
-        prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
+        prevDrawingCoords = mouseToGrid(e.offsetX, e.offsetY);
         draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
       }
       break;
@@ -490,7 +474,21 @@ const onMouseDown = (e: MouseEvent) => {
   }
 }
 
-const onMouseUp = (e: MouseEvent) => {
+watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
+  const dx = x - oldX;
+  const dy = y - oldY;
+  if (isDrawing.value) {
+    if (field.value && !isRunning.value) {
+      const coords = mouseToGrid(x, y);
+      draw(toolBoxMode.value, prevDrawingCoords, coords);
+      prevDrawingCoords = coords;
+    }
+  } else if (isPanning.value) {
+    panView(-dx, -dy);
+  }
+});
+
+useEventListener('mouseup', (e) => {
   if (!canvas.value) return;
   e.preventDefault();
   switch (e.button) {
@@ -501,7 +499,7 @@ const onMouseUp = (e: MouseEvent) => {
       isPanning.value = false;
       break;
   }
-}
+});
 
 useResizeObserver(canvas, (entries, obs) => {
   invalidateCanvasSizes();
