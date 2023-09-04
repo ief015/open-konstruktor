@@ -20,7 +20,7 @@
         class="font-georgia12 text-[12px] uppercase"
       >
         <span v-if="isRunning">
-          VERIFICATION TEST RUNNING... {{ sim?.getCurrentFrame() ?? 0 }}
+          VERIFICATION TEST RUNNING... {{ currentFrame }}
         </span>
         <span v-else-if="!verifyResult">
           VERIFICATION TEST NOT YET COMPLETED
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { Point, VerificationResult } from '@/simulation'; 
+import { PinNode, Point, VerificationResult } from '@/simulation'; 
 
 type DrawMode = 'high' | 'low';
 
@@ -60,40 +60,42 @@ const canvasContainer = ref<HTMLDivElement>();
 const canvas = ref<HTMLCanvasElement>();
 let ctx: CanvasRenderingContext2D | null = null;
 
-const { field, designScore } = useFieldGraph();
+const { designScore } = useFieldGraph();
 const {
-  network, sim, isRunning,
-  onRender: onCircuitRender, onComplete,
+  networkRef, simRef, isRunning, currentFrame,
+  onRender: onCircuitRender, onComplete, getNetwork, getSimulation
 } = useCircuitSimulator();
-
 const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
 let prevDrawingCoords: Point = [0, 0];
-
 const verifyResult = ref<VerificationResult>();
+const filteredPins: PinNode[] = [];
+const maxScopeHeight = ref(0);
 
-const filteredPins = computed(() => {
-  return (network.value?.getPinNodes() ?? [])
-    .filter((node, idx) => idx > 1 && idx < network.value!.getPinNodes().length - 2);
-})
-
-const maxScopeHeight = computed(() => {
-  return filteredPins.value.length * HEIGHT_PX_SCOPE;
-});
+const updateFilteredPins = () => {
+  const net = getNetwork();
+  const pins = net.getPinNodes();
+  filteredPins.splice(0, filteredPins.length,
+    ...pins.filter((node, idx) => idx > 1 && idx < pins.length - 2)
+  );
+  maxScopeHeight.value = filteredPins.length * HEIGHT_PX_SCOPE;
+}
 
 const renderScope = () => {
   if (!ctx)
     return;
+  console.log('renderScope');
+  const sim = getSimulation();
+
   ctx.resetTransform();
   ctx.translate(0.5, 0.25);
   ctx.fillStyle = COLOR_CHART;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.lineWidth = 1;
-  if (!field.value || !network.value || !sim.value)
-    return;
-  const runningLength = sim.value.getRunningLength();
+
+  const runningLength = sim.getRunningLength();
   const scopeWidth = runningLength * TICK_WIDTH_PX;
-  const currentX = sim.value.getRecordingLength() * TICK_WIDTH_PX;
+  const currentX = sim.getRecordingLength() * TICK_WIDTH_PX;
 
   // draw grid lines
   ctx.strokeStyle = COLOR_GRID_LINE;
@@ -109,17 +111,15 @@ const renderScope = () => {
   ctx.restore();
 
   // draw scopes for each pin from top to bottom
-  const pins = filteredPins.value;
-  const numPins = pins.length;
   ctx.save();
   ctx.strokeStyle = COLOR_SCOPE_LINE;
   ctx.fillStyle = COLOR_SCOPE_LINE;
   for (const offset of [ 0, 1 ]) {
     const baseline = -(HEIGHT_PX_SCOPE / 4 + 0.5);
     const highLine = baseline - Math.floor(HEIGHT_PX_SCOPE / 2);
-    for (let i = offset; i < numPins; i += 2) {
-      const pin = pins[i];
-      const { input, output } = sim.value.getSequence(pin);
+    for (let i = offset; i < filteredPins.length; i += 2) {
+      const pin = filteredPins[i];
+      const { input, output } = sim.getSequence(pin);
       ctx.translate(0, HEIGHT_PX_SCOPE);
 
       // draw label
@@ -173,7 +173,7 @@ const renderScope = () => {
         ctx.stroke();
 
         // actual
-        const rec = sim.value.getRecording(pin);
+        const rec = sim.getRecording(pin);
         if (rec) {
           ctx.strokeStyle = COLOR_SCOPE_LINE;
           ctx.beginPath();
@@ -230,7 +230,7 @@ const mouseToGrid = (mx: number, my: number): Point => {
 const onMouseMove = (e: MouseEvent) => {
   if (!ctx) return;
   if (isRunning.value) return;
-  if (isDrawing.value && field.value) {
+  if (isDrawing.value) {
     const coords = mouseToGrid(e.clientX, e.clientY);
     draw(drawMode.value, prevDrawingCoords, coords);
     prevDrawingCoords = coords;
@@ -280,14 +280,15 @@ watch(isRunning, (running) => {
   renderScope();
 });
 
-watch(sim, (sim) => {
-  if (!sim) return;
+watch(simRef, (sim) => {
+  console.log('watch simRef');
   verifyResult.value = undefined;
   renderScope();
 });
 
-watch(network, (network) => {
-  if (!network) return;
+watch(networkRef, (network) => {
+  console.log('watch networkRef');
+  updateFilteredPins();
   onResize();
 });
 

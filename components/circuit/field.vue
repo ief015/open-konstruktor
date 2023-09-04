@@ -35,11 +35,11 @@ const canvasLayers = {
   'metal-hot':     document.createElement('canvas'),
   'overlay':       document.createElement('canvas'),
 };
-const { field, dimensions, updateDesignScore } = useFieldGraph();
+const { dimensions, updateDesignScore, getField } = useFieldGraph();
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 const {
-  network, sim, circuitFactory, isRunning, isPaused, stepsPerSecond,
-  onRender: onCircuitRender, load,
+  simRef, circuitFactory, isRunning, stepsPerSecond,
+  onRender: onCircuitRender, getNetwork,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
 const canvasWidth = ref(0);
@@ -111,10 +111,10 @@ const getTileViewport = (): { left:number, top:number, right:number, bottom:numb
 const renderBackground = () => {
   const ctx = canvasLayers['background']?.getContext('2d');
   if (!ctx) throw new Error('Could not get background canvas context');
-  if (!field.value) throw new Error('Could not get field');
+  const field = getField();
   canvasDirty.value = true;
   const { columns, rows } = dimensions;
-  const [ minCol, maxCol ] = field.value.getMinMaxColumns();
+  const [ minCol, maxCol ] = field.getMinMaxColumns();
   const { left, top, right, bottom } = getTileViewport();
   // Background colour
   ctx.fillStyle = '#959595';
@@ -151,13 +151,13 @@ const renderTiles = (
   options: { metal?: boolean, silicon?: boolean } = { metal: true, silicon: true },
   bounds?: number[]
 ) => {
-  if (!field.value) throw new Error('Could not get field');
+  const field = getField();
   const contextSiliconTiles = canvasLayers['silicon-tiles']?.getContext('2d');
   const contextMetalTiles = canvasLayers['metal-tiles']?.getContext('2d');
   if (!contextSiliconTiles) throw new Error('Could not get background canvas context');
   if (!contextMetalTiles) throw new Error('Could not get background canvas context');
   canvasDirty.value = true;
-  const data = field.value.getData();
+  const data = field.getData();
   const { columns, rows } = dimensions;
   const {
     metal: showMetal,
@@ -275,7 +275,8 @@ const renderTiles = (
 const renderHot = (
   options: { metal?: boolean, silicon?: boolean } = { metal: true, silicon: true }
 ) => {
-  if (!field.value) throw new Error('Could not get field');
+  const field = getField();
+  const network = getNetwork();
   const ctxMetalHot = canvasLayers['metal-hot']?.getContext('2d');
   const ctxSiliconHot = canvasLayers['silicon-hot']?.getContext('2d');
   if (!ctxMetalHot) throw new Error('Could not get metal-hot canvas context');
@@ -295,12 +296,12 @@ const renderHot = (
   ctxMetalHot.translate(1, 1);
   ctxSiliconHot.translate(1, 1);
   // Draw current
-  if (isRunning.value && network.value) {
+  if (isRunning.value && network) {
     const hotImage = images.findImage('/tiles/hot.png');
     for (let x = left; x <= right; x++) {
       for (let y = top; y <= bottom; y++) {
         if (showSilicon) {
-          const nodes = network.value.getNodesAt([x, y], 'silicon');
+          const nodes = network.getNodesAt([x, y], 'silicon');
           const hot = nodes.some(n => {
             if (n instanceof PathNode) {
               return n.state;
@@ -315,7 +316,7 @@ const renderHot = (
           }
         }
         if (showMetal) {
-          const nodes = network.value.getNodesAt([x, y], 'metal');
+          const nodes = network.getNodesAt([x, y], 'metal');
           const hot = nodes.some(n => {
             if (n instanceof PathNode) {
               return n.state;
@@ -336,8 +337,8 @@ const renderHot = (
 const renderOverlay = () => {
   const ctx = canvasLayers['overlay'].getContext('2d');
   if (!ctx) throw new Error('Could not get overlay canvas context');
-  if (!network.value) throw new Error('Could not get network');
-  if (!field.value) throw new Error('Could not get field');
+  const network = getNetwork();
+  const field = getField();
   canvasDirty.value = true;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.save();
@@ -356,10 +357,10 @@ const renderOverlay = () => {
   // Draw pin labels
   ctx.fillStyle = '#000';
   ctx.font = '10px Georgia10';
-  const pinNodes = network.value.getPinNodes()
+  const pinNodes = network.getPinNodes()
   const textPadX = 3;
   for (let pid = 0; pid < pinNodes.length; pid++) {
-    const [ x, y ] = field.value.getPinPoint(pid);
+    const [ x, y ] = field.getPinPoint(pid);
     const { label } = pinNodes[pid];
     ctx.fillText(label, x*TILE_SIZE+textPadX, y*TILE_SIZE+10, (TILE_SIZE*3)-(textPadX*2));
   }
@@ -374,37 +375,37 @@ const renderAll = () => {
 }
 
 const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
-  if (!field.value) return;
+  const field = getField();
   switch (mode) {
     default:
     case 'none':
       return;
     case 'draw-metal':
-      field.value.draw('metal', coordA, coordB);
+      field.draw('metal', coordA, coordB);
       break;
     case 'draw-p-silicon':
-      field.value.draw('p-silicon', coordA, coordB);
+      field.draw('p-silicon', coordA, coordB);
       break;
     case 'draw-n-silicon':
-      field.value.draw('n-silicon', coordA, coordB);
+      field.draw('n-silicon', coordA, coordB);
       break;
     case 'draw-via':
-      field.value.draw('via', coordA, coordB);
+      field.draw('via', coordA, coordB);
       break;
     case 'erase':
-      field.value.erase([ 'metal', 'silicon', 'via' ], coordA, coordB);
+      field.erase([ 'metal', 'silicon', 'via' ], coordA, coordB);
       break;
     case 'erase-metal':
-      field.value.erase('metal', coordA, coordB);
+      field.erase('metal', coordA, coordB);
       break;
     case 'erase-silicon':
-      field.value.erase('silicon', coordA, coordB);
+      field.erase('silicon', coordA, coordB);
       break;
     case 'erase-via':
-      field.value.erase('via', coordA, coordB);
+      field.erase('via', coordA, coordB);
       break;
     case 'erase-gate':
-      field.value.erase('gate', coordA, coordB);
+      field.erase('gate', coordA, coordB);
       break;
     case 'select':
       // TODO: Implement select
@@ -480,7 +481,7 @@ watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
   const dx = x - oldX;
   const dy = y - oldY;
   if (isDrawing.value) {
-    if (field.value && !isRunning.value) {
+    if (!isRunning.value) {
       const coords = mouseToGrid(x, y);
       draw(toolBoxMode.value, prevDrawingCoords, coords);
       prevDrawingCoords = coords;
@@ -533,7 +534,7 @@ watch(isRunning, (isRunning) => {
 });
 
 watch(
-  [ sim, circuitFactory ],
+  [ simRef, circuitFactory ],
   async ([ sim, factory ], [ oldSim, oldFactory ]) => {
     await nextTick(); // Wait for resize observer to update canvas size
     if (factory !== oldFactory) {

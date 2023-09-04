@@ -1,43 +1,49 @@
 import { DesignData, LayerDimensions } from "@/serialization";
 import { FieldGraph } from "@/simulation";
 
-const field = ref<FieldGraph>();
+let field: FieldGraph = new FieldGraph();
+const fieldRef = ref<FieldGraph>(field);
 const designScore = ref(0);
 const dimensions = reactive<LayerDimensions>({ columns: 0, rows: 0 });
 
 const updateDesignScore = () => {
-  designScore.value = field.value?.getDesignScore() ?? 0;
+  designScore.value = field.getDesignScore();
 }
 
 const updateDimensions = () => {
-  if (!field.value) throw new Error("FieldGraph is not initialized");
-  const { columns, rows } = field.value.getDimensions();
+  const { columns, rows } = field.getDimensions();
   dimensions.columns = columns;
   dimensions.rows = rows;
 }
 
 const loadBlank = (columns?: number, rows?: number, pinRows?: number) => {
   const data = new DesignData(columns, rows, pinRows);
-  field.value = new FieldGraph(data);
+  field = new FieldGraph(data);
+  fieldRef.value = field;
   updateDesignScore();
   updateDimensions();
+  return field;
 }
 
 const load = (saveString: string) => {
-  field.value = FieldGraph.from(saveString);
+  field = FieldGraph.from(saveString)
+  fieldRef.value = field;
   updateDesignScore();
   updateDimensions();
+  return field;
 }
 
-loadBlank();
+updateDesignScore();
+updateDimensions();
 
 export default function useFieldGraph() {
   return {
-    field,
+    fieldRef,
     designScore: readonly(designScore),
     dimensions: readonly(dimensions),
     loadBlank,
     load,
     updateDesignScore,
+    getField: () => field,
   };
 }

@@ -14,10 +14,10 @@
       </button>
     </div>
     <div>
-      <button @click="onStep()">Step+1</button>
+      <button @click="onStep()" :disabled="!isPaused">Step+1</button>
     </div>
     <div>
-      <button @click="onStep(10)">+10</button>
+      <button @click="onStep(10)" :disabled="!isPaused">+10</button>
     </div>
     <div class="flex flex-row items-center text-sm">
       <label for="circuit-controls-loop-checkbox">Loop</label>
@@ -44,7 +44,7 @@
           Real-time
         </option>
         <option value="custom" title="Set a custom step rate.">
-          -- Custom --
+          Custom
         </option>
       </select>
     </div>
@@ -61,9 +61,9 @@
 
 <script setup lang="ts">
 
-const { field } = useFieldGraph();
+const { getField } = useFieldGraph();
 const {
-  sim, isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop,
+  isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop,
   load, start, stop, pause, resume, step, resetProfiler,
 } = useCircuitSimulator();
 const customRate = ref(40);
@@ -106,8 +106,8 @@ watch(selectedRate, (rate) => {
 
 const onStart = () => {
   if (isRunning.value) return;
-  if (!field.value) return;
-  load(field.value);
+  const field = getField();
+  load(field);
   start();
 }
 
@@ -129,7 +129,9 @@ const onStep = (n?: number) => {
     onStart();
     pause();
   }
-  step(n);
+  if (isPaused.value) {
+    step(n);
+  }
 }
 
 </script>

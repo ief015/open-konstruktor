@@ -6,11 +6,11 @@ export type OnCompleteHandler = (result?: VerificationResult) => void;
 
 export type StepMode = 'fixed' | 'vsync' | 'realtime';
 
-const network = ref<Network>();
-network.value = new Network();
+let network: Network = new Network();
+const networkRef = ref<Network>(network);
 
-const sim = ref<CircuitSimulation>();
-sim.value = new CircuitSimulation(network.value);
+let sim = new CircuitSimulation(network);
+const simRef = ref<CircuitSimulation>(sim);
 
 let lastFrameTime = 0;
 let accumulatedTime = 0;
@@ -24,7 +24,7 @@ const isPaused = ref(false);
 const loop = ref(false);
 const stepMode = ref<StepMode>('fixed');
 const stepRate = ref(40);
-const stepCounter = ref(0);
+const currentFrame = ref(0);
 const elapsedTime = ref(0);
 const realTimeTargetFrameRate = ref(60);
 const realTimeTargetFrameInterval = computed(() => 1000 / realTimeTargetFrameRate.value);
@@ -58,12 +58,11 @@ const resetProfiler = () => {
 }
 
 const stop = () => {
-  if (!sim.value)
-    return;
   isRunning.value = false;
   isPaused.value = true;
   accumulatedTime = 0;
-  sim.value.reset(false);
+  currentFrame.value = 0;
+  sim.reset(false);
 }
 
 const pause = () => {
@@ -76,11 +75,9 @@ const resume = () => {
 }
 
 const onAnim = (timestamp: number) => {
-  if (!sim.value) return;
+  if (!sim) return;
   if (!isRunning.value) return;
   if (!isPaused.value) {
-    const vsim = sim.value;
-    const looping = loop.value;
     const isRealTime = stepMode.value == 'realtime';
     const dt = timestamp - lastFrameTime;
     lastFrameTime = timestamp;
@@ -98,19 +95,10 @@ const onAnim = (timestamp: number) => {
     const interval = isRealTime ? 0 : stepInterval.value;
     while (accumulatedTime >= interval) {
       const ts = isRealTime ? performance.now() : 0;
-      stepCounter.value++;
       profiler.steps++;
       stepped = true;
-      if (vsim.step()) {
-        if (looping) {
-          vsim.reset();
-          invokeCompleteHandlers();
-        } else {
-          const verifyResult = vsim.verify('kohctpyktop');
-          invokeCompleteHandlers(verifyResult);
-          stop();
-          break;
-        }
+      if (step(1, false)) {
+        break;
       }
       if (isRealTime) {
         const elapsed = performance.now() - ts;
@@ -127,13 +115,11 @@ const onAnim = (timestamp: number) => {
 }
 
 const start = () => {
-  if (!sim.value)
-    return;
-  sim.value.reset();
+  sim.reset();
   isRunning.value = true;
   isPaused.value = false;
   lastFrameTime = performance.now();
-  stepCounter.value = 0;
+  currentFrame.value = 0;
   elapsedTime.value = 0;
   accumulatedTime = 0;
   resetProfiler();
@@ -143,21 +129,33 @@ const start = () => {
 const load = (field: FieldGraph, simFactory: CircuitSimulationFactory = currentFactory.value) => {
   stop();
   const { setup } = (currentFactory.value = simFactory);
-  network.value = Network.from(field);
-  sim.value = setup(network.value);
+  network = Network.from(field);
+  networkRef.value = network;
+  sim = setup(network);
+  simRef.value = sim;
+  return sim;
 }
 
-const step = (n: number = 1) => {
-  if (!sim.value) return;
-  if (!isRunning.value) return;
-  if (!isPaused.value) return;
+const step = (n = 1, bInvokeRenderers = true) => {
+  if (!isRunning.value) return true;
+  let endReached = false;
   for (let i = 0; i < n; i++) {
-    if (sim.value.step()) {
-      stop();
-      break;
+    if (endReached = sim.step()) {
+      if (loop.value) {
+        sim.reset();
+        invokeCompleteHandlers();
+        endReached = false;
+      } else {
+        const verifyResult = sim.verify('kohctpyktop');
+        invokeCompleteHandlers(verifyResult);
+        stop();
+        break;
+      }
     }
   }
-  invokeRenderers();
+  currentFrame.value = sim.getCurrentFrame();
+  bInvokeRenderers && invokeRenderers();
+  return endReached;
 }
 
 export default function useCircuitSimulator() {
@@ -196,8 +194,13 @@ export default function useCircuitSimulator() {
   onUnmounted(removeCompleteHandler);
 
   return {
-    sim,
-    network,
+
+    /** Use for watching changes and reactivity, use getSimulation() for performance. */
+    simRef,
+
+    /** Use for watching changes and reactivity, use getNetwork() for performance. */
+    networkRef,
+
     circuitFactory: readonly(currentFactory),
     isRunning,
     isPaused,
@@ -205,8 +208,8 @@ export default function useCircuitSimulator() {
     stepRate,
     stepMode,
     stepsPerSecond,
-    stepCounter: readonly(stepCounter),
     elapsedTime: readonly(elapsedTime),
+    currentFrame: readonly(currentFrame),
     realTimeTargetFrameRate,
     load,
     start,
@@ -217,5 +220,7 @@ export default function useCircuitSimulator() {
     resetProfiler,
     onRender,
     onComplete,
+    getNetwork: () => network,
+    getSimulation: () => sim,
   };
 }
