@@ -27,20 +27,34 @@
       <select v-model="selectedRate">
         <option value="10">10 Hz</option>
         <option value="20">20 Hz</option>
-        <option value="40">40 Hz (Classic)</option>
+        <option value="40" title="The original step rate of KOHCTPYKTOP.">
+          40 Hz (Classic)
+        </option>
         <option value="60">60 Hz</option>
-        <option value="72">72 Hz</option>
-        <option value="120">120 Hz</option>
-        <option value="144">144 Hz</option>
+        <option value="100">100 Hz</option>
+        <option value="500">500 Hz</option>
         <option value="1000">1000 Hz</option>
-        <option value="vsync">V-Sync</option>
-        <option value="realtime">Real-time</option>
-        <option value="custom">-- Custom --</option>
+        <option value="vsync" title="The simulation will advance only once per animation frame.">
+          V-Sync
+        </option>
+        <option
+          value="realtime"
+          title="The simulation will advance as often as it can between target frame intervals. High power consumption."
+        >
+          Real-time
+        </option>
+        <option value="custom" title="Set a custom step rate.">
+          -- Custom --
+        </option>
       </select>
     </div>
     <div v-if="selectedRate == 'custom'" class="flex flex-row items-center text-sm gap-1">
       <input id="circuit-controls-custom-rate" class="w-[5em]" placeholder="Hz" type="number" min="0" v-model="customRate" />
       <label for="circuit-controls-custom-rate">Hz</label>
+    </div>
+    <div v-if="selectedRate == 'realtime'" class="flex flex-row items-center text-sm gap-1">
+      <input id="circuit-controls-realtime-rate" class="w-[5em]" placeholder="Hz" type="number" min="1" v-model="realtimeRate" />
+      <label for="circuit-controls-realtime-rate">FPS</label>
     </div>
   </div>
 </template>
@@ -49,10 +63,11 @@
 
 const { field } = useFieldGraph();
 const {
-  sim, isRunning, isPaused, stepsPerSecond, loop,
+  sim, isRunning, isPaused, stepsPerSecond, realTimeTargetFrameRate, stepMode, loop,
   load, start, stop, pause, resume, step,
 } = useCircuitSimulator();
 const customRate = ref(40);
+const realtimeRate = ref(60);
 const selectedRate = ref('40');
 
 watch(customRate, (rate) => {
@@ -61,24 +76,29 @@ watch(customRate, (rate) => {
   }
 });
 
+watch(realtimeRate, (rate) => {
+  if (selectedRate.value === 'realtime') {
+    realTimeTargetFrameRate.value = Math.max(1, rate);
+  }
+});
+
 watch(selectedRate, (rate) => {
-  if (rate === 'custom') {
-    stepsPerSecond.value = Math.max(0, customRate.value);
-    return;
+  switch (rate) {
+    default:
+      stepsPerSecond.value = Math.max(0, parseInt(rate));
+      stepMode.value = 'fixed';
+      break;
+    case 'vsync':
+      stepMode.value = 'vsync';
+      break;
+    case 'realtime':
+      stepMode.value = 'realtime';
+      break;
+    case 'custom':
+      stepsPerSecond.value = Math.max(0, customRate.value);
+      stepMode.value = 'fixed';
+      break;
   }
-  if (rate === 'realtime') {
-    // TODO: not yet implemented
-    console.warn('Real-time not yet implemented');
-    stepsPerSecond.value = 1000000;
-    return;
-  }
-  if (rate === 'vsync') {
-    // TODO: not yet implemented
-    console.warn('V-Sync not yet implemented');
-    stepsPerSecond.value = 60;
-    return;
-  }
-  stepsPerSecond.value = parseInt(rate);
 }, { immediate: true });
 
 const onStart = () => {

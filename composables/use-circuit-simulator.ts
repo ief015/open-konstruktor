@@ -4,19 +4,39 @@ import { CircuitSimulation, FieldGraph, Network, VerificationResult } from "@/si
 export type OnRenderHandler = () => void;
 export type OnCompleteHandler = (result: VerificationResult) => void;
 
+export type StepMode = 'fixed' | 'vsync' | 'realtime';
+
 const network = ref<Network>();
 network.value = new Network();
 
 const sim = ref<CircuitSimulation>();
 sim.value = new CircuitSimulation(network.value);
 
+let accumulatedTime = 0;
+
 const isRunning = ref(false);
 const isPaused = ref(false);
 const lastFrameTime = ref(0);
-const accumulatedTime = ref(0);
-const stepsPerSecond = ref(40);
 const loop = ref(false);
-const stepInterval = computed(() => 1000 / stepsPerSecond.value);
+const stepMode = ref<StepMode>('fixed');
+const stepsPerSecond = ref(40);
+const realTimeTargetFrameRate = ref(60);
+const realTimeTargetFrameInterval = computed(() => 1000 / realTimeTargetFrameRate.value);
+const stepsLastFrame = ref(0);
+const realtimeStepsPerSecond = computed(() => {
+  if (stepMode.value == 'realtime') {
+    return stepsLastFrame.value * realTimeTargetFrameRate.value;
+  } else {
+    return stepsPerSecond.value;
+  }
+});
+const stepInterval = computed(() => {
+  if (stepMode.value == 'realtime') {
+    return 0;
+  } else {
+    return 1000 / stepsPerSecond.value;
+  }
+});
 const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
 
@@ -36,7 +56,7 @@ const stop = () => {
     return;
   isRunning.value = false;
   isPaused.value = true;
-  accumulatedTime.value = 0;
+  accumulatedTime = 0;
   sim.value.reset(false);
 }
 
@@ -55,9 +75,21 @@ const onAnim = (timestamp: number) => {
   if (!isPaused.value) {
     const dt = timestamp - lastFrameTime.value;
     lastFrameTime.value = timestamp;
-    accumulatedTime.value += dt;
+    if (stepMode.value == 'vsync') {
+      // Always step only once per animation frame
+      accumulatedTime = stepInterval.value;
+    } else if (stepMode.value == 'realtime') {
+      accumulatedTime += realTimeTargetFrameInterval.value;
+    } else {
+      accumulatedTime += dt;
+    }
     let stepped = false;
-    while (accumulatedTime.value >= stepInterval.value) {
+    stepsLastFrame.value = 0;
+    const isRealTime = stepMode.value == 'realtime';
+    const interval = isRealTime ? 0 : stepInterval.value;
+    while (accumulatedTime >= interval) {
+      const ts = isRealTime ? performance.now() : 0;
+      stepsLastFrame.value++;
       stepped = true;
       if (sim.value.step()) {
         const verifyResult = sim.value.verify('kohctpyktop');
@@ -69,7 +101,12 @@ const onAnim = (timestamp: number) => {
           break;
         }
       }
-      accumulatedTime.value -= stepInterval.value;
+      if (isRealTime) {
+        const elapsed = performance.now() - ts;
+        accumulatedTime -= elapsed;
+      } else {
+        accumulatedTime -= stepInterval.value;
+      }
     }
     if (stepped) {
       invokeRenderers();
@@ -84,7 +121,7 @@ const start = () => {
   isRunning.value = true;
   isPaused.value = false;
   lastFrameTime.value = performance.now();
-  accumulatedTime.value = 0;
+  accumulatedTime = 0;
   sim.value.reset();
   requestAnimationFrame(onAnim);
 }
@@ -150,6 +187,11 @@ export default function useCircuitSimulator() {
     isRunning,
     isPaused,
     stepsPerSecond,
+    realTimeTargetFrameRate,
+    realTimeTargetFrameInterval,
+    stepsLastFrame: readonly(stepsLastFrame),
+    realtimeStepsPerSecond,
+    stepMode,
     loop,
     load,
     start,
