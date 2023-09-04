@@ -38,7 +38,7 @@ const canvasLayers = {
 const { field, dimensions, updateDesignScore } = useFieldGraph();
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 const {
-  network, sim, circuitFactory, isRunning, isPaused, realtimeStepsPerSecond,
+  network, sim, circuitFactory, isRunning, isPaused, stepsPerSecond,
   onRender: onCircuitRender, load,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
@@ -94,7 +94,7 @@ const debugMsg = computed(() => {
   dbg.push(`View: [${panX}, ${panY}]`);
   // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
   dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
-  dbg.push(`Steps/s: ${realtimeStepsPerSecond.value.toFixed(2)}`);
+  dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
   return dbg.join('<br/>');
 });
 const queueAnimFuncs: Set<()=>void> = new Set();

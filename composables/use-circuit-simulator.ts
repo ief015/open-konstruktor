@@ -19,22 +19,19 @@ const isPaused = ref(false);
 const lastFrameTime = ref(0);
 const loop = ref(false);
 const stepMode = ref<StepMode>('fixed');
-const stepsPerSecond = ref(40);
+const stepRate = ref(40);
+const stepCounter = ref(0);
+const elapsedTime = ref(0);
 const realTimeTargetFrameRate = ref(60);
 const realTimeTargetFrameInterval = computed(() => 1000 / realTimeTargetFrameRate.value);
-const stepsLastFrame = ref(0);
-const realtimeStepsPerSecond = computed(() => {
-  if (stepMode.value == 'realtime') {
-    return stepsLastFrame.value * realTimeTargetFrameRate.value;
-  } else {
-    return stepsPerSecond.value;
-  }
+const stepsPerSecond = computed(() => {
+  return stepCounter.value / elapsedTime.value * 1000;
 });
 const stepInterval = computed(() => {
   if (stepMode.value == 'realtime') {
     return 0;
   } else {
-    return 1000 / stepsPerSecond.value;
+    return 1000 / stepRate.value;
   }
 });
 const onRenderHandlers: OnRenderHandler[] = [];
@@ -84,12 +81,11 @@ const onAnim = (timestamp: number) => {
       accumulatedTime += dt;
     }
     let stepped = false;
-    stepsLastFrame.value = 0;
     const isRealTime = stepMode.value == 'realtime';
     const interval = isRealTime ? 0 : stepInterval.value;
     while (accumulatedTime >= interval) {
       const ts = isRealTime ? performance.now() : 0;
-      stepsLastFrame.value++;
+      stepCounter.value++;
       stepped = true;
       if (sim.value.step()) {
         const verifyResult = sim.value.verify('kohctpyktop');
@@ -111,6 +107,7 @@ const onAnim = (timestamp: number) => {
     if (stepped) {
       invokeRenderers();
     }
+    elapsedTime.value += dt;
   }
   requestAnimationFrame(onAnim);
 }
@@ -121,6 +118,8 @@ const start = () => {
   isRunning.value = true;
   isPaused.value = false;
   lastFrameTime.value = performance.now();
+  stepCounter.value = 0;
+  elapsedTime.value = 0;
   accumulatedTime = 0;
   sim.value.reset();
   requestAnimationFrame(onAnim);
@@ -177,6 +176,7 @@ export default function useCircuitSimulator() {
     return removeCompleteHandler;
   }
 
+  onUnmounted(stop);
   onUnmounted(removeRenderHandler);
   onUnmounted(removeCompleteHandler);
 
@@ -186,13 +186,13 @@ export default function useCircuitSimulator() {
     circuitFactory: readonly(currentFactory),
     isRunning,
     isPaused,
-    stepsPerSecond,
-    realTimeTargetFrameRate,
-    realTimeTargetFrameInterval,
-    stepsLastFrame: readonly(stepsLastFrame),
-    realtimeStepsPerSecond,
-    stepMode,
     loop,
+    stepRate,
+    stepMode,
+    stepsPerSecond,
+    stepCounter: readonly(stepCounter),
+    elapsedTime: readonly(elapsedTime),
+    realTimeTargetFrameRate,
     load,
     start,
     stop,

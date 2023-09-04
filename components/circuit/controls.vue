@@ -1,15 +1,15 @@
 <template>
   <div class="flex flex-row items-baseline gap-2 px-2">
     <div>
-      <button v-if="!isRunning" @click="onStart">
+      <button v-if="!isRunning" @click="onStart" class="w-[5em] overflow-hidden">
         Start
       </button>
-      <button v-else @click="stop">
+      <button v-else @click="stop" class="w-[5em] overflow-hidden">
         Stop
       </button>
     </div>
     <div>
-      <button @click="onTogglePause">
+      <button @click="onTogglePause" class="w-[5em] overflow-hidden">
         {{ isPaused && isRunning ? 'Resume' : 'Pause' }}
       </button>
     </div>
@@ -63,7 +63,7 @@
 
 const { field } = useFieldGraph();
 const {
-  sim, isRunning, isPaused, stepsPerSecond, realTimeTargetFrameRate, stepMode, loop,
+  sim, isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop,
   load, start, stop, pause, resume, step,
 } = useCircuitSimulator();
 const customRate = ref(40);
@@ -72,7 +72,7 @@ const selectedRate = ref('40');
 
 watchDebounced(customRate, (rate) => {
   if (selectedRate.value === 'custom') {
-    stepsPerSecond.value = Math.max(0, rate);
+    stepRate.value = Math.max(0, rate);
   }
 }, { debounce: 500 });
 
@@ -85,7 +85,7 @@ watchDebounced(realtimeRate, (rate) => {
 watch(selectedRate, (rate) => {
   switch (rate) {
     default:
-      stepsPerSecond.value = Math.max(0, parseInt(rate));
+      stepRate.value = Math.max(0, parseInt(rate));
       stepMode.value = 'fixed';
       break;
     case 'vsync':
@@ -95,7 +95,7 @@ watch(selectedRate, (rate) => {
       stepMode.value = 'realtime';
       break;
     case 'custom':
-      stepsPerSecond.value = Math.max(0, customRate.value);
+      stepRate.value = Math.max(0, customRate.value);
       stepMode.value = 'fixed';
       break;
   }
