@@ -490,7 +490,6 @@ watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
 
 useEventListener('mouseup', (e) => {
   if (!canvas.value) return;
-  e.preventDefault();
   switch (e.button) {
     case 0:
       isDrawing.value = false;
