@@ -18,6 +18,18 @@ Start the development server on `http://localhost:3000`:
 npm run dev
 ```
 
+Start Vitest unit test server:
+
+```bash
+npm test
+```
+
+Start Vitest benchmark server:
+
+```bash
+npm run bench
+```
+
 ## Production
 
 Build the application for production:

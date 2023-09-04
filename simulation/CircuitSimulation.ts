@@ -82,8 +82,7 @@ export class CircuitSimulation {
     }
     this.network.step();
     record && this.recordFrame();
-    this.currentFrame++;
-    return this.currentFrame >= this.getRunningLength();
+    return (++this.currentFrame) >= this.getRunningLength();
   }
 
   public reset(clearRecordings: boolean = true) {

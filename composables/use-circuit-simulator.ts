@@ -2,7 +2,7 @@ import { CircuitSimulationFactory } from "@/circuits";
 import { CircuitSimulation, FieldGraph, Network, VerificationResult } from "@/simulation";
 
 export type OnRenderHandler = () => void;
-export type OnCompleteHandler = (result: VerificationResult) => void;
+export type OnCompleteHandler = (result?: VerificationResult) => void;
 
 export type StepMode = 'fixed' | 'vsync' | 'realtime';
 
@@ -12,6 +12,7 @@ network.value = new Network();
 const sim = ref<CircuitSimulation>();
 sim.value = new CircuitSimulation(network.value);
 
+let lastFrameTime = 0;
 let accumulatedTime = 0;
 const profiler = reactive({
   steps: 0,
@@ -20,7 +21,6 @@ const profiler = reactive({
 
 const isRunning = ref(false);
 const isPaused = ref(false);
-const lastFrameTime = ref(0);
 const loop = ref(false);
 const stepMode = ref<StepMode>('fixed');
 const stepRate = ref(40);
@@ -48,7 +48,7 @@ const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
 }
 
-const invokeCompleteHandlers = (result: VerificationResult) => {
+const invokeCompleteHandlers = (result?: VerificationResult) => {
   onCompleteHandlers.forEach(handler => handler(result));
 }
 
@@ -72,39 +72,42 @@ const pause = () => {
 
 const resume = () => {
   isPaused.value = false;
-  lastFrameTime.value = performance.now();
+  lastFrameTime = performance.now();
 }
 
 const onAnim = (timestamp: number) => {
   if (!sim.value) return;
   if (!isRunning.value) return;
   if (!isPaused.value) {
-    const dt = timestamp - lastFrameTime.value;
-    lastFrameTime.value = timestamp;
+    const vsim = sim.value;
+    const looping = loop.value;
+    const isRealTime = stepMode.value == 'realtime';
+    const dt = timestamp - lastFrameTime;
+    lastFrameTime = timestamp;
     elapsedTime.value += dt;
     profiler.elapsed += dt;
-    if (stepMode.value == 'vsync') {
+    if (isRealTime) {
+      accumulatedTime += realTimeTargetFrameInterval.value;
+    } else if (stepMode.value == 'vsync') {
       // Always step only once per animation frame
       accumulatedTime = stepInterval.value;
-    } else if (stepMode.value == 'realtime') {
-      accumulatedTime += realTimeTargetFrameInterval.value;
     } else {
       accumulatedTime += dt;
     }
     let stepped = false;
-    const isRealTime = stepMode.value == 'realtime';
     const interval = isRealTime ? 0 : stepInterval.value;
     while (accumulatedTime >= interval) {
       const ts = isRealTime ? performance.now() : 0;
       stepCounter.value++;
       profiler.steps++;
       stepped = true;
-      if (sim.value.step()) {
-        const verifyResult = sim.value.verify('kohctpyktop');
-        invokeCompleteHandlers(verifyResult);
-        if (loop.value) {
-          sim.value.reset();
+      if (vsim.step()) {
+        if (looping) {
+          vsim.reset();
+          invokeCompleteHandlers();
         } else {
+          const verifyResult = vsim.verify('kohctpyktop');
+          invokeCompleteHandlers(verifyResult);
           stop();
           break;
         }
@@ -129,7 +132,7 @@ const start = () => {
   sim.value.reset();
   isRunning.value = true;
   isPaused.value = false;
-  lastFrameTime.value = performance.now();
+  lastFrameTime = performance.now();
   stepCounter.value = 0;
   elapsedTime.value = 0;
   accumulatedTime = 0;
