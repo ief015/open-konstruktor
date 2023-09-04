@@ -70,17 +70,17 @@ const customRate = ref(40);
 const realtimeRate = ref(60);
 const selectedRate = ref('40');
 
-watch(customRate, (rate) => {
+watchDebounced(customRate, (rate) => {
   if (selectedRate.value === 'custom') {
     stepsPerSecond.value = Math.max(0, rate);
   }
-});
+}, { debounce: 500 });
 
-watch(realtimeRate, (rate) => {
+watchDebounced(realtimeRate, (rate) => {
   if (selectedRate.value === 'realtime') {
     realTimeTargetFrameRate.value = Math.max(1, rate);
   }
-});
+}, { debounce: 500 });
 
 watch(selectedRate, (rate) => {
   switch (rate) {
