@@ -84,7 +84,6 @@ const updateFilteredPins = () => {
 const renderScope = () => {
   if (!ctx)
     return;
-  console.log('renderScope');
   const sim = getSimulation();
 
   ctx.resetTransform();
@@ -281,13 +280,11 @@ watch(isRunning, (running) => {
 });
 
 watch(simRef, (sim) => {
-  console.log('watch simRef');
   verifyResult.value = undefined;
   renderScope();
 });
 
 watch(networkRef, (network) => {
-  console.log('watch networkRef');
   updateFilteredPins();
   onResize();
 });

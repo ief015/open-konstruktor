@@ -17,6 +17,9 @@
       <button @click="onStep()" :disabled="!isPaused">Step+1</button>
     </div>
     <div>
+      <button @click="onStep(5)" :disabled="!isPaused">+5</button>
+    </div>
+    <div>
       <button @click="onStep(10)" :disabled="!isPaused">+10</button>
     </div>
     <div class="flex flex-row items-center text-sm">
