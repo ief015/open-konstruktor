@@ -69,16 +69,14 @@ const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
 let prevDrawingCoords: Point = [0, 0];
 const verifyResult = ref<VerificationResult>();
-const filteredPins: PinNode[] = [];
-const maxScopeHeight = ref(0);
 
-const updateFilteredPins = () => {
+const filteredPins = computed(() => {
   const pins = network.value.getPinNodes();
-  filteredPins.splice(0, filteredPins.length,
-    ...pins.filter((node, idx) => idx > 1 && idx < pins.length - 2)
-  );
-  maxScopeHeight.value = filteredPins.length * HEIGHT_PX_SCOPE;
-}
+  return pins.filter((node, idx) => idx > 1 && idx < pins.length - 2);
+})
+const maxScopeHeight = computed(() => {
+  return filteredPins.value.length * HEIGHT_PX_SCOPE;
+});
 
 const renderScope = () => {
   if (!ctx) return;
@@ -108,14 +106,15 @@ const renderScope = () => {
   ctx.restore();
 
   // draw scopes for each pin from top to bottom
+  const pins = filteredPins.value;
   ctx.save();
   ctx.strokeStyle = COLOR_SCOPE_LINE;
   ctx.fillStyle = COLOR_SCOPE_LINE;
   for (const offset of [ 0, 1 ]) {
     const baseline = -(HEIGHT_PX_SCOPE / 4 + 0.5);
     const highLine = baseline - Math.floor(HEIGHT_PX_SCOPE / 2);
-    for (let i = offset; i < filteredPins.length; i += 2) {
-      const pin = filteredPins[i];
+    for (let i = offset; i < pins.length; i += 2) {
+      const pin = pins[i];
       const { input, output } = vsim.getSequence(pin);
       ctx.translate(0, HEIGHT_PX_SCOPE);
 
@@ -283,7 +282,6 @@ watch(sim, (sim) => {
 });
 
 watch(network, (network) => {
-  updateFilteredPins();
   onResize();
 });
 
