@@ -62,8 +62,8 @@ let ctx: CanvasRenderingContext2D | null = null;
 
 const { designScore } = useFieldGraph();
 const {
-  networkRef, simRef, isRunning, currentFrame,
-  onRender: onCircuitRender, onComplete, getNetwork, getSimulation
+  network, sim, isRunning, currentFrame,
+  onRender: onCircuitRender, onComplete,
 } = useCircuitSimulator();
 const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
@@ -73,8 +73,7 @@ const filteredPins: PinNode[] = [];
 const maxScopeHeight = ref(0);
 
 const updateFilteredPins = () => {
-  const net = getNetwork();
-  const pins = net.getPinNodes();
+  const pins = network.value.getPinNodes();
   filteredPins.splice(0, filteredPins.length,
     ...pins.filter((node, idx) => idx > 1 && idx < pins.length - 2)
   );
@@ -82,9 +81,8 @@ const updateFilteredPins = () => {
 }
 
 const renderScope = () => {
-  if (!ctx)
-    return;
-  const sim = getSimulation();
+  if (!ctx) return;
+  const vsim = sim.value;
 
   ctx.resetTransform();
   ctx.translate(0.5, 0.25);
@@ -92,9 +90,9 @@ const renderScope = () => {
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.lineWidth = 1;
 
-  const runningLength = sim.getRunningLength();
+  const runningLength = vsim.getRunningLength();
   const scopeWidth = runningLength * TICK_WIDTH_PX;
-  const currentX = sim.getRecordingLength() * TICK_WIDTH_PX;
+  const currentX = vsim.getRecordingLength() * TICK_WIDTH_PX;
 
   // draw grid lines
   ctx.strokeStyle = COLOR_GRID_LINE;
@@ -118,7 +116,7 @@ const renderScope = () => {
     const highLine = baseline - Math.floor(HEIGHT_PX_SCOPE / 2);
     for (let i = offset; i < filteredPins.length; i += 2) {
       const pin = filteredPins[i];
-      const { input, output } = sim.getSequence(pin);
+      const { input, output } = vsim.getSequence(pin);
       ctx.translate(0, HEIGHT_PX_SCOPE);
 
       // draw label
@@ -172,7 +170,7 @@ const renderScope = () => {
         ctx.stroke();
 
         // actual
-        const rec = sim.getRecording(pin);
+        const rec = vsim.getRecording(pin);
         if (rec) {
           ctx.strokeStyle = COLOR_SCOPE_LINE;
           ctx.beginPath();
@@ -279,12 +277,12 @@ watch(isRunning, (running) => {
   renderScope();
 });
 
-watch(simRef, (sim) => {
+watch(sim, (sim) => {
   verifyResult.value = undefined;
   renderScope();
 });
 
-watch(networkRef, (network) => {
+watch(network, (network) => {
   updateFilteredPins();
   onResize();
 });

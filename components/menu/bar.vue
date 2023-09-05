@@ -56,7 +56,7 @@ import { kohctpyktop } from "@/circuits/kohctpyktop";
 import { openkonstruktor } from "@/circuits/open-konstruktor";
 import { CircuitSimulationFactory } from "@/circuits";
 
-const { getField, load, loadBlank } = useFieldGraph();
+const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim, stop } = useCircuitSimulator();
 const { ignoreKeyShortcuts } = useToolbox();
 const showImportDialog = ref(false);
@@ -135,13 +135,13 @@ const loaders: Record<string, CircuitSimulationFactory> = {
 };
 
 const onClear = () => {
-  const field = loadBlank(); // FIXME: this will load default canvas size
-  loadSim(field);
+  loadBlank(); // FIXME: this will load default canvas size
+  loadSim(field.value);
 }
 
 const onLoadCircuit = (loader: CircuitSimulationFactory) => {
-  const field = loadBlank(loader.width, loader.height, loader.pinRows);
-  loadSim(field, loader);
+  loadBlank(loader.width, loader.height, loader.pinRows);
+  loadSim(field.value, loader);
 }
 
 const onShowImportDialog = () => {
@@ -153,8 +153,7 @@ const onShowImportDialog = () => {
 }
 
 const onShowExportDialog = () => {
-  const field = getField();
-  exportCode.value = field.toSaveString() ?? '';
+  exportCode.value = field.value.toSaveString() ?? '';
   showExportDialog.value = true;
   exportCopied.value = false;
   nextTick(() => {
@@ -175,8 +174,8 @@ const onCopyExport = () => {
 
 const onImport = () => {
   if (!importCode.value) return;
-  const field = load(importCode.value);
-  loadSim(field);
+  load(importCode.value);
+  loadSim(field.value);
   showImportDialog.value = false;
 }
 

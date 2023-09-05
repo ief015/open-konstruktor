@@ -6,12 +6,6 @@ export type OnCompleteHandler = (result?: VerificationResult) => void;
 
 export type StepMode = 'fixed' | 'vsync' | 'realtime';
 
-let network: Network = new Network();
-const networkRef = ref<Network>(network);
-
-let sim = new CircuitSimulation(network);
-const simRef = ref<CircuitSimulation>(sim);
-
 let lastFrameTime = 0;
 let accumulatedTime = 0;
 const profiler = reactive({
@@ -19,6 +13,8 @@ const profiler = reactive({
   elapsed: 0,
 });
 
+const network = shallowRef<Network>(new Network());
+const sim = shallowRef<CircuitSimulation>(new CircuitSimulation(network.value));
 const isRunning = ref(false);
 const isPaused = ref(false);
 const loop = ref(false);
@@ -62,7 +58,7 @@ const stop = () => {
   isPaused.value = true;
   accumulatedTime = 0;
   currentFrame.value = 0;
-  sim.reset(false);
+  sim.value.reset(false);
 }
 
 const pause = () => {
@@ -75,7 +71,6 @@ const resume = () => {
 }
 
 const onAnim = (timestamp: number) => {
-  if (!sim) return;
   if (!isRunning.value) return;
   if (!isPaused.value) {
     const isRealTime = stepMode.value == 'realtime';
@@ -115,7 +110,7 @@ const onAnim = (timestamp: number) => {
 }
 
 const start = () => {
-  sim.reset();
+  sim.value.reset();
   isRunning.value = true;
   isPaused.value = false;
   lastFrameTime = performance.now();
@@ -129,31 +124,29 @@ const start = () => {
 const load = (field: FieldGraph, simFactory: CircuitSimulationFactory = currentFactory.value) => {
   stop();
   const { setup } = (currentFactory.value = simFactory);
-  network = Network.from(field);
-  networkRef.value = network;
-  sim = setup(network);
-  simRef.value = sim;
-  return sim;
+  network.value = Network.from(field);
+  sim.value = setup(network.value);
 }
 
 const step = (n = 1, bInvokeRenderers = true) => {
   if (!isRunning.value) return true;
+  const vsim = sim.value;
   let endReached = false;
   for (let i = 0; i < n; i++) {
-    if (endReached = sim.step()) {
+    if (endReached = vsim.step()) {
       if (loop.value) {
-        sim.reset();
+        vsim.reset();
         invokeCompleteHandlers();
         endReached = false;
       } else {
-        const verifyResult = sim.verify('kohctpyktop');
+        const verifyResult = vsim.verify('kohctpyktop');
         invokeCompleteHandlers(verifyResult);
         stop();
         break;
       }
     }
   }
-  currentFrame.value = sim.getCurrentFrame();
+  currentFrame.value = vsim.getCurrentFrame();
   bInvokeRenderers && invokeRenderers();
   return endReached;
 }
@@ -194,13 +187,8 @@ export default function useCircuitSimulator() {
   onUnmounted(removeCompleteHandler);
 
   return {
-
-    /** Use for watching changes and reactivity, use getSimulation() for performance. */
-    simRef,
-
-    /** Use for watching changes and reactivity, use getNetwork() for performance. */
-    networkRef,
-
+    sim,
+    network,
     circuitFactory: readonly(currentFactory),
     isRunning,
     isPaused,
@@ -220,7 +208,5 @@ export default function useCircuitSimulator() {
     resetProfiler,
     onRender,
     onComplete,
-    getNetwork: () => network,
-    getSimulation: () => sim,
   };
 }

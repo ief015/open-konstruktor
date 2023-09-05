@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 
-const { getField } = useFieldGraph();
+const { field } = useFieldGraph();
 const {
   isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop,
   load, start, stop, pause, resume, step, resetProfiler,
@@ -109,8 +109,7 @@ watch(selectedRate, (rate) => {
 
 const onStart = () => {
   if (isRunning.value) return;
-  const field = getField();
-  load(field);
+  load(field.value);
   start();
 }
 
