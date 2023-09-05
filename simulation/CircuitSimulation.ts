@@ -86,6 +86,9 @@ export class CircuitSimulation {
   }
 
   public reset(clearRecordings: boolean = true) {
+    for (const [ pin, sequence ] of this.inputSequences) {
+      pin.active = sequence.getFrames()[0] ?? false;
+    }
     this.network.reset();
     clearRecordings && this.clearRecordings();
     this.currentFrame = 0;
