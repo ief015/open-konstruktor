@@ -205,6 +205,7 @@ export default class FieldGraph {
             // Horizontal gate
             if (this.isValidGateSpot([x, y], 'h')) {
               data.set(Layer.GatesH, x, y, GateValue.Gate);
+              this.removeVia([x, y]);
             } else {
               return;
             }
@@ -221,6 +222,7 @@ export default class FieldGraph {
             // Vertical gate
             if (this.isValidGateSpot([x, y], 'v')) {
               data.set(Layer.GatesV, x, y, GateValue.Gate);
+              this.removeVia([x, y]);
             } else {
               return;
             }
