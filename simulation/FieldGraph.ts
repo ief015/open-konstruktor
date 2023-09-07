@@ -481,9 +481,7 @@ export default class FieldGraph {
     if (typeof saveData === 'string') {
       saveData = DesignData.from(decodeSync(saveData));
     }
-    const graph = new FieldGraph();
-    graph.data = saveData;
-    return graph;
+    return new FieldGraph(saveData);
   }
 
 }
