@@ -2,11 +2,11 @@
   <div class="flex flex-col" :style="{ 'background-color': COLOR_CHART }">
     <div
       ref="canvasContainer"
-      :class="`relative m-[8px] overflow-auto max-h-[${maxScopeHeight}px]`"
+      :class="`m-[8px] overflow-auto max-h-[${maxScopeHeight}px]`"
     >
       <canvas
         ref="canvas"
-        class="relative inset-0"
+        class="w-full h-full"
         @mousemove="onMouseMove"
         @mousedown="onMouseDown"
         @mouseup="onMouseUp"
@@ -58,8 +58,7 @@ const WIDTH_PX_LABELS = 52; // Minimum width for labels
 
 const canvasContainer = ref<HTMLDivElement>();
 const canvas = ref<HTMLCanvasElement>();
-let ctx: CanvasRenderingContext2D | null = null;
-
+const canvasWidth = ref(0);
 const { designScore } = useFieldGraph();
 const {
   network, sim, isRunning, currentFrame,
@@ -69,23 +68,34 @@ const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
 let prevDrawingCoords: Point = [0, 0];
 const verifyResult = ref<VerificationResult>();
-
-const filteredPins = computed(() => {
+const filteredPins = computed<PinNode[]>(() => {
   const pins = network.value.getPinNodes();
   return pins.filter((node, idx) => idx > 1 && idx < pins.length - 2);
 })
-const maxScopeHeight = computed(() => {
+const maxScopeHeight = computed<number>(() => {
   return filteredPins.value.length * HEIGHT_PX_SCOPE;
+});
+const translateX = computed<number>(() => {
+  if (!canvas.value) return 0;
+  const padLength = (WIDTH_PX_LABELS / TICK_WIDTH_PX);
+  const visibleFrameLength = (canvasWidth.value / TICK_WIDTH_PX);
+  const endPos = sim.value.getRunningLength() + padLength;
+  if (endPos <= visibleFrameLength) return 0;
+  const curPos = currentFrame.value + padLength;
+  const center = visibleFrameLength / 2;
+  return Math.max(0, Math.min(endPos - visibleFrameLength + 1, curPos - center)) * TICK_WIDTH_PX;
 });
 
 const renderScope = () => {
-  if (!ctx) return;
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
   const vsim = sim.value;
 
-  ctx.resetTransform();
-  ctx.translate(0.5, 0.25);
+  ctx.save();
   ctx.fillStyle = COLOR_CHART;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.translate(0.5, 0.25);
+  ctx.translate(-translateX.value, 0);
   ctx.lineWidth = 1;
 
   const runningLength = vsim.getRunningLength();
@@ -95,14 +105,16 @@ const renderScope = () => {
   // draw grid lines
   ctx.strokeStyle = COLOR_GRID_LINE;
   ctx.save();
-  ctx.setLineDash([ 2, 1 ]);
-  ctx.translate(WIDTH_PX_LABELS, 0);
-  ctx.beginPath();
-  for (let i = 0; i <= runningLength; i += GRID_LINE_INTERVAL) {
-    ctx.moveTo(i * TICK_WIDTH_PX, 0);
-    ctx.lineTo(i * TICK_WIDTH_PX, ctx.canvas.height);
+  {
+    ctx.setLineDash([ 2, 1 ]);
+    ctx.translate(WIDTH_PX_LABELS, 0);
+    ctx.beginPath();
+    for (let i = 0; i <= runningLength; i += GRID_LINE_INTERVAL) {
+      ctx.moveTo(i * TICK_WIDTH_PX, 0);
+      ctx.lineTo(i * TICK_WIDTH_PX, ctx.canvas.height);
+    }
+    ctx.stroke();
   }
-  ctx.stroke();
   ctx.restore();
 
   // draw scopes for each pin from top to bottom
@@ -124,8 +136,11 @@ const renderScope = () => {
       ctx.lineTo(WIDTH_PX_LABELS, baseline);
       ctx.stroke();
       if (pin.label) {
+        ctx.save();
+        ctx.translate(translateX.value, 0);
         ctx.font = '10px Georgia10';
         ctx.fillText(pin.label, -0.5, baseline - 4, WIDTH_PX_LABELS);
+        ctx.restore();
       }
 
       // draw scopes on graph
@@ -207,6 +222,8 @@ const renderScope = () => {
     ctx.lineTo(WIDTH_PX_LABELS + currentX, ctx.canvas.height);
     ctx.stroke();
   }
+
+  ctx.restore();
 }
 
 const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
@@ -216,7 +233,8 @@ const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
 }
 
 const mouseToGrid = (mx: number, my: number): Point => {
-  if (!ctx) return [0, 0];
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
   const rect = ctx.canvas.getBoundingClientRect();
   const x = Math.trunc((mx - rect.left) / 12);
   const y = Math.trunc((my - rect.top) / 12);
@@ -224,7 +242,8 @@ const mouseToGrid = (mx: number, my: number): Point => {
 }
 
 const onMouseMove = (e: MouseEvent) => {
-  if (!ctx) return;
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
   if (isRunning.value) return;
   if (isDrawing.value) {
     const coords = mouseToGrid(e.clientX, e.clientY);
@@ -234,7 +253,8 @@ const onMouseMove = (e: MouseEvent) => {
 }
 
 const onMouseDown = (e: MouseEvent) => {
-  if (!ctx) return;
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
   if (isRunning.value) return;
   if (e.button === 0) {
     drawMode.value = 'high';
@@ -249,15 +269,18 @@ const onMouseDown = (e: MouseEvent) => {
 }
 
 const onMouseUp = (e: MouseEvent) => {
-  if (!ctx) return;
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
   if (isRunning.value) return;
   isDrawing.value = false;
 }
 
 const onResize = () => {
-  if (!ctx || !canvasContainer.value)
-    return;
-  ctx.canvas.width = Math.trunc(canvasContainer.value.clientWidth);
+  if (!canvas.value) throw new Error('Could not get canvas element');
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
+  ctx.canvas.width = Math.trunc(canvas.value.clientWidth);
+  canvasWidth.value = ctx.canvas.width;
   ctx.canvas.height = maxScopeHeight.value;
   renderScope();
 }
@@ -288,7 +311,7 @@ watch(network, (network) => {
 useResizeObserver(canvasContainer, () => onResize());
 
 onMounted(async () => {
-  ctx = canvas.value?.getContext('2d') ?? null;
+  const ctx = canvas.value?.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
   ctx.imageSmoothingEnabled = false;
   onResize();
