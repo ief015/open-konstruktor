@@ -15,7 +15,7 @@
         Your browser must support the canvas tag.
       </canvas>
     </div>
-    <div class="px-[8px] flex flex-row justify-between items-baseline text-black">
+    <div class="px-[8px] flex flex-row justify-between items-end text-black">
       <div
         class="font-georgia12 text-[12px] uppercase"
       >
