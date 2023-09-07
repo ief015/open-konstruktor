@@ -20,7 +20,7 @@
         @keypress.enter="onImport"
       />
       <div class="flex flex-row gap-2 justify-end">
-        <button @click="onImport">
+        <button @click="onImport" class="font-bold">
           Import
         </button>
         <button @click="showImportDialog = false">
@@ -37,7 +37,7 @@
         :value="exportCode"
       />
       <div class="flex flex-row gap-2 justify-end">
-        <button @click="onCopyExport">
+        <button @click="onCopyExport" class="font-bold">
           {{ exportCopied ? 'Copied!' : 'Copy' }}
         </button>
         <button @click="showExportDialog = false">
