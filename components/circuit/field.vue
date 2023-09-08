@@ -75,7 +75,7 @@ const debugMsg = computed(() => {
     const mouseY = canvasMouseY.value.toFixed(0);
     const coordX = coordMouseX.value;
     const coordY = coordMouseY.value;
-    dbg.push(`Mouse: [${mouseX}, ${mouseY}]`);
+    //dbg.push(`Mouse: [${mouseX}, ${mouseY}]`);
     dbg.push(`Coord: [${coordX}, ${coordY}]`);
     /*
     const data = field.value?.getData();
@@ -91,7 +91,7 @@ const debugMsg = computed(() => {
   const { minX, minY, maxX, maxY } = viewBounds.value;
   const { columns, rows } = dimensions;
   // dbg.push(`Grid: [${columns}, ${rows}]`);
-  dbg.push(`View: [${panX}, ${panY}]`);
+  //dbg.push(`View: [${panX}, ${panY}]`);
   // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
   dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
   dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
