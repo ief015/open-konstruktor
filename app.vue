@@ -14,7 +14,12 @@
       <div class="h-[1.5em] top-border"></div>
     </template>
     <template #left>
-      <div class="w-[5em] h-full right-border"></div>
+      <div class="w-[10em] h-full right-border flex flex-col">
+        <label class="text-xs font-ttw m-1">Designs</label>
+        <ToolboxDesignSelect class="flex-1" />
+        <label class="text-xs font-ttw m-1">Snippets</label>
+        <ToolboxSnippetsSelect class="flex-1" />
+      </div>
     </template>
     <template #right>
       <div class="w-[5em] h-full left-border">
