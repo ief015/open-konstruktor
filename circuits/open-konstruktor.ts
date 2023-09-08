@@ -11,8 +11,19 @@ const assignVCC = (...pins: PinNode[]) => {
   });
 }
 
+const generateRandomSequence = (length: number, pulseSize: number = 10, freq: number = 0.5) => {
+  const seq = new Sequence();
+  for (let i = 0; i < length; i += pulseSize) {
+    if (Math.random() < freq) {
+      seq.addPulse(i, pulseSize);
+    }
+  }
+  return seq.slice(0, length);
+}
+
 type LevelNames =
-    'OC2C1 DUAL FULL COMPARATOR';
+    'OC2C1 DUAL FULL COMPARATOR'
+  | 'Very large test';
 
 const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
 
@@ -40,18 +51,22 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
       pinXG1.label =  '+X1';
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       const sim = new CircuitSimulation(network, 280);
-      const seqA0 = new Sequence()
-        .addOscillation(10, 7, 20, 20);
-      const seqB0 = new Sequence()
-        .addOscillation(20, 5, 30, 20);
-      const seqA1 = new Sequence()
-        .addOscillation(0, 3, 10, 20)
-        .addOscillation(80, 2, 20, 10)
-        .addOscillation(200, 3, 10, 10);
-      const seqB1 = new Sequence()
-        .addOscillation(10, 2, 10, 30)
-        .addOscillation(90, 2, 30, 20)
-        .addOscillation(190, 3, 20, 10);
+       const seqA0 = new Sequence()
+         .addOscillation(10, 7, 20, 20);
+       const seqB0 = new Sequence()
+         .addOscillation(20, 5, 30, 20);
+       const seqA1 = new Sequence()
+         .addOscillation(0, 3, 10, 20)
+         .addOscillation(80, 2, 20, 10)
+         .addOscillation(200, 3, 10, 10);
+       const seqB1 = new Sequence()
+         .addOscillation(10, 2, 10, 30)
+         .addOscillation(90, 2, 30, 20)
+         .addOscillation(190, 3, 20, 10);
+      //const seqA0 = generateRandomSequence(280, 10, 0.6);
+      //const seqB0 = generateRandomSequence(280, 10, 0.4);
+      //const seqA1 = generateRandomSequence(280, 10, 0.6);
+      //const seqB1 = generateRandomSequence(280, 10, 0.4);
       sim.setInputSequence(pinA0, seqA0);
       sim.setInputSequence(pinB0, seqB0);
       sim.setInputSequence(pinA1, seqA1);
@@ -79,6 +94,29 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinXL1, seqXL1);
       sim.setOutputSequence(pinX1, seqX1);
       sim.setOutputSequence(pinXG1, seqXG1);
+      return sim;
+    }
+  },
+
+  'Very large test': {
+    width: 100,
+    height: 100,
+    setup: (network) => {
+      const pins = network.getPinNodes();
+      if (pins.length !== 12) {
+        throw new Error(`Pin count must be 12, got ${pins.length}`);
+      }
+      const [
+        pinVCC0, pinVCC1,
+        pinNC0, pinNC1,
+        pinNC2, pinNC3,
+        pinNC4, pinNC5,
+        pinNC6, pinNC7,
+        pinVCC2, pinVCC3,
+      ] = pins;
+      assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+      const sim = new CircuitSimulation(network, 280);
+      // Add I/O sequences...
       return sim;
     }
   },
