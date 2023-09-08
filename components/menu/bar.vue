@@ -20,7 +20,7 @@
         @keypress.enter="onImport"
       />
       <div class="flex flex-row gap-2 justify-end">
-        <button @click="onImport" class="font-bold">
+        <button @click="onImport" :disabled="!importCode.length" class="font-bold">
           Import
         </button>
         <button @click="showImportDialog = false">
@@ -174,9 +174,13 @@ const onCopyExport = () => {
 
 const onImport = () => {
   if (!importCode.value) return;
-  load(importCode.value);
-  loadSim(field.value);
-  showImportDialog.value = false;
+  try {
+    load(importCode.value);
+    loadSim(field.value);
+    showImportDialog.value = false;
+  } catch (e: any) {
+    alert(`Failed to import:\n${e.message ?? e}`);
+  }
 }
 
 const onSelected = ({ name, path, id }: { name: string; path: string, id: string }) => {
