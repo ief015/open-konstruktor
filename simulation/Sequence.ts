@@ -42,7 +42,7 @@ export default class Sequence implements Iterable<boolean> {
     };
   }
 
-  public slice(start: number, end: number): Sequence {
+  public slice(start: number, end?: number): Sequence {
     const sequence = new Sequence();
     sequence.frames = this.frames.slice(start, end);
     sequence.frames[0] = this.probe(start);
