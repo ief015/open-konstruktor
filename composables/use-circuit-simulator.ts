@@ -128,6 +128,26 @@ const load = (field: FieldGraph, simFactory: CircuitSimulationFactory = currentF
   sim.value = setup(network.value);
 }
 
+const updateField = (field: FieldGraph) => {
+  stop();
+  network.value = Network.from(field);
+  sim.value.setNetwork(network.value);
+}
+
+const regenerateSequences = () => {
+  const regen = currentFactory.value.setup(network.value);
+  const pins = network.value.getPinNodes();
+  for (const pin of pins) {
+    const { input, output } = regen.getSequence(pin);
+    if (input) {
+      sim.value.setInputSequence(pin, input.slice(0));
+    }
+    if (output) {
+      sim.value.setOutputSequence(pin, output.slice(0));
+    }
+  }
+}
+
 const step = (n = 1, bInvokeRenderers = true) => {
   if (!isRunning.value) return true;
   const vsim = sim.value;
@@ -138,6 +158,9 @@ const step = (n = 1, bInvokeRenderers = true) => {
         vsim.reset();
         invokeCompleteHandlers();
         endReached = false;
+        if (currentFactory.value.regenOnLoop) {
+          regenerateSequences();
+        }
       } else {
         const verifyResult = vsim.verify('kohctpyktop');
         invokeCompleteHandlers(verifyResult);
@@ -200,6 +223,8 @@ export default function useCircuitSimulator() {
     currentFrame: readonly(currentFrame),
     realTimeTargetFrameRate,
     load,
+    updateField,
+    regenerateSequences,
     start,
     stop,
     pause,

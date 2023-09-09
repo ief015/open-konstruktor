@@ -67,7 +67,7 @@
 const { field } = useFieldGraph();
 const {
   isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop,
-  load, start, stop, pause, resume, step, resetProfiler,
+  start, stop, pause, resume, step, resetProfiler, updateField,
 } = useCircuitSimulator();
 const customRate = ref(40);
 const realtimeRate = ref(60);
@@ -109,7 +109,7 @@ watch(selectedRate, (rate) => {
 
 const onStart = () => {
   if (isRunning.value) return;
-  load(field.value);
+  updateField(field.value);
   start();
 }
 
