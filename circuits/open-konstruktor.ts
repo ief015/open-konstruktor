@@ -11,9 +11,9 @@ const assignVCC = (...pins: PinNode[]) => {
   });
 }
 
-const generateRandomSequence = (length: number, pulseSize: number = 10, freq: number = 0.5) => {
+const generateRandomSequence = (length: number, pulseSize: number = 10, freq: number = 0.5, spacing: number = 0) => {
   const seq = new Sequence();
-  for (let i = 0; i < length; i += pulseSize) {
+  for (let i = 0; i < length; i += (pulseSize + spacing)) {
     if (Math.random() < freq) {
       seq.addPulse(i, pulseSize);
     }
@@ -23,6 +23,7 @@ const generateRandomSequence = (length: number, pulseSize: number = 10, freq: nu
 
 type LevelNames =
     'OC2C1 DUAL FULL COMPARATOR'
+  | 'OL2J1 DUAL J-K FLIP-FLOP'
   | 'Very large test';
 
 const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
@@ -94,6 +95,75 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinXL1, seqXL1);
       sim.setOutputSequence(pinX1, seqX1);
       sim.setOutputSequence(pinXG1, seqXG1);
+      return sim;
+    }
+  },
+
+  'OL2J1 DUAL J-K FLIP-FLOP': {
+    regenOnLoop: true,
+    setup: (network) => {
+      const [
+        pinVCC0, pinVCC1,
+        pinJ0, pinJ1,
+        pinCLK, pinNC3,
+        pinK0, pinK1,
+        pinQ0, pinQ1,
+        pinVCC2, pinVCC3,
+      ] = network.getPinNodes();
+      pinJ0.label =   'J0';
+      pinJ1.label =   'J1';
+      pinK0.label =   'K0';
+      pinK1.label =   'K1';
+      pinCLK.label =  'CLK';
+      pinQ0.label =   'Q0';
+      pinQ1.label =   'Q1';
+      assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+      const sim = new CircuitSimulation(network, 280);
+      const seqJ0 = generateRandomSequence(280, 10, 0.4);
+      const seqJ1 = generateRandomSequence(280, 10, 0.4);
+      const seqK0 = generateRandomSequence(280, 10, 0.4);
+      const seqK1 = generateRandomSequence(280, 10, 0.4);
+      const seqCLK = generateRandomSequence(280, 5, 0.5, 5);
+      sim.setInputSequence(pinJ0, seqJ0);
+      sim.setInputSequence(pinJ1, seqJ1);
+      sim.setInputSequence(pinK0, seqK0);
+      sim.setInputSequence(pinK1, seqK1);
+      sim.setInputSequence(pinCLK, seqCLK);
+      const [
+        seqQ0, seqQ1,
+      ] = createSequencesFromInputs(
+        [ seqJ0, seqJ1, seqK0, seqK1, seqCLK ],
+        ({ inputs, state }) => {
+          const [ j0, j1, k0, k1, clk ] = inputs;
+          if (clk && !state.lastClk) {
+            if (j0 && !k0) {
+              state.q[0] = true;
+            } else if (!j0 && k0) {
+              state.q[0] = false;
+            } else if (j0 && k0) {
+              state.q[0] = !state.q[0];
+            }
+            if (j1 && !k1) {
+              state.q[1] = true;
+            } else if (!j1 && k1) { 
+              state.q[1] = false;
+            } else if (j1 && k1) {
+              state.q[1] = !state.q[1];
+            }
+          }
+          state.lastClk = clk;
+          return [
+            state.q[0],
+            state.q[1],
+          ];
+        },
+        {
+          q: [ false, false ],
+          lastClk: false,
+        },
+      );
+      sim.setOutputSequence(pinQ0, seqQ0);
+      sim.setOutputSequence(pinQ1, seqQ1);
       return sim;
     }
   },

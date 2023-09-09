@@ -5,4 +5,5 @@ export interface CircuitSimulationFactory {
   width?: number;
   height?: number;
   pinRows?: number;
+  regenOnLoop?: boolean;
 }

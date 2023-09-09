@@ -57,7 +57,7 @@ import { openkonstruktor } from "@/circuits/open-konstruktor";
 import { CircuitSimulationFactory } from "@/circuits";
 
 const { field, load, loadBlank } = useFieldGraph();
-const { load: loadSim, stop } = useCircuitSimulator();
+const { load: loadSim } = useCircuitSimulator();
 const { ignoreKeyShortcuts } = useToolbox();
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
@@ -122,8 +122,9 @@ const items = [
       {
         name: "Open-Konstruktor",
         menu: [
-          { id: 'level:OC2C1 DUAL FULL COMPARATOR',   name: "OC2C1 DUAL FULL COMPARATOR" },
-          { id: 'level:Very large test',   name: "Very large test" },
+          { id: 'level:OC2C1 DUAL FULL COMPARATOR', name: "OC2C1 DUAL FULL COMPARATOR" },
+          { id: 'level:OL2J1 DUAL J-K FLIP-FLOP',   name: "OL2J1 DUAL J-K FLIP-FLOP" },
+          { id: 'level:Very large test',            name: "Very large test" },
         ],
       },
     ]
