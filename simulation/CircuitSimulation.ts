@@ -111,6 +111,49 @@ export class CircuitSimulation {
     return this.network;
   }
 
+  /**
+   * Sets the network to simulate.
+   * This will reset the simulation and clear all recordings.
+   * If the pin count varies, the input and output sequences will be cleared,
+   * else they will be remapped to the new pins.
+   */
+  public setNetwork(network: Network) {
+    const oldNet = this.network;
+    this.network = network;
+    this.reset();
+    const oldPins = oldNet.getPinNodes();
+    const newPins = network.getPinNodes();
+    if (oldPins.length !== newPins.length) {
+      this.clearInputSequences();
+      this.clearOutputSequences();
+    } else {
+      // Remap sequences to new pins at same locations.
+      const newInputSequences = new Map<PinNode, Sequence>();
+      const newOutputSequences = new Map<PinNode, Sequence>();
+      for (let i = 0; i < oldPins.length; i++) {
+        const oldPin = oldPins[i];
+        const newPin = newPins[i];
+        const inputSequence = this.inputSequences.get(oldPin);
+        if (inputSequence) {
+          newInputSequences.set(newPin, inputSequence);
+        }
+        const outputSequence = this.outputSequences.get(oldPin);
+        if (outputSequence) {
+          newOutputSequences.set(newPin, outputSequence);
+        }
+      }
+      this.inputSequences = newInputSequences;
+      this.outputSequences = newOutputSequences;
+      // Remap pin info.
+      for (let i = 0; i < oldPins.length; i++) {
+        const oldPin = oldPins[i];
+        const newPin = newPins[i];
+        newPin.label = oldPin.label;
+        newPin.active = oldPin.active;
+      }
+    }
+  }
+
   public getRecording(pin: PinNode): Readonly<Sequence> | null {
     return this.recording.get(pin) ?? null;
   }
