@@ -22,6 +22,12 @@ const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
 
 /*
 TODO description 01 Introduction
+
+Your primary objective is to build a circuit that will produce the expected output(s).
+You must pass the verification test with at least 97% accuracy in order to mark a level as
+complete.
+
+Goal: Connect the input and output pins by drawing metal.
 */
   '01 Introduction': {
     pinRows: 1,
@@ -97,14 +103,15 @@ N-Type silicon, in which case the gate is closed. When the signal is removed, th
 
 By using a PNP gate, we can invert a signal.
 <IMG: Show PNP gate with and without signal>
+<IMG: Scope of inverted signal>
 
-Goal: Build a PNP gate to invert the input signal.
-
-After: You may notice that the output signal is not an exact inversion of the input signal, but
+You may notice that the output signal is not an exact inversion of the input signal, but
 is slightly delayed. This is due to **propagation delay**, which is the time it takes for the gate
 to transition between opened or closed. This is expected, and the verification test will succeed if
-the output signal is matches within a short tolerance. Progagation delay will be explored further
-in a later tutorial level.
+the output signal matches within a short tolerance. Progagation delay will be explored further in a
+later tutorial level.
+
+Goal: Build a PNP gate to invert the input signal.
 */
   '03 PNP Gates': {
     pinRows: 2,
@@ -142,9 +149,9 @@ applied to the P-Type silicon. When the signal is removed, the gate closes again
 
 Goal: Build an AND gate by using two NPN gates.
 
-Note: Building an AND gate is possible only one NPN gate. However, due to propagation delay, doing
-so can result with some side-effects, which may or may not be beneficial to your circuit. Feel free
-to try it out and see what happens!
+Note: Building an AND gate is possible only one NPN gate. However, doing so can result with some
+side-effects due to propagation delay, which may or may not be beneficial to your circuit design.
+Feel free to try it out and see what happens!
 */
   '04 NPN Gates': {
     pinRows: 2,
