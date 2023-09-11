@@ -24,10 +24,19 @@ const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
 TODO description 01 Introduction
 
 Your primary objective is to build a circuit that will produce the expected output(s).
-You must pass the verification test with at least 97% accuracy in order to mark a level as
-complete.
 
-Goal: Connect the input and output pins by drawing metal.
+Goal: Connect the input pin to the output pin by drawing metal, and click Start to run the
+verification test.
+
+== ON COMPLETION ==
+After passing the verification test, the level will be marked as complete.
+In order to pass the verification test, your circuit must be at least 97% accurate.
+Completing levels will unlock later levels, and you can always go back and replay previous levels.
+
+The design score represents the amount of material you used to build your circuit. There is no limit
+to the amount of material you can use, you're only only limited by the size of the board. The
+design score is not related to the verification test, and is only used to compare your design to
+others.
 */
   '01 Introduction': {
     pinRows: 1,
@@ -49,7 +58,7 @@ Goal: Connect the input and output pins by drawing metal.
   },
 
 /*
-**Metal** and **silicon** are the two primary materials used to build our circuits.
+**Metal** and **silicon** are the two primary materials used to build your circuits.
 Metal and silicon are placed on different layers of the chip, which allows current to flow across
 them.
 <IMG: show metal flowing current above silicon>
@@ -63,6 +72,9 @@ control the flow of current, which will be demonstrated in the next level. In th
 type of silicon will work.
 
 Goal: Place metal, silicon and vias in order to connect the matching pairs of pins.
+
+== ON COMPLETION ==
+Next, you will be introduced to gates, which are used to control the flow of current.
 */
   '02 Metal, Silicon and Vias': {
     pinRows: 2,
@@ -99,11 +111,16 @@ Gates can be built by drawing silicon over top silicon of the opposite type.
 
 The first gate we will build is the PNP gate, which is N-Type silicon drawn over P-Type silicon.
 A PNP gate allows current to flow through the P-Type silicon, unless a signal is applied to the
-N-Type silicon, in which case the gate is closed. When the signal is removed, the gate opens again.
+N-Type silicon, in which case the gate will close. When the signal is removed, the gate opens again
+allowing current to flow again.
 
 By using a PNP gate, we can invert a signal. This is called a **NOT gate**.
-<IMG: Show PNP gate with and without signal>
+<IMG: Show NOT gate with and without input>
 <IMG: Scope of inverted signal>
+
+Goal: Build a PNP gate to invert the input signal.
+
+== ON COMPLETION ==
 
 You may notice that the output signal is not an exact inversion of the input signal, but
 is slightly delayed. This is due to **propagation delay**, which is the time it takes for the gate
@@ -111,7 +128,7 @@ to transition between opened or closed. This is expected, and the verification t
 the output signal matches within a short tolerance. Progagation delay will be explored further in a
 later tutorial level.
 
-Goal: Build a PNP gate to invert the input signal.
+In the next level, you will be introduced to the counterpart of the PNP gate: the NPN gate.
 */
   '03 PNP Gates': {
     pinRows: 2,
@@ -157,9 +174,15 @@ we can stop the flow of current unless all inputs are active. This is called an 
 
 Goal: Build an AND gate by using two NPN gates.
 
-Note: Building an AND gate is possible only one NPN gate. However, doing so can result with some
+== ON COMPLETION ==
+The PNP gate and the NPN gate are the two fundamental building blocks of your circuits. By using
+them together, circuits can be built to perform complex logical operations.
+
+Building an AND gate is possible only one NPN gate. However, doing so can result with some
 side-effects due to propagation delay, which may or may not be beneficial to your circuit design.
 Feel free to try it out and see what happens!
+
+In the next level, we will go into more detail about propagation delay.
 */
   '04 NPN Gates': {
     pinRows: 2,
@@ -196,7 +219,41 @@ Feel free to try it out and see what happens!
   },
 
 /*
-TODO description 05 Propagation Delay
+**Propegation delay** is the time it takes for a gate to transition between its opened and closed
+states.
+
+For many of the earlier levels, propagation delay is usually not a significant concern. Although it
+is important to understand as it can affect the behavior of your circuits.
+
+The delay occurs when a PNP or NPN gate receives a signal to change its state from opened to closed,
+or vice-versa. The gate does not change immediately, and instead takes 1 cycle to transition. This
+means that the output signal will be delayed by 1 cycle if the current needs to wait.
+<IMG: Show timeline of NPN gate accepting a signal, and eventually changing state>
+
+Because of this delay, some circuits may not behave as expected if care is not taken to account for
+it. However, it may also be useful to exploit this delay to create a delay in your circuits.
+
+For example, if we wanted to delay a signal for a certain amount of time, we can chain multiple
+NPN gates together. Each gate will add 1 cycle of delay, so we can add as many gates as we need.
+<IMG: Show NPN chain>
+
+Goal: Build a circuit to delay the input by 10 cycles.
+
+== ON COMPLETION ==
+Tutorial complete! Select a level from the menu bar to start building on your own.
+
+Besides the this tutorial there are two other categories of levels: **KOHCTPYKTOP** and
+**Open-Konstruktor**.
+
+**KOHCTPYKTOP**: These levels are based on the levels in the game KOHCTPYKTOP: Engineer of the
+People. There are only a handful, but they can quickly become very challenging.
+
+**Open-Konstruktor**: These levels feature a more linear progression of difficulty and often build
+upon previous levels. These levels start you off by designing very simple circuits, and by the end
+you will be building larger, much more complex devices. If you're a newcomer to this game or
+KOHCTPYKTOP, these levels are a good place to start.
+
+Good luck!
 */
   '05 Propagation Delay': {
     pinRows: 1,
