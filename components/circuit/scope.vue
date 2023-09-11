@@ -70,7 +70,8 @@ let prevDrawingCoords: Point = [0, 0];
 const verifyResult = ref<VerificationResult>();
 const filteredPins = computed<PinNode[]>(() => {
   const pins = network.value.getPinNodes();
-  return pins.filter((node, idx) => idx > 1 && idx < pins.length - 2);
+  // TODO: need a more proper way to filter out VCC (flag on PinNode?)
+  return pins.filter((node, idx) => node.label !== 'VCC');
 })
 const maxScopeHeight = computed<number>(() => {
   return filteredPins.value.length * HEIGHT_PX_SCOPE;
