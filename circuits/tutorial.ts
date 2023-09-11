@@ -73,10 +73,10 @@ Goal: Place metal, silicon and vias in order to connect the matching pairs of pi
         pinInA, pinOutB,
         pinInB, pinOutA,
       ] = network.getPinNodes();
-      pinInA.label =   'In A';
-      pinOutB.label =   'Out B';
-      pinInB.label =   'In B';
-      pinOutA.label =   'Out A';
+      pinInA.label = 'In A';
+      pinOutB.label = 'Out B';
+      pinInB.label = 'In B';
+      pinOutA.label = 'Out A';
       const sim = new CircuitSimulation(network, 280);
       const seqA = new Sequence()
         .addOscillation(10, 7, 20, 20);
