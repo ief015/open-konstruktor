@@ -58,7 +58,7 @@ Place **vias** to make connections between the two layers.
 <IMG: show silicon connected with metal>
 
 Silicon comes in two flavors: **P-Type** and **N-Type**. By themselves, they are simply conductive
-materials just like metal. However, by placing one type over another, we can create a **gate** to
+materials just like metal. However, by drawing one type over another, we can create a **gate** to
 control the flow of current, which will be demonstrated in the next level. In this level, either
 type of silicon will work.
 
