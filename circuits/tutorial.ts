@@ -150,8 +150,8 @@ the gate closes again.
 <IMG: Show NPN gate with and without signal>
 <IMG: Scope of signal>
 
-A single NPN gate used as shown above is not very useful here, but by chaining two NPN gates we can
-stop the flow of current unless both inputs are active. This is called an **AND gate**.
+A single NPN gate used as shown above is not very useful here, but by chaining multiple NPN gates
+we can stop the flow of current unless all inputs are active. This is called an **AND gate**.
 
 <IMG: Show AND gate in use: 00 10 01 11>
 
