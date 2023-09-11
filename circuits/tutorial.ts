@@ -101,7 +101,7 @@ The first gate we will build is the PNP gate, which is N-Type silicon drawn over
 A PNP gate allows current to flow through the P-Type silicon, unless a signal is applied to the
 N-Type silicon, in which case the gate is closed. When the signal is removed, the gate opens again.
 
-By using a PNP gate, we can invert a signal.
+By using a PNP gate, we can invert a signal. This is called a **NOT gate**.
 <IMG: Show PNP gate with and without signal>
 <IMG: Scope of inverted signal>
 
@@ -143,9 +143,17 @@ Goal: Build a PNP gate to invert the input signal.
 
 /*
 The other type of gate is the NPN gate, which is P-Type silicon drawn over N-Type silicon.
-An NPN works the opposite of a PNP gate:
-An NPN gate allows current to flow through the N-Type silicon, but only when there is a signal
-applied to the P-Type silicon. When the signal is removed, the gate closes again.
+An NPN works the opposite way of a PNP gate. An NPN gate allows current to flow through the N-Type
+silicon, but only when there is a signal applied to the P-Type silicon. When the signal is removed,
+the gate closes again.
+
+<IMG: Show NPN gate with and without signal>
+<IMG: Scope of signal>
+
+A single NPN gate used as shown above is not very useful here, but by chaining two NPN gates we can
+stop the flow of current unless both inputs are active. This is called an **AND gate**.
+
+<IMG: Show AND gate in use: 00 10 01 11>
 
 Goal: Build an AND gate by using two NPN gates.
 
