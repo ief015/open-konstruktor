@@ -21,6 +21,16 @@ const generateRandomSequence = (length: number, pulseSize: number = 10, freq: nu
   return seq.slice(0, length);
 }
 
+/*
+type LevelNames =
+    '01 SINGLE INVERTER GATE'
+  | '02 2-INPUT AND GATE'
+  | '03 2-INPUT NAND GATE'
+  | '04 4-INPUT AND GATE'
+  | '05 4-INPUT OR/NOR GATE'
+  | '02 QUAD INVERTER GATE'
+*/
+
 type LevelNames =
     'OC2C1 DUAL FULL COMPARATOR'
   | 'OL2J1 DUAL J-K FLIP-FLOP'
@@ -105,8 +115,8 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
       const [
         pinVCC0, pinVCC1,
         pinJ0, pinJ1,
-        pinCLK, pinNC3,
         pinK0, pinK1,
+        pinCLK, pinNC5,
         pinQ0, pinQ1,
         pinVCC2, pinVCC3,
       ] = network.getPinNodes();
