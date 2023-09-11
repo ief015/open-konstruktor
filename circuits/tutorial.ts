@@ -20,6 +20,9 @@ type LevelNames =
 
 const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
 
+/*
+TODO description 01 Introduction
+*/
   '01 Introduction': {
     pinRows: 1,
     width: 14,
@@ -177,6 +180,9 @@ to try it out and see what happens!
     }
   },
 
+/*
+TODO description 05 Propagation Delay
+*/
   '05 Propagation Delay': {
     pinRows: 1,
     width: 36,
