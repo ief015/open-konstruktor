@@ -490,21 +490,23 @@ export default class FieldGraph {
     const { data } = this;
     const [ x1, y1 ] = start;
     const [ x2, y2 ] = end;
-    const width = Math.abs(x2 - x1) + 2;
-    const height = Math.abs(y2 - y1) + 2;
-    for (let x = 0; x <= width; x++) {
-      for (let y = 0; y <= height; y++) {
-        if (x > 0 && y > 0) {
-          data.set(Layer.Metal, x, y, MetalValue.None);
-          data.set(Layer.Silicon, x, y, SiliconValue.None);
-          data.set(Layer.Vias, x, y, ViaValue.None);
-          data.set(Layer.GatesH, x, y, GateValue.None);
-          data.set(Layer.GatesV, x, y, GateValue.None);
+    const width = Math.abs(x2 - x1) + 1;
+    const height = Math.abs(y2 - y1) + 1;
+    for (let x = -1; x < width; x++) {
+      const ax = x + x1;
+      for (let y = -1; y < height; y++) {
+        const ay = y + y1;
+        if (x >= 0 && y >= 0) {
+          data.set(Layer.Metal, ax, ay, MetalValue.None);
+          data.set(Layer.Silicon, ax, ay, SiliconValue.None);
+          data.set(Layer.Vias, ax, ay, ViaValue.None);
+          data.set(Layer.GatesH, ax, ay, GateValue.None);
+          data.set(Layer.GatesV, ax, ay, GateValue.None);
         }
-        data.set(Layer.MetalConnectionsH, x, y, ConnectionValue.None);
-        data.set(Layer.MetalConnectionsV, x, y, ConnectionValue.None);
-        data.set(Layer.SiliconConnectionsH, x, y, ConnectionValue.None);
-        data.set(Layer.SiliconConnectionsV, x, y, ConnectionValue.None);
+        data.set(Layer.MetalConnectionsH, ax, ay, ConnectionValue.None);
+        data.set(Layer.MetalConnectionsV, ax, ay, ConnectionValue.None);
+        data.set(Layer.SiliconConnectionsH, ax, ay, ConnectionValue.None);
+        data.set(Layer.SiliconConnectionsV, ax, ay, ConnectionValue.None);
       }
     }
     for (const p of traceRectBorder([ x1 - 1, y1 - 1 ], [ x2 + 1, y2 + 1 ])) {
