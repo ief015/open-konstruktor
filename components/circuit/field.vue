@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import { Layer, MetalValue, SiliconValue, ConnectionValue, ViaValue, GateValue } from '@/serialization';
-import { GateNode, PathNode, Point } from '@/simulation';
+import { FieldGraph, GateNode, PathNode, Point } from '@/simulation';
 import { ToolboxMode } from '@/composables/use-toolbox';
 import useImageLoader from '@/composables/use-image-loader';
 
@@ -54,7 +54,7 @@ const viewBounds = computed(() => {
     minY: Math.min(fieldHeight.value - canvasHeight.value + 1, Math.trunc(fieldHeight.value / 2), 0),
     maxX: Math.max(fieldWidth.value - canvasWidth.value + 1, 0),
     maxY: Math.max(fieldHeight.value - canvasHeight.value + 1, 0),
-  }
+  };
 });
 const {
   elementX: canvasMouseX,
@@ -97,20 +97,26 @@ const debugMsg = computed(() => {
   dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
   return dbg.join('<br/>');
 });
-const queueAnimFuncs: Set<()=>void> = new Set();
+const queueAnimFuncs: Set<() => void> = new Set();
+const selectionStart = ref<Point>();
+const selectionEnd = ref<Point>();
+const selectionMove = ref<Point>();
+const selectionData = shallowRef<FieldGraph>();
+const selectionDragging = ref(false);
 
-const getTileViewport = (): { left:number, top:number, right:number, bottom:number } => {
+const getTileViewport = (): { left: number, top: number, right: number, bottom: number } => {
   const { columns, rows } = dimensions;
   const left = Math.max(0, Math.floor(viewX.value / TILE_SIZE));
   const top = Math.max(0, Math.floor(viewY.value / TILE_SIZE));
   const right = Math.min(columns, Math.ceil((viewX.value + canvasWidth.value) / TILE_SIZE)) - 1;
   const bottom = Math.min(rows, Math.ceil((viewY.value + canvasHeight.value) / TILE_SIZE)) - 1;
   return { left, top, right, bottom };
-}
+};
 
 const renderBackground = () => {
   const ctx = canvasLayers['background']?.getContext('2d');
-  if (!ctx) throw new Error('Could not get background canvas context');
+  if (!ctx)
+    throw new Error("Could not get background canvas context");
   canvasDirty.value = true;
   const { columns, rows } = dimensions;
   const [ minCol, maxCol ] = field.value.getMinMaxColumns();
@@ -137,30 +143,35 @@ const renderBackground = () => {
   ctx.stroke();
   ctx.restore();
   // Draw pin column boundaries
-  ctx.fillStyle = `rgba(0,0,0,${20/255})`;
-  ctx.fillRect(0, 0, minCol*TILE_SIZE+1, rows*TILE_SIZE+1);
-  ctx.fillRect((maxCol+1)*TILE_SIZE, 0, (columns-maxCol-1)*TILE_SIZE, rows*TILE_SIZE);
+  ctx.fillStyle = 'rgba(0,0,0,calc(20/255))';
+  ctx.fillRect(0, 0, minCol * TILE_SIZE + 1, rows * TILE_SIZE + 1);
+  ctx.fillRect((maxCol + 1) * TILE_SIZE, 0, (columns - maxCol - 1) * TILE_SIZE, rows * TILE_SIZE);
   // Draw border
   ctx.strokeStyle = '#000';
   ctx.strokeRect(0.5, 0.5, columns * TILE_SIZE, rows * TILE_SIZE);
   ctx.restore();
-}
+};
 
 const renderTiles = (
-  options: { metal?: boolean, silicon?: boolean } = { metal: true, silicon: true },
+  options: { metal?: boolean; silicon?: boolean } = {
+    metal: true,
+    silicon: true,
+  },
   bounds?: number[]
 ) => {
   const contextSiliconTiles = canvasLayers['silicon-tiles']?.getContext('2d');
   const contextMetalTiles = canvasLayers['metal-tiles']?.getContext('2d');
-  if (!contextSiliconTiles) throw new Error('Could not get background canvas context');
-  if (!contextMetalTiles) throw new Error('Could not get background canvas context');
+  if (!contextSiliconTiles)
+    throw new Error("Could not get background canvas context");
+  if (!contextMetalTiles)
+    throw new Error("Could not get background canvas context");
   canvasDirty.value = true;
   const data = field.value.getData();
   const { columns, rows } = dimensions;
-  const {
-    metal: showMetal,
-    silicon: showSilicon,
-  } = Object.assign({ metal: false, silicon: false }, options);
+  const { metal: showMetal, silicon: showSilicon } = Object.assign(
+    { metal: false, silicon: false },
+    options
+  );
   const tileViewport = getTileViewport();
   let [ left, top, right, bottom ] = bounds ?? [
     tileViewport.left,
@@ -168,10 +179,10 @@ const renderTiles = (
     tileViewport.right,
     tileViewport.bottom,
   ];
-  left = Math.max(0, left-2);
-  top = Math.max(0, top-2);
-  right = Math.min(columns-1, right+2);
-  bottom = Math.min(rows-1, bottom+2);
+  left = Math.max(0, left - 2);
+  top = Math.max(0, top - 2);
+  right = Math.min(columns - 1, right + 2);
+  bottom = Math.min(rows - 1, bottom + 2);
   if (bounds) {
     contextSiliconTiles.clearRect(
       -viewX.value + (left * TILE_SIZE) + 1,
@@ -252,7 +263,7 @@ const renderTiles = (
     const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
     ctx.save();
     ctx.translate(-viewX.value, -viewY.value);
-    ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
+    ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
     for (let x = left; x <= right; x++) {
       ctx.save();
       for (let y = top; y <= bottom; y++) {
@@ -268,21 +279,26 @@ const renderTiles = (
     }
     ctx.restore();
   }
-}
+};
 
 const renderHot = (
-  options: { metal?: boolean, silicon?: boolean } = { metal: true, silicon: true }
+  options: { metal?: boolean; silicon?: boolean } = {
+    metal: true,
+    silicon: true,
+  }
 ) => {
   const net = network.value;
   const ctxMetalHot = canvasLayers['metal-hot']?.getContext('2d');
   const ctxSiliconHot = canvasLayers['silicon-hot']?.getContext('2d');
-  if (!ctxMetalHot) throw new Error('Could not get metal-hot canvas context');
-  if (!ctxSiliconHot) throw new Error('Could not get silicon-hot canvas context');
+  if (!ctxMetalHot)
+    throw new Error("Could not get metal-hot canvas context");
+  if (!ctxSiliconHot)
+    throw new Error("Could not get silicon-hot canvas context");
   canvasDirty.value = true;
-  const {
-    metal: showMetal,
-    silicon: showSilicon,
-  } = Object.assign({ metal: false, silicon: false }, options);
+  const { metal: showMetal, silicon: showSilicon } = Object.assign(
+    { metal: false, silicon: false },
+    options
+  );
   const { left, top, right, bottom } = getTileViewport();
   ctxMetalHot.clearRect(0, 0, ctxMetalHot.canvas.width, ctxMetalHot.canvas.height);
   ctxSiliconHot.clearRect(0, 0, ctxSiliconHot.canvas.width, ctxSiliconHot.canvas.height);
@@ -309,7 +325,7 @@ const renderHot = (
             return false;
           });
           if (hot) {
-            ctxSiliconHot.drawImage(hotImage, x*TILE_SIZE, y*TILE_SIZE);
+            ctxSiliconHot.drawImage(hotImage, x * TILE_SIZE, y * TILE_SIZE);
           }
         }
         if (showMetal) {
@@ -321,7 +337,7 @@ const renderHot = (
             return false;
           });
           if (hot) {
-            ctxMetalHot.drawImage(hotImage, x*TILE_SIZE, y*TILE_SIZE);
+            ctxMetalHot.drawImage(hotImage, x * TILE_SIZE, y * TILE_SIZE);
           }
         }
       }
@@ -329,11 +345,12 @@ const renderHot = (
   }
   ctxMetalHot.restore();
   ctxSiliconHot.restore();
-}
+};
 
 const renderOverlay = () => {
   const ctx = canvasLayers['overlay'].getContext('2d');
-  if (!ctx) throw new Error('Could not get overlay canvas context');
+  if (!ctx)
+    throw new Error("Could not get overlay canvas context");
   const net = network.value;
   canvasDirty.value = true;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -350,25 +367,44 @@ const renderOverlay = () => {
   }
   ctx.restore();
   */
+  // Draw selection
+  if (!isRunning.value) {
+    if (selectionStart.value && selectionEnd.value) {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255, 255, 255, calc(2/3))';
+      const [sx, sy] = selectionStart.value;
+      const [ex, ey] = selectionEnd.value;
+      const left = Math.trunc(Math.min(sx, ex) / TILE_SIZE) * TILE_SIZE;
+      const top = Math.trunc(Math.min(sy, ey) / TILE_SIZE) * TILE_SIZE;
+      const width =
+        (Math.trunc(Math.max(sx, ex) / TILE_SIZE) + 1) * TILE_SIZE - left;
+      const height =
+        (Math.trunc(Math.max(sx, ex) / TILE_SIZE) + 1) * TILE_SIZE - top;
+      ctx.strokeRect(left, top, width, height);
+    }
+  }
   // Draw pin labels
   ctx.fillStyle = '#000';
   ctx.font = '10px Georgia10';
-  const pinNodes = net.getPinNodes()
+  const pinNodes = net.getPinNodes();
   const textPadX = 3;
   for (let pid = 0; pid < pinNodes.length; pid++) {
     const [ x, y ] = field.value.getPinPoint(pid);
     const { label } = pinNodes[pid];
-    ctx.fillText(label, x*TILE_SIZE+textPadX, y*TILE_SIZE+10, (TILE_SIZE*3)-(textPadX*2));
+    const tx = x * TILE_SIZE + textPadX;
+    const ty = y * TILE_SIZE + 10;
+    const tw = (TILE_SIZE * 3) - (textPadX * 2);
+    ctx.fillText(label, tx, ty, tw);
   }
   ctx.restore();
-}
+};
 
 const renderAll = () => {
   renderBackground();
   renderTiles();
   renderHot();
   renderOverlay();
-}
+};
 
 const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   switch (mode) {
@@ -404,16 +440,25 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
       break;
     case 'select':
       // TODO: Implement select
-      console.warn('select: not yet implemented');
+      if (!selectionData.value) {
+        if (!selectionStart.value) {
+          selectionStart.value = coordA;
+        }
+        selectionEnd.value = coordB;
+      } else {
+        selectionDragging.value = true;
+      }
       return;
   }
   updateDesignScoreThrottle();
   const bounds = [
-    Math.min(coordA[0], coordB[0]), Math.min(coordA[1], coordB[1]),
-    Math.max(coordA[0], coordB[0]), Math.max(coordA[1], coordB[1]),
+    Math.min(coordA[0], coordB[0]),
+    Math.min(coordA[1], coordB[1]),
+    Math.max(coordA[0], coordB[0]),
+    Math.max(coordA[1], coordB[1]),
   ];
   queueAnimFuncs.add(() => renderTiles(undefined, bounds));
-}
+};
 
 const panView = (dx: number, dy: number) => {
   const { minX, minY, maxX, maxY } = viewBounds.value;
@@ -421,7 +466,7 @@ const panView = (dx: number, dy: number) => {
   viewY.value = Math.max(minY, Math.min(maxY, viewY.value + dy));
   // TODO: Draw only the parts that need to be drawn for performance on large fields+screens.
   queueAnimFuncs.add(renderAll);
-}
+};
 
 const resetView = () => {
   const { columns, rows } = dimensions;
@@ -435,25 +480,27 @@ const resetView = () => {
 }
 
 const invalidateCanvasSizes = () => {
-  if (!canvas.value) return;
+  if (!canvas.value)
+    return;
   const { clientWidth, clientHeight } = canvas.value;
   canvasWidth.value = Math.trunc(clientWidth);
   canvasHeight.value = Math.trunc(clientHeight);
   canvas.value.width = canvasWidth.value;
   canvas.value.height = canvasHeight.value;
   for (const canvas of Object.values(canvasLayers)) {
-    if (!canvas) continue;
+    if (!canvas)
+      continue;
     canvas.width = canvasWidth.value;
     canvas.height = canvasHeight.value;
   }
-}
+};
 
 const mouseToGrid = (mx: number, my: number): Point => {
   if (!canvas.value) return [0, 0];
   const x = Math.trunc((mx + viewX.value) / TILE_SIZE);
   const y = Math.trunc((my + viewY.value) / TILE_SIZE);
-  return [ x, y ];
-}
+  return [x, y];
+};
 
 const onMouseDown = (e: MouseEvent) => {
   if (!canvas.value) return;
@@ -470,7 +517,7 @@ const onMouseDown = (e: MouseEvent) => {
       isPanning.value = true;
       break;
   }
-}
+};
 
 watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
   const dx = x - oldX;
@@ -486,8 +533,13 @@ watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
   }
 });
 
+watch([selectionData, selectionStart, selectionEnd, selectionMove], () => {
+  queueAnimFuncs.add(renderOverlay);
+});
+
 useEventListener('mouseup', (e) => {
-  if (!canvas.value) return;
+  if (!canvas.value)
+    return;
   switch (e.button) {
     case 0:
       isDrawing.value = false;
@@ -507,16 +559,19 @@ useRafFn(({ delta, timestamp }) => {
   const start = performance.now();
   queueAnimFuncs.forEach(fn => fn());
   queueAnimFuncs.clear();
-  if (!canvasDirty.value) return;
+  if (!canvasDirty.value)
+    return;
   canvasDirty.value = false;
   const ctx = canvas.value?.getContext('2d');
-  if (!ctx) throw new Error('Could not get background canvas context');
-  ctx.drawImage(canvasLayers['background'], 0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.drawImage(canvasLayers['silicon-tiles'], 0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.drawImage(canvasLayers['silicon-hot'], 0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.drawImage(canvasLayers['metal-tiles'], 0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.drawImage(canvasLayers['metal-hot'], 0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.drawImage(canvasLayers['overlay'], 0, 0, ctx.canvas.width, ctx.canvas.height);
+  if (!ctx)
+    throw new Error('Could not get background canvas context');
+  const { width, height } = ctx.canvas;
+  ctx.drawImage(canvasLayers['background'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['silicon-tiles'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['silicon-hot'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['metal-tiles'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['metal-hot'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['overlay'], 0, 0, width, height);
   perfRenderTime.value = performance.now() - start;
 });
 
