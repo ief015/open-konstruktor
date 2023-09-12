@@ -4,11 +4,26 @@ import {
 import { decodeSync, encodeSync } from '@/serialization';
 import { GraphLayer, Point } from '@/simulation';
 import { traceLine } from '@/utils/traceLine';
+import { traceRectBorder } from '@/utils/traceRectBorder';
 
 export type SiliconType = 'p' | 'n';
 export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
 export type EraseType = 'metal' | 'silicon' | 'via' | 'gate';
 export type Direction = 'h' | 'v';
+
+export interface PasteOptions {
+  /**
+   * Force overwriting data in destination graph.
+   * Paste will always return true when enabled.
+   * Default `false`.
+   */
+  overwrite?: boolean;
+  /**
+   * Includes the connection data around the border.
+   * Default `false`.
+   */
+  includeBorderConnections?: boolean;
+}
 
 export interface QueryMetalResult {
   point: Point;
@@ -469,6 +484,170 @@ export default class FieldGraph {
       metalConnections,
       siliconConnections,
     };
+  }
+
+  public clearRect(start: Point, end: Point) {
+    const { data } = this;
+    const [ x1, y1 ] = start;
+    const [ x2, y2 ] = end;
+    const width = Math.abs(x2 - x1) + 2;
+    const height = Math.abs(y2 - y1) + 2;
+    for (let x = 0; x <= width; x++) {
+      for (let y = 0; y <= height; y++) {
+        if (x > 0 && y > 0) {
+          data.set(Layer.Metal, x, y, MetalValue.None);
+          data.set(Layer.Silicon, x, y, SiliconValue.None);
+          data.set(Layer.Vias, x, y, ViaValue.None);
+          data.set(Layer.GatesH, x, y, GateValue.None);
+          data.set(Layer.GatesV, x, y, GateValue.None);
+        }
+        data.set(Layer.MetalConnectionsH, x, y, ConnectionValue.None);
+        data.set(Layer.MetalConnectionsV, x, y, ConnectionValue.None);
+        data.set(Layer.SiliconConnectionsH, x, y, ConnectionValue.None);
+        data.set(Layer.SiliconConnectionsV, x, y, ConnectionValue.None);
+      }
+    }
+    for (const p of traceRectBorder([ x1 - 1, y1 - 1 ], [ x2 + 1, y2 + 1 ])) {
+      this.checkAndRemoveInvalidGate(p);
+    }
+  }
+
+  public copy(start: Point, end: Point): FieldGraph {
+    const { data } = this;
+    const [ x1, y1 ] = start;
+    const [ x2, y2 ] = end;
+    const width = Math.abs(x2 - x1) + 2;
+    const height = Math.abs(y2 - y1) + 2;
+    const copy = new DesignData(width, height, 0);
+    const minX = Math.min(x1, x2);
+    const minY = Math.min(y1, y2);
+    for (let x = 0; x <= width; x++) {
+      const ax = x + minX;
+      for (let y = 0; y <= height; y++) {
+        const ay = y + minY;
+        if (x > 0 && y > 0) {
+          copy.set(Layer.Metal, x, y, data.get(Layer.Metal, ax, ay));
+          copy.set(Layer.Silicon, x, y, data.get(Layer.Silicon, ax, ay));
+          copy.set(Layer.Vias, x, y, data.get(Layer.Vias, ax, ay));
+          copy.set(Layer.GatesH, x, y, data.get(Layer.GatesH, ax, ay));
+          copy.set(Layer.GatesV, x, y, data.get(Layer.GatesV, ax, ay));
+        }
+        copy.set(Layer.MetalConnectionsH, x, y, data.get(Layer.MetalConnectionsH, ax, ay));
+        copy.set(Layer.MetalConnectionsV, x, y, data.get(Layer.MetalConnectionsV, ax, ay));
+        copy.set(Layer.SiliconConnectionsH, x, y, data.get(Layer.SiliconConnectionsH, ax, ay));
+        copy.set(Layer.SiliconConnectionsV, x, y, data.get(Layer.SiliconConnectionsV, ax, ay));
+      }
+    }
+    const fieldCopy = new FieldGraph(copy);
+    for (const p of traceRectBorder([ x1, y1 ], [ x2, y2 ])) {
+      fieldCopy.checkAndRemoveInvalidGate(p);
+    }
+    return fieldCopy;
+  }
+
+  public canPaste(topLeft: Point, graph: FieldGraph): boolean {
+    const { data: myData } = this;
+    const { data: otherData } = graph;
+    const { columns, rows } = otherData.getDimensions();
+    const [ x1, y1 ] = topLeft;
+    const [ x2, y2 ] = [ x1 + columns - 1, y1 + rows - 1 ];
+    for (let x = x1; x <= x2; x++) {
+      for (let y = y1; y <= y2; y++) {
+        if (myData.get(Layer.Metal, x, y) !== MetalValue.None) {
+          if (otherData.get(Layer.Metal, x - x1, y - y1) !== MetalValue.None) {
+            return false;
+        } 
+        }
+        if (myData.get(Layer.Silicon, x, y) !== SiliconValue.None) {
+          if (otherData.get(Layer.Silicon, x - x1, y - y1) !== SiliconValue.None) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  public paste(topLeft: Point, graph: FieldGraph, options: PasteOptions = {}): boolean {
+    const {
+      overwrite,
+      includeBorderConnections,
+    } = Object.assign({
+      overwrite: false,
+      includeBorderConnections: false,
+    }, options);
+    if (!overwrite && !this.canPaste(topLeft, graph)) {
+      return false;
+    }
+    const { data: myData } = this;
+    const { data: otherData } = graph;
+    const { columns, rows } = otherData.getDimensions();
+    const [ x1, y1 ] = topLeft;
+    const [ x2, y2 ] = [ x1 + columns - 1, y1 + rows - 1 ];
+    for (let x = x1; x <= x2; x++) {
+      const ax = x - x1;
+      for (let y = y1; y <= y2; y++) {
+        const ay = y - y1;
+        if (x >= this.minDrawColumn && x <= this.maxDrawColumn) {
+          if (otherData.get(Layer.Metal, ax, ay) !== MetalValue.None) {
+            myData.set(Layer.Metal, x, y, otherData.get(Layer.Metal, ax, ay));
+          }
+          if (otherData.get(Layer.Silicon, ax, ay) !== SiliconValue.None) {
+            myData.set(Layer.Silicon, x, y, otherData.get(Layer.Silicon, ax, ay));
+          }
+          if (otherData.get(Layer.Vias, ax, ay) !== ViaValue.None) {
+            myData.set(Layer.Vias, x, y, otherData.get(Layer.Vias, ax, ay));
+          }
+          if (otherData.get(Layer.GatesH, ax, ay) !== GateValue.None) {
+            myData.set(Layer.GatesH, x, y, otherData.get(Layer.GatesH, ax, ay));
+          }
+          if (otherData.get(Layer.GatesV, ax, ay) !== GateValue.None) {
+            myData.set(Layer.GatesV, x, y, otherData.get(Layer.GatesV, ax, ay));
+          }
+          if (x > x1 && x < x2 && y > y1 && y < y2) {
+            if (otherData.get(Layer.MetalConnectionsH, ax, ay) !== ConnectionValue.None) {
+              myData.set(Layer.MetalConnectionsH, x, y, otherData.get(Layer.MetalConnectionsH, ax, ay));
+            }
+            if (otherData.get(Layer.MetalConnectionsV, ax, ay) !== ConnectionValue.None) {
+              myData.set(Layer.MetalConnectionsV, x, y, otherData.get(Layer.MetalConnectionsV, ax, ay));
+            }
+            if (otherData.get(Layer.SiliconConnectionsH, ax, ay) !== ConnectionValue.None) {
+              myData.set(Layer.SiliconConnectionsH, x, y, otherData.get(Layer.SiliconConnectionsH, ax, ay));
+            }
+            if (otherData.get(Layer.SiliconConnectionsV, ax, ay) !== ConnectionValue.None) {
+              myData.set(Layer.SiliconConnectionsV, x, y, otherData.get(Layer.SiliconConnectionsV, ax, ay));
+            }
+          }
+        }
+        if (includeBorderConnections) {
+          if (x >= this.minDrawColumn - 1 && x <= this.maxDrawColumn) {
+            if ((x == x1 || x == x2) && (y == y1 || y == y2)) {
+              if (otherData.get(Layer.MetalConnectionsH, ax, ay) !== ConnectionValue.None) {
+                if (myData.get(Layer.Metal, x - 1, y) !== MetalValue.None) {
+                  myData.set(Layer.MetalConnectionsH, x, y, otherData.get(Layer.MetalConnectionsH, ax, ay));
+                }
+              }
+              if (otherData.get(Layer.MetalConnectionsV, ax, ay) !== ConnectionValue.None) {
+                if (myData.get(Layer.Metal, x, y - 1) !== MetalValue.None) {
+                  myData.set(Layer.MetalConnectionsV, x, y, otherData.get(Layer.MetalConnectionsV, ax, ay));
+                }
+              }
+              if (otherData.get(Layer.SiliconConnectionsH, ax, ay) !== ConnectionValue.None) {
+                if (myData.get(Layer.Silicon, x - 1, y) !== SiliconValue.None) {
+                  myData.set(Layer.SiliconConnectionsH, x, y, otherData.get(Layer.SiliconConnectionsH, ax, ay));
+                }
+              }
+              if (otherData.get(Layer.SiliconConnectionsV, ax, ay) !== ConnectionValue.None) {
+                if (myData.get(Layer.Silicon, x, y - 1) !== SiliconValue.None) {
+                  myData.set(Layer.SiliconConnectionsV, x, y, otherData.get(Layer.SiliconConnectionsV, ax, ay));
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
   }
 
   public toSaveString(): string {
