@@ -102,6 +102,23 @@ const debugMsg = computed(() => {
 const queueAnimFuncs: Set<() => void> = new Set();
 const selectionStart = ref<Point>();
 const selectionEnd = ref<Point>();
+const selectionBounds = computed<[
+  left: number,
+  top: number,
+  right: number,
+  bottom: number
+]|undefined>(() => {
+  if (!selectionStart.value || !selectionEnd.value)
+    return undefined;
+  const [ sx, sy ] = selectionStart.value;
+  const [ ex, ey ] = selectionEnd.value;
+  return [
+    Math.min(sx, ex),
+    Math.min(sy, ey),
+    Math.max(sx, ex),
+    Math.max(sy, ey),
+  ];
+})
 const selectionTranslate = ref<Point>();
 const selectionData = shallowRef<FieldGraph>();
 const selectionState = ref<'selecting'|'dragging'>();
@@ -161,7 +178,7 @@ const renderTiles = (
     context2d?: CanvasRenderingContext2D; // Override context to render to
     field?: FieldGraph; // Override field to render
     bounds?: number[]; // Rendering bounds
-    noView?: boolean; // Disables view translation
+    noTranslate?: boolean; // Disables view translation
   } = {}
 ) => {
   const contextSiliconTiles = options.context2d ?? canvasLayers['silicon-tiles']?.getContext('2d');
@@ -172,8 +189,8 @@ const renderTiles = (
     throw new Error("Could not get metal-tiles canvas context");
   canvasDirty.value = true;
   const data = (options.field ?? field.value).getData();
-  const { columns, rows } = dimensions;
-  const { metal: showMetal, silicon: showSilicon, bounds, noView } = Object.assign(
+  const { columns, rows } = options.field?.getDimensions() ?? dimensions;
+  const { metal: showMetal, silicon: showSilicon, bounds, noTranslate } = Object.assign(
     { metal: true, silicon: true },
     options
   );
@@ -188,22 +205,24 @@ const renderTiles = (
   top = Math.max(0, top - 2);
   right = Math.min(columns - 1, right + 2);
   bottom = Math.min(rows - 1, bottom + 2);
-  if (bounds) {
-    contextSiliconTiles.clearRect(
-      -viewX.value + (left * TILE_SIZE) + 1,
-      -viewY.value + (top * TILE_SIZE) + 1,
-      (right - left + 1) * TILE_SIZE,
-      (bottom - top + 1) * TILE_SIZE,
-    );
-    contextMetalTiles.clearRect(
-      -viewX.value + (left * TILE_SIZE) + 1,
-      -viewY.value + (top * TILE_SIZE) + 1,
-      (right - left + 1) * TILE_SIZE ,
-      (bottom - top + 1) * TILE_SIZE,
-    );
-  } else {
-    contextSiliconTiles.clearRect(0, 0, contextSiliconTiles.canvas.width, contextSiliconTiles.canvas.height);
-    contextMetalTiles.clearRect(0, 0, contextMetalTiles.canvas.width, contextMetalTiles.canvas.height);
+  if (!options.context2d) {
+    if (bounds) {
+      contextSiliconTiles.clearRect(
+        -viewX.value + (left * TILE_SIZE) + 1,
+        -viewY.value + (top * TILE_SIZE) + 1,
+        (right - left + 1) * TILE_SIZE,
+        (bottom - top + 1) * TILE_SIZE,
+      );
+      contextMetalTiles.clearRect(
+        -viewX.value + (left * TILE_SIZE) + 1,
+        -viewY.value + (top * TILE_SIZE) + 1,
+        (right - left + 1) * TILE_SIZE ,
+        (bottom - top + 1) * TILE_SIZE,
+      );
+    } else {
+      contextSiliconTiles.clearRect(0, 0, contextSiliconTiles.canvas.width, contextSiliconTiles.canvas.height);
+      contextMetalTiles.clearRect(0, 0, contextMetalTiles.canvas.width, contextMetalTiles.canvas.height);
+    }
   }
   if (showSilicon) {
     const ctx = contextSiliconTiles;
@@ -216,8 +235,8 @@ const renderTiles = (
     const viaLayer = data.getLayer(Layer.Vias);
     const viaImage = images.findImage('/tiles/link.png');
     ctx.save();
-    ctx.translate(-viewX.value, -viewY.value);
-    ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
+    !noTranslate && ctx.translate(-viewX.value, -viewY.value);
+    !noTranslate && ctx.translate(left*TILE_SIZE+1, top*TILE_SIZE+1);
     ctx.strokeStyle = '#060000';
     // Silicon layer + vias
     for (let x = left; x <= right; x++) {
@@ -267,8 +286,8 @@ const renderTiles = (
     const metalConnHLayer = data.getLayer(Layer.MetalConnectionsH);
     const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
     ctx.save();
-    ctx.translate(-viewX.value, -viewY.value);
-    ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
+    !noTranslate && ctx.translate(-viewX.value, -viewY.value);
+    !noTranslate && ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
     for (let x = left; x <= right; x++) {
       ctx.save();
       for (let y = top; y <= bottom; y++) {
@@ -379,20 +398,20 @@ const renderOverlay = () => {
       ctx.translate(0.5, 0.5);
       ctx.lineWidth = 1;
       ctx.strokeStyle = '#fff';
-      const [sx, sy] = selectionStart.value;
-      const [ex, ey] = selectionEnd.value;
-      const [ox, oy] = selectionTranslate.value ?? [0, 0];
-      const left = Math.min(sx, ex);
-      const top = Math.min(sy, ey);
-      const width = (Math.max(sx, ex) - left) + 1;
-      const height = (Math.max(sy, ey) - top) + 1;
+      const [ left, top, right, bottom ] = selectionBounds.value ?? [ 0, 0, 0, 0];
+      const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
+      const width = (right - left) + 1;
+      const height = (bottom - top) + 1;
       ctx.translate(Math.floor(left + ox) * TILE_SIZE, Math.floor(top + oy) * TILE_SIZE);
       ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
       ctx.restore();
     }
     if (selectionData.value) {
       ctx.save();
-      //renderTiles({ context2d: ctx, field: selectionData.value, noView: true });
+      const [ left, top ] = selectionBounds.value ?? [ 0, 0 ];
+      const [ tx, ty ] = selectionTranslate.value ?? [ 0, 0 ];
+      ctx.translate(Math.floor((left + tx - 1) * TILE_SIZE), Math.floor((top + ty - 1) * TILE_SIZE));
+      renderTiles({ context2d: ctx, field: selectionData.value, noTranslate: true });
       ctx.restore();
     }
   }
@@ -547,6 +566,7 @@ const endSelection = (e: MouseEvent) => {
 
     // if placed failed:
     selectionTranslate.value = [0, 0];
+    selectionData.value = undefined;
 
     // if placed successfully:
     //selectionStart.value = undefined;
@@ -557,15 +577,10 @@ const endSelection = (e: MouseEvent) => {
 
 const coordInSelection = (coord: Point) => {
   const [ x, y ] = coord;
-  if (!selectionStart.value || !selectionEnd.value)
+  if (!selectionBounds.value)
     return false;
-  const [ sx, sy ] = selectionStart.value;
-  const [ ex, ey ] = selectionEnd.value;
-  const minX = Math.min(sx, ex);
-  const maxX = Math.max(sx, ex);
-  const minY = Math.min(sy, ey);
-  const maxY = Math.max(sy, ey);
-  return x >= minX && x <= maxX && y >= minY && y <= maxY;
+  const [ left, top, right, bottom ] = selectionBounds.value;
+  return x >= left && x <= right && y >= top && y <= bottom;
 }
 
 const onMouseDown = (e: MouseEvent) => {
