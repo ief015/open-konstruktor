@@ -93,8 +93,6 @@ const debugMsg = computed(() => {
   // dbg.push(`Grid: [${columns}, ${rows}]`);
   //dbg.push(`View: [${panX}, ${panY}]`);
   // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
-  dbg.push(`Select start: ${selectionStart.value}`);
-  dbg.push(`Select end: ${selectionEnd.value}`);
   dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
   dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
   return dbg.join('<br/>');
@@ -548,6 +546,7 @@ const startSelection = (e: MouseEvent) => {
     const start: Point = [ left, top ];
     const end: Point = [ right, bottom ];
     selectionData.value = field.value.copy(start, end);
+    // TODO: do not clear if user wants to do a copy+drag
     field.value.clearRect(start, end);
     queueAnimFuncs.add(renderTiles);
     selectionState.value = 'dragging';
@@ -560,24 +559,29 @@ const startSelection = (e: MouseEvent) => {
 }
 
 const endSelection = (e: MouseEvent) => {
-  
   if (selectionState.value === 'selecting') {
     selectionState.value = undefined;
   }
   if (selectionState.value === 'dragging') {
-    // TODO try place selection data or reset selection to original position
-    console.log("TODO: Paste selection in place", selectionStart, selectionEnd, selectionTranslate)
     selectionState.value = undefined;
-
-    // if placed failed:
-    selectionTranslate.value = [0, 0];
+    if (selectionData.value && selectionBounds.value) {
+      const [ left, top, right, bottom ] = selectionBounds.value;
+      const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
+      const pasteStart: Point = [ Math.round(left + ox), Math.round(top + oy) ];
+      const pasted = field.value.paste(pasteStart, selectionData.value, { overwrite: true });
+      if (pasted) {
+        console.log('Pasted successfully');
+        selectionStart.value = undefined;
+        selectionEnd.value = undefined;
+        selectionTranslate.value = undefined;
+      } else {
+        console.log('Failed paste');
+        selectionTranslate.value = [0, 0];
+      }
+      queueAnimFuncs.add(renderTiles);
+    }
     selectionData.value = undefined;
-
-    // if placed successfully:
-    //selectionStart.value = undefined;
-    //selectionEnd.value = undefined;
-    //selectionTranslate.value = undefined;
-  } 
+  }
 }
 
 const coordInSelection = (coord: Point) => {
