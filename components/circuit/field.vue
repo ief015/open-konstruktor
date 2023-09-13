@@ -402,7 +402,7 @@ const renderOverlay = () => {
       const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
       const width = (right - left) + 1;
       const height = (bottom - top) + 1;
-      ctx.translate(Math.floor(left + ox) * TILE_SIZE, Math.floor(top + oy) * TILE_SIZE);
+      ctx.translate(Math.round(left + ox) * TILE_SIZE, Math.round(top + oy) * TILE_SIZE);
       ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
       ctx.restore();
     }
@@ -410,7 +410,7 @@ const renderOverlay = () => {
       ctx.save();
       const [ left, top ] = selectionBounds.value ?? [ 0, 0 ];
       const [ tx, ty ] = selectionTranslate.value ?? [ 0, 0 ];
-      ctx.translate(Math.floor((left + tx - 1) * TILE_SIZE), Math.floor((top + ty - 1) * TILE_SIZE));
+      ctx.translate(Math.floor((left + tx) * TILE_SIZE), Math.floor((top + ty) * TILE_SIZE));
       renderTiles({ context2d: ctx, field: selectionData.value, noTranslate: true });
       ctx.restore();
     }
@@ -544,7 +544,12 @@ const startDraw = (e: MouseEvent) => {
 const startSelection = (e: MouseEvent) => {
   const mouseCoords = mouseToGrid(e.offsetX, e.offsetY);
   if (coordInSelection(mouseCoords)) {
-    selectionData.value = field.value.copy(selectionStart.value!, selectionEnd.value!);
+    const [ left, top, right, bottom ] = selectionBounds.value!;
+    const start: Point = [ left, top ];
+    const end: Point = [ right, bottom ];
+    selectionData.value = field.value.copy(start, end);
+    field.value.clearRect(start, end);
+    queueAnimFuncs.add(renderTiles);
     selectionState.value = 'dragging';
   } else {
     selectionStart.value = clampCoords(mouseCoords);
