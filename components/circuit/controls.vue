@@ -1,15 +1,17 @@
 <template>
   <div class="flex flex-row items-baseline gap-2 px-2">
     <div>
-      <span class="drop-shadow select-none" :class="{
-        'green-light': isRunning && !isPaused,
-        'yellow-light': isRunning && isPaused,
-        'red-light': !isRunning,
-      }">
-        <svg class="w-[0.5em] h-[0.5em] inline-block" viewBox="0 0 1 1">
+        <svg
+          viewBox="0 0 1 1"
+          class="w-[0.5em] h-[0.5em]"
+          :class="{
+            'green-light': isRunning && !isPaused,
+            'yellow-light': isRunning && isPaused,
+            'red-light': !isRunning,
+          }"
+        >
           <circle cx="0.5" cy="0.5" r="0.5" fill="currentColor" />
         </svg>
-      </span>
     </div>
     <div>
       <button v-if="!isRunning" @click="onStart" class="w-[5em] overflow-hidden">
