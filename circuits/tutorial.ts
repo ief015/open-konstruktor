@@ -24,9 +24,11 @@ const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
 TODO description 01 Introduction
 
 Your primary objective is to build a circuit that will produce the expected output(s).
+<IMG: Show inputs and outputs scope>
 
 Goal: Connect the input pin to the output pin by drawing metal, and click Start to run the
 verification test.
+<IMG: Show Start button>
 
 == ON COMPLETION ==
 After passing the verification test, the level will be marked as complete.
