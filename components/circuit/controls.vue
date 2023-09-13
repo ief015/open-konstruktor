@@ -1,6 +1,15 @@
 <template>
   <div class="flex flex-row items-baseline gap-2 px-2">
     <div>
+      <span class="drop-shadow select-none" :class="{
+        'green-light': isRunning && !isPaused,
+        'yellow-light': isRunning && isPaused,
+        'red-light': !isRunning,
+      }">
+        ●
+      </span>
+    </div>
+    <div>
       <button v-if="!isRunning" @click="onStart" class="w-[5em] overflow-hidden">
         Start
       </button>
@@ -137,3 +146,20 @@ const onStep = (n?: number) => {
 }
 
 </script>
+
+<style scoped>
+
+.green-light {
+  color: #4ae681;
+  filter: drop-shadow(0 0 0.25em #4ae681);
+}
+.yellow-light {
+  color: #f7d82b;
+  filter: drop-shadow(0 0 0.25em #f7d82b);
+}
+.red-light {
+  color: #f63535;
+  filter: drop-shadow(0 0 0.25em #f63535);
+}
+
+</style>
