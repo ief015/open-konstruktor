@@ -61,8 +61,8 @@ const {
   elementY: canvasMouseY,
   isOutside: canvasMouseOutside,
 } = useMouseInElement(canvas);
-const coordMouseX = computed(() => Math.trunc((canvasMouseX.value + viewX.value) / TILE_SIZE));
-const coordMouseY = computed(() => Math.trunc((canvasMouseY.value + viewY.value) / TILE_SIZE));
+const coordMouseX = computed(() => Math.floor((canvasMouseX.value + viewX.value) / TILE_SIZE));
+const coordMouseY = computed(() => Math.floor((canvasMouseY.value + viewY.value) / TILE_SIZE));
 const images = useImageLoader();
 const isDrawing = ref(false);
 const isPanning = ref(false);
@@ -93,6 +93,8 @@ const debugMsg = computed(() => {
   // dbg.push(`Grid: [${columns}, ${rows}]`);
   //dbg.push(`View: [${panX}, ${panY}]`);
   // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
+  dbg.push(`Select start: ${selectionStart.value}`);
+  dbg.push(`Select end: ${selectionEnd.value}`);
   dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
   dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
   return dbg.join('<br/>');
@@ -100,9 +102,9 @@ const debugMsg = computed(() => {
 const queueAnimFuncs: Set<() => void> = new Set();
 const selectionStart = ref<Point>();
 const selectionEnd = ref<Point>();
-const selectionMove = ref<Point>();
+const selectionTranslate = ref<Point>();
 const selectionData = shallowRef<FieldGraph>();
-const selectionDragging = ref(false);
+const selectionState = ref<'selecting'|'dragging'>();
 
 const getTileViewport = (): { left: number, top: number, right: number, bottom: number } => {
   const { columns, rows } = dimensions;
@@ -153,23 +155,26 @@ const renderBackground = () => {
 };
 
 const renderTiles = (
-  options: { metal?: boolean; silicon?: boolean } = {
-    metal: true,
-    silicon: true,
-  },
-  bounds?: number[]
+  options: {
+    metal?: boolean; // Render metal layer
+    silicon?: boolean; // Render silicon layer
+    context2d?: CanvasRenderingContext2D; // Override context to render to
+    field?: FieldGraph; // Override field to render
+    bounds?: number[]; // Rendering bounds
+    noView?: boolean; // Disables view translation
+  } = {}
 ) => {
-  const contextSiliconTiles = canvasLayers['silicon-tiles']?.getContext('2d');
-  const contextMetalTiles = canvasLayers['metal-tiles']?.getContext('2d');
+  const contextSiliconTiles = options.context2d ?? canvasLayers['silicon-tiles']?.getContext('2d');
+  const contextMetalTiles = options.context2d ?? canvasLayers['metal-tiles']?.getContext('2d');
   if (!contextSiliconTiles)
-    throw new Error("Could not get background canvas context");
+    throw new Error("Could not get silicon-tiles canvas context");
   if (!contextMetalTiles)
-    throw new Error("Could not get background canvas context");
+    throw new Error("Could not get metal-tiles canvas context");
   canvasDirty.value = true;
-  const data = field.value.getData();
+  const data = (options.field ?? field.value).getData();
   const { columns, rows } = dimensions;
-  const { metal: showMetal, silicon: showSilicon } = Object.assign(
-    { metal: false, silicon: false },
+  const { metal: showMetal, silicon: showSilicon, bounds, noView } = Object.assign(
+    { metal: true, silicon: true },
     options
   );
   const tileViewport = getTileViewport();
@@ -370,17 +375,25 @@ const renderOverlay = () => {
   // Draw selection
   if (!isRunning.value) {
     if (selectionStart.value && selectionEnd.value) {
+      ctx.save();
+      ctx.translate(0.5, 0.5);
       ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(255, 255, 255, calc(2/3))';
+      ctx.strokeStyle = '#fff';
       const [sx, sy] = selectionStart.value;
       const [ex, ey] = selectionEnd.value;
-      const left = Math.trunc(Math.min(sx, ex) / TILE_SIZE) * TILE_SIZE;
-      const top = Math.trunc(Math.min(sy, ey) / TILE_SIZE) * TILE_SIZE;
-      const width =
-        (Math.trunc(Math.max(sx, ex) / TILE_SIZE) + 1) * TILE_SIZE - left;
-      const height =
-        (Math.trunc(Math.max(sx, ex) / TILE_SIZE) + 1) * TILE_SIZE - top;
-      ctx.strokeRect(left, top, width, height);
+      const [ox, oy] = selectionTranslate.value ?? [0, 0];
+      const left = Math.min(sx, ex);
+      const top = Math.min(sy, ey);
+      const width = (Math.max(sx, ex) - left) + 1;
+      const height = (Math.max(sy, ey) - top) + 1;
+      ctx.translate(Math.floor(left + ox) * TILE_SIZE, Math.floor(top + oy) * TILE_SIZE);
+      ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
+      ctx.restore();
+    }
+    if (selectionData.value) {
+      ctx.save();
+      //renderTiles({ context2d: ctx, field: selectionData.value, noView: true });
+      ctx.restore();
     }
   }
   // Draw pin labels
@@ -438,17 +451,6 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
     case 'erase-gate':
       field.value.erase('gate', coordA, coordB);
       break;
-    case 'select':
-      // TODO: Implement select
-      if (!selectionData.value) {
-        if (!selectionStart.value) {
-          selectionStart.value = coordA;
-        }
-        selectionEnd.value = coordB;
-      } else {
-        selectionDragging.value = true;
-      }
-      return;
   }
   updateDesignScoreThrottle();
   const bounds = [
@@ -457,7 +459,7 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
     Math.max(coordA[0], coordB[0]),
     Math.max(coordA[1], coordB[1]),
   ];
-  queueAnimFuncs.add(() => renderTiles(undefined, bounds));
+  queueAnimFuncs.add(() => renderTiles({ bounds }));
 };
 
 const panView = (dx: number, dy: number) => {
@@ -496,21 +498,88 @@ const invalidateCanvasSizes = () => {
 };
 
 const mouseToGrid = (mx: number, my: number): Point => {
-  if (!canvas.value) return [0, 0];
-  const x = Math.trunc((mx + viewX.value) / TILE_SIZE);
-  const y = Math.trunc((my + viewY.value) / TILE_SIZE);
+  if (!canvas.value)
+    return [0, 0];
+  const x = Math.floor((mx + viewX.value) / TILE_SIZE);
+  const y = Math.floor((my + viewY.value) / TILE_SIZE);
   return [x, y];
 };
 
+const clampCoords = (coord: Point): Point => {
+  const { rows } = dimensions;
+  const [ min, max ] = field.value.getMinMaxColumns();
+  const [ x, y ] = coord;
+  return [
+    Math.max(min, Math.min(max, x)),
+    Math.max(0, Math.min(rows - 1, y)),
+  ];
+}
+
+const startDraw = (e: MouseEvent) => {
+  const mouseCoords = mouseToGrid(e.offsetX, e.offsetY);
+  isDrawing.value = true;
+  prevDrawingCoords = mouseCoords;
+  draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
+}
+
+const startSelection = (e: MouseEvent) => {
+  const mouseCoords = mouseToGrid(e.offsetX, e.offsetY);
+  if (coordInSelection(mouseCoords)) {
+    selectionData.value = field.value.copy(selectionStart.value!, selectionEnd.value!);
+    selectionState.value = 'dragging';
+  } else {
+    selectionStart.value = clampCoords(mouseCoords);
+    selectionEnd.value = clampCoords(mouseCoords);
+    selectionTranslate.value = [ 0, 0 ];
+    selectionState.value = 'selecting';
+  }
+}
+
+const endSelection = (e: MouseEvent) => {
+  
+  if (selectionState.value === 'selecting') {
+    selectionState.value = undefined;
+  }
+  if (selectionState.value === 'dragging') {
+    // TODO try place selection data or reset selection to original position
+    console.log("TODO: Paste selection in place", selectionStart, selectionEnd, selectionTranslate)
+    selectionState.value = undefined;
+
+    // if placed failed:
+    selectionTranslate.value = [0, 0];
+
+    // if placed successfully:
+    //selectionStart.value = undefined;
+    //selectionEnd.value = undefined;
+    //selectionTranslate.value = undefined;
+  } 
+}
+
+const coordInSelection = (coord: Point) => {
+  const [ x, y ] = coord;
+  if (!selectionStart.value || !selectionEnd.value)
+    return false;
+  const [ sx, sy ] = selectionStart.value;
+  const [ ex, ey ] = selectionEnd.value;
+  const minX = Math.min(sx, ex);
+  const maxX = Math.max(sx, ex);
+  const minY = Math.min(sy, ey);
+  const maxY = Math.max(sy, ey);
+  return x >= minX && x <= maxX && y >= minY && y <= maxY;
+}
+
 const onMouseDown = (e: MouseEvent) => {
-  if (!canvas.value) return;
+  if (!canvas.value)
+    return;
   e.preventDefault();
   switch (e.button) {
     case 0:
       if (!isRunning.value) {
-        isDrawing.value = true;
-        prevDrawingCoords = mouseToGrid(e.offsetX, e.offsetY);
-        draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
+        if (toolBoxMode.value === 'select') {
+          startSelection(e);
+        } else {
+          startDraw(e);
+        }
       }
       break;
     case 2:
@@ -522,19 +591,37 @@ const onMouseDown = (e: MouseEvent) => {
 watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
   const dx = x - oldX;
   const dy = y - oldY;
+  const coords = mouseToGrid(x, y);
   if (isDrawing.value) {
     if (!isRunning.value) {
-      const coords = mouseToGrid(x, y);
       draw(toolBoxMode.value, prevDrawingCoords, coords);
       prevDrawingCoords = coords;
     }
   } else if (isPanning.value) {
     panView(-dx, -dy);
+  } else if (selectionState.value) {
+    if (selectionState.value === 'dragging') {
+      if (selectionTranslate.value) {
+        selectionTranslate.value[0] += dx / TILE_SIZE;
+        selectionTranslate.value[1] += dy / TILE_SIZE;
+      }
+    } else if (selectionState.value === 'selecting') {
+      selectionEnd.value = clampCoords(coords);
+    }
   }
 });
 
-watch([selectionData, selectionStart, selectionEnd, selectionMove], () => {
+watch([selectionData, selectionStart, selectionEnd, selectionTranslate], () => {
   queueAnimFuncs.add(renderOverlay);
+}, { deep: true });
+
+watch(toolBoxMode, (mode, was) => {
+  if (was === 'select') {
+    selectionData.value = undefined;
+    selectionStart.value = undefined;
+    selectionEnd.value = undefined;
+    selectionTranslate.value = undefined;
+  }
 });
 
 useEventListener('mouseup', (e) => {
@@ -543,6 +630,7 @@ useEventListener('mouseup', (e) => {
   switch (e.button) {
     case 0:
       isDrawing.value = false;
+      endSelection(e);
       break;
     case 2:
       isPanning.value = false;
@@ -564,7 +652,7 @@ useRafFn(({ delta, timestamp }) => {
   canvasDirty.value = false;
   const ctx = canvas.value?.getContext('2d');
   if (!ctx)
-    throw new Error('Could not get background canvas context');
+    throw new Error('Could not get primary canvas context');
   const { width, height } = ctx.canvas;
   ctx.drawImage(canvasLayers['background'], 0, 0, width, height);
   ctx.drawImage(canvasLayers['silicon-tiles'], 0, 0, width, height);
@@ -597,7 +685,8 @@ watch(
 
 watch(canvas, (canvas) => {
   const ctx = canvas?.getContext('2d');
-  if (!ctx) return;
+  if (!ctx)
+    return;
   ctx.imageSmoothingEnabled = false;
   invalidateCanvasSizes();
   resetView();
