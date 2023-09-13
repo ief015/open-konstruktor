@@ -38,6 +38,9 @@
           <CircuitControls class="w-full h-full" />
         </div>
       </div>
+      <div class="absolute inset-x-0 top-0">
+        <DialogInfoBox class="m-2" />
+      </div>
     </div>
   </NuxtLayout>
 </template>
