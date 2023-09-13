@@ -6,7 +6,9 @@
         'yellow-light': isRunning && isPaused,
         'red-light': !isRunning,
       }">
-        ●
+        <svg class="w-[0.5em] h-[0.5em] inline-block" viewBox="0 0 1 1">
+          <circle cx="0.5" cy="0.5" r="0.5" fill="currentColor" />
+        </svg>
       </span>
     </div>
     <div>
