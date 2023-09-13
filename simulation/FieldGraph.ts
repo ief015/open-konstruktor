@@ -562,21 +562,31 @@ export default class FieldGraph {
     return fieldCopy;
   }
 
-  public canPaste(topLeft: Point, graph: FieldGraph): boolean {
+  public canPaste(leftTop: Point, graph: FieldGraph): boolean {
     const { data: myData } = this;
     const { data: otherData } = graph;
-    const { columns, rows } = otherData.getDimensions();
-    const [ x1, y1 ] = topLeft;
-    const [ x2, y2 ] = [ x1 + columns - 1, y1 + rows - 1 ];
-    for (let x = x1; x <= x2; x++) {
-      for (let y = y1; y <= y2; y++) {
-        if (myData.get(Layer.Metal, x, y) !== MetalValue.None) {
-          if (otherData.get(Layer.Metal, x - x1, y - y1) !== MetalValue.None) {
+    const { columns: myColumns, rows: myRows } = myData.getDimensions();
+    const { columns: otherColumns, rows: otherRows } = otherData.getDimensions();
+    const [ left, top ] = leftTop;
+    for (let x = 0; x < otherColumns; x++) {
+      const ax = x + left;
+      for (let y = 0; y < otherRows; y++) {
+        const ay = y + top;
+        if (otherData.get(Layer.Metal, x, y) !== MetalValue.None) {
+          if (myData.get(Layer.Metal, ax, ay) !== MetalValue.None) {
+            return false;
+          } else if (ax < this.minDrawColumn || ax > this.maxDrawColumn) {
+            return false;
+          } else if (ay < 0 || ay >= myRows) {
             return false;
           }
         }
-        if (myData.get(Layer.Silicon, x, y) !== SiliconValue.None) {
-          if (otherData.get(Layer.Silicon, x - x1, y - y1) !== SiliconValue.None) {
+        if (otherData.get(Layer.Silicon, x, y) !== SiliconValue.None) {
+          if (myData.get(Layer.Silicon, ax, ay) !== SiliconValue.None) {
+            return false;
+          } else if (ax < this.minDrawColumn || ax > this.maxDrawColumn) {
+            return false;
+          } else if (ay < 0 || ay >= myRows) {
             return false;
           }
         }

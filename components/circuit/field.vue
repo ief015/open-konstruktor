@@ -568,7 +568,7 @@ const endSelection = (e: MouseEvent) => {
       const [ left, top, right, bottom ] = selectionBounds.value;
       const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
       const pasteStart: Point = [ Math.round(left + ox), Math.round(top + oy) ];
-      const pasted = field.value.paste(pasteStart, selectionData.value, { overwrite: true });
+      const pasted = field.value.paste(pasteStart, selectionData.value);
       if (pasted) {
         console.log('Pasted successfully');
         selectionStart.value = undefined;
@@ -576,6 +576,7 @@ const endSelection = (e: MouseEvent) => {
         selectionTranslate.value = undefined;
       } else {
         console.log('Failed paste');
+        field.value.paste([ left, top ], selectionData.value, { overwrite: true });
         selectionTranslate.value = [0, 0];
       }
       queueAnimFuncs.add(renderTiles);
