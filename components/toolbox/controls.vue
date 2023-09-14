@@ -3,8 +3,10 @@
     class="flex items-center gap-2 p-2"
     :class="{ 'flex-row': props.horizontal, 'flex-col': !props.horizontal }"
   >
-    <div v-for="(item, idx) in toolkit" class="w-full">
+    <div v-for="item in toolkit" class="w-full">
+      <div v-if="item === true" class="my-1" style="border-top: 1px solid #666"></div>
       <button
+        v-else
         @click="onClickTool(item)"
         class="relative flex items-center justify-center w-full h-[3em] rounded border-solid border-2"
         :class="{
@@ -19,7 +21,7 @@
         <span
           class="absolute top-0 right-0.5 text-black text-opacity-50 font-georgia10 text-[10px]"
         >
-          {{ idx == 9 ? 0 : idx + 1 }}
+          {{ item.key }}
         </span>
       </button>
     </div>
@@ -35,6 +37,7 @@ interface ToolkitItem {
   mode: ToolboxMode;
   classes?: string;
   labelClass?: string;
+  key?: string;
 }
 
 const props = withDefaults(
@@ -50,51 +53,63 @@ const emit = defineEmits<{
   change: [mode: ToolboxMode, prevMode: ToolboxMode];
 }>();
 
-const toolkit: ToolkitItem[] = [
+const toolkit: (ToolkitItem|true)[] = [
   {
     name: "Select",
     mode: "select",
+    key: "1",
   },
+  true,
   {
     name: "Metal",
     mode: "draw-metal",
     classes: "bg-metal text-black font-bold",
+    key: "2",
   },
   {
     name: "P-Type",
     mode: "draw-p-silicon",
     classes: "bg-ptype text-black font-bold",
+    key: "3",
   },
   {
     name: "N-Type",
     mode: "draw-n-silicon",
     classes: "bg-ntype text-black font-bold",
+    key: "4",
   },
   {
     name: "Via",
     mode: "draw-via",
     icon: "/tiles/link.png",
     classes: "bg-neutral-400 text-black font-bold",
+    key: "5",
   },
+  true,
   {
     name: "Erase",
     mode: "erase",
+    key: "6",
   },
   {
     name: "Erase (Metal)",
     mode: "erase-metal",
+    key: "7",
   },
   {
     name: "Erase (Silicon)",
     mode: "erase-silicon",
+    key: "8",
   },
   {
     name: "Erase (Vias)",
     mode: "erase-via",
+    key: "9",
   },
   {
     name: "Erase (Gates)",
     mode: "erase-gate",
+    key: "0",
   },
 ];
 
@@ -119,9 +134,9 @@ useEventListener("keypress", (ev) => {
     return;
   }
   if (ev.key >= "0" && ev.key <= "9") {
-    const num = parseInt(ev.key);
-    const index = num === 0 ? 9 : num - 1;
-    const item = toolkit[index];
+    const item = toolkit.find((item) => {
+      return item !== true && item.key === ev.key;
+    }) as ToolkitItem | undefined;
     if (item) {
       onClickTool(item);
     }
