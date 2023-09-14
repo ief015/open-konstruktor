@@ -2,10 +2,9 @@ import { CircuitSimulation, Network } from "@/simulation";
 
 export interface LevelInfoPage {
   contentHtml: string;
-  levelLinkID?: string;
 }
 
-export type LevelInfo = {
+export interface LevelInfo {
   title?: string;
   pages: LevelInfoPage[];
 }
@@ -18,4 +17,5 @@ export interface CircuitSimulationFactory {
   regenOnLoop?: boolean;
   info?: LevelInfo;
   infoCompleted?: LevelInfo;
+  nextLevelID?: string;
 }

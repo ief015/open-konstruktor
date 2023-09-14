@@ -38,8 +38,8 @@
           <CircuitControls class="w-full h-full" />
         </div>
       </div>
-      <div class="absolute inset-x-0 top-0">
-        <DialogInfoBox class="m-2" />
+      <div class="absolute inset-x-0 top-0 flex flex-row justify-center">
+        <DialogInfoBox class="m-2 w-[1000px]" />
       </div>
     </div>
   </NuxtLayout>

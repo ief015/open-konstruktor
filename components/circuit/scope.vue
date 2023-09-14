@@ -25,7 +25,7 @@
         <span v-else-if="!verifyResult">
           VERIFICATION TEST NOT YET COMPLETED
         </span>
-        <span v-else-if="verifyResult.gradePercent >= 97" :style="{ 'color': COLOR_VERIFY_PASS }">
+        <span v-else-if="verifyResult.gradePercent >= VERIFY_PASS_THRESHOLD" :style="{ 'color': COLOR_VERIFY_PASS }">
           VERIFICATION TEST PASSED ({{verifyResult.gradePercent}}%) - FLAGGED AS COMPLETED
         </span>
         <span v-else :style="{ 'color': COLOR_VERIFY_FAIL }">
@@ -56,6 +56,8 @@ const HEIGHT_PX_SCOPE = 25; // 25px per scope
 const GRID_LINE_INTERVAL = 5; // Grid line every 5 ticks
 const WIDTH_PX_LABELS = 52; // Minimum width for labels
 
+const VERIFY_PASS_THRESHOLD = 97;
+
 const canvasContainer = ref<HTMLDivElement>();
 const canvas = ref<HTMLCanvasElement>();
 const canvasWidth = ref(0);
@@ -64,6 +66,7 @@ const {
   network, sim, isRunning, currentFrame,
   onRender: onCircuitRender, onComplete,
 } = useCircuitSimulator();
+const { openCompleted: levelInfoOpenCompleted, completedAvailable: hasOpenedCompleted } = useLevelInfo();
 const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
 let prevDrawingCoords: Point = [0, 0];
@@ -290,6 +293,11 @@ onCircuitRender(renderScope);
 
 onComplete((result) => {
   verifyResult.value = result;
+  if ((result?.gradePercent ?? 0) >= VERIFY_PASS_THRESHOLD) {
+    if (!hasOpenedCompleted.value) {
+      levelInfoOpenCompleted();
+    }
+  }
 });
 
 watch(isRunning, (running) => {

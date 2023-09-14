@@ -1,7 +1,5 @@
 import { CircuitSimulationFactory } from "@/circuits";
-import { Network, PinNode } from "@/simulation";
-import { CircuitSimulation } from "@/simulation/CircuitSimulation";
-import Sequence from "@/simulation/Sequence";
+import { PinNode, CircuitSimulation, Sequence } from "@/simulation";
 import createSequencesFromInputs from "@/utils/createSequencesFromInputs";
 
 const assignVCC = (...pins: PinNode[]) => {
@@ -20,26 +18,6 @@ type LevelNames =
 
 const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
 
-/*
-TODO description 01 Introduction
-
-Your primary objective is to build a circuit that will produce the expected output(s).
-<IMG: Show inputs and outputs scope>
-
-Goal: Connect the input pin to the output pin by drawing metal, and click Start to run the
-verification test.
-<IMG: Show Start button>
-
-== ON COMPLETION ==
-After passing the verification test, the level will be marked as complete.
-In order to pass the verification test, your circuit must be at least 97% accurate.
-Completing levels will unlock later levels, and you can always go back and replay previous levels.
-
-The design score represents the amount of material you used to build your circuit. There is no limit
-to the amount of material you can use, you're only only limited by the size of the board. The
-design score is not related to the verification test, and is only used to compare your design to
-others.
-*/
   '01 Introduction': {
     pinRows: 1,
     width: 14,
@@ -56,7 +34,46 @@ others.
       sim.setInputSequence(pinIn, seq);
       sim.setOutputSequence(pinOut, seq.slice(0));
       return sim;
-    }
+    },
+    nextLevelID: '02 Metal, Silicon and Vias',
+    info: {
+      title: 'Tutorial - Introduction',
+      pages: [
+        {
+          contentHtml: `
+Your primary objective is to build a circuit that will produce the expected output(s).<br/>
+[IMG: Show inputs and outputs scope]
+          `,
+        },
+        {
+          contentHtml: `
+Goal: Connect the input pin to the output pin by drawing metal, and click Start to run the
+verification test.<br/>
+[IMG: Show Start button]
+          `,
+        },
+      ],
+    },
+    infoCompleted: {
+      title: 'Tutorial - Introduction',
+      pages: [
+        {
+          contentHtml: `
+After passing the verification test, the level will be marked as complete. In order to pass
+the verification test, your circuit must reach a grade of at least 97%.<br/>
+Completing levels will unlock later levels, and you can always go back and replay previous levels.<br/>
+          `,
+        },
+        {
+          contentHtml: `
+The design score represents the amount of material you used to build your circuit. There is no limit
+to the amount of material you can use. The only limit is determined by the size of the board. The
+design score is not related to the verification test, and is only used to compare your design to
+others.
+          `,
+        },
+      ],
+    },
   },
 
 /*
