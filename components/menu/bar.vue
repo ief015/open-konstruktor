@@ -52,13 +52,11 @@
 // @ts-ignore
 import { DockMenu } from "@/external/vue-dock-menu/vue-dock-menu.es";
 import "@/external/vue-dock-menu/assets/output-9689c4bb.css";
-import { tutorial } from "@/circuits/tutorial";
-import { openkonstruktor } from "@/circuits/open-konstruktor";
-import { kohctpyktop } from "@/circuits/kohctpyktop";
 import { CircuitSimulationFactory } from "@/circuits";
 
 const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim } = useCircuitSimulator();
+const { getLoader } = useCircuitLoaders();
 const { ignoreKeyShortcuts } = useToolbox();
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
@@ -146,11 +144,6 @@ const items = [
     ]
   },
 ];
-const loaders: Record<string, CircuitSimulationFactory> = {
-  ...kohctpyktop,
-  ...openkonstruktor,
-  ...tutorial,
-};
 
 const onClear = () => {
   loadBlank(); // FIXME: this will load default canvas size
@@ -210,11 +203,11 @@ const onSelected = ({ name, path, id }: { name: string; path: string, id: string
     onClear();
   } else if (id.startsWith('level:')) {
     const loaderKey = id.split(':')[1];
-    const loader = loaders[loaderKey];
+    const loader = getLoader(loaderKey);
     if (!loader) {
       throw new Error(`Unknown loader: ${loaderKey}`);
     }
-    onLoadCircuit(loaders[loaderKey]);
+    onLoadCircuit(loader);
   }
 }
 
