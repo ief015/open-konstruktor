@@ -14,33 +14,65 @@
         </svg>
     </div>
     <div>
-      <button v-if="!isRunning" @click="onStart" class="w-[5em] overflow-hidden">
+      <button
+        v-if="!isRunning"
+        @click="onStart"
+        class="w-[5em] overflow-hidden"
+        title="Start the verification test."
+      >
         Start
       </button>
-      <button v-else @click="stop" class="w-[5em] overflow-hidden">
+      <button
+        v-else
+        @click="stop"
+        class="w-[5em] overflow-hidden"
+        title="Stop the verification test."
+      >
         Stop
       </button>
     </div>
     <div>
-      <button @click="onTogglePause" class="w-[5em] overflow-hidden">
+      <button
+        @click="onTogglePause"
+        class="w-[5em] overflow-hidden"
+        title="Toggle pause/resume."
+      >
         {{ isPaused && isRunning ? 'Resume' : 'Pause' }}
       </button>
     </div>
     <div>
-      <button @click="onStep()" :disabled="!isPaused">Step+1</button>
+      <button
+        @click="onStep()"
+        :disabled="!isPaused"
+        title="Step 1 cycle."
+      >
+        Step+1
+      </button>
     </div>
     <div>
-      <button @click="onStep(5)" :disabled="!isPaused">+5</button>
+      <button
+        @click="onStep(5)"
+        :disabled="!isPaused"
+        title="Step 5 cycles."
+      >
+        +5
+      </button>
     </div>
     <div>
-      <button @click="onStep(10)" :disabled="!isPaused">+10</button>
+      <button
+        @click="onStep(10)"
+        :disabled="!isPaused"
+        title="Step 10 cycles."
+      >
+        +10
+      </button>
     </div>
-    <div class="flex flex-row items-center text-sm">
+    <div class="flex flex-row items-center text-sm" title="Toggle looping.">
       <label for="circuit-controls-loop-checkbox">Loop</label>
       <input id="circuit-controls-loop-checkbox" type="checkbox" v-model="loop" />
     </div>
     <div>
-      <select v-model="selectedRate">
+      <select v-model="selectedRate" title="Set the step rate of the simulation.">
         <option value="10">10 Hz</option>
         <option value="20">20 Hz</option>
         <option value="40" title="The original step rate of KOHCTPYKTOP.">
