@@ -177,21 +177,6 @@ Next, you will be introduced to gates, which are used to control the flow of cur
   },
 
 
-/*
-
-
-
-
-== ON COMPLETION ==
-
-You may notice that the output signal is not an exact inversion of the input signal, but
-is slightly delayed. This is due to **propagation delay**, which is the time it takes for the gate
-to transition between opened or closed. This is expected, and the verification test will succeed if
-the output signal matches within a short tolerance. Progagation delay will be explored further in a
-later tutorial level.
-
-In the next level, you will be introduced to the counterpart of the PNP gate: the NPN gate.
-*/
   '03 PNP Gates': {
     pinRows: 2,
     width: 22,
@@ -275,13 +260,6 @@ In the next level, you will be introduced to the counterpart of the PNP gate: th
   },
 
 
-/*
-
-
-
-
-== ON COMPLETION ==
-*/
   '04 NPN Gates': {
     pinRows: 2,
     width: 22,
@@ -411,7 +389,7 @@ is important to understand as it can affect the behavior of your circuits.
         {
           contentHtml: `
 The delay occurs when a PNP or NPN gate receives a signal to change its state from opened to closed,
-or vice-versa. The gate's state does not change immediately, and instead takes 1 cycle to
+or vice versa. The gate's state does not change immediately, and instead takes 1 cycle to
 transition.<br/>
 <br/>
 This means that the output signal will be delayed by 1 cycle if the current needs to wait.<br/>
