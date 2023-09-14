@@ -23,8 +23,8 @@
     </template>
     <template #right>
       <div class="w-[5em] h-full left-border">
-        <div class="text-xs font-ttw text-center select-none">Toolbox</div>
-        <ToolboxControls />
+        <div class="text-xs font-ttw text-center m-1 select-none">Toolbox</div>
+        <ToolboxControls class="m-2" />
       </div>
     </template>
     <div class="absolute inset-0">
@@ -33,7 +33,7 @@
           <CircuitField />
         </div>
         <div class="top-border">
-          <CircuitScope />
+          <CircuitScope class="min-h-[10em]" />
         </div>
         <div class="top-border py-2">
           <CircuitControls class="w-full h-full" />

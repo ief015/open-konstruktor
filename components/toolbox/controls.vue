@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center gap-2 p-2"
+    class="flex items-center gap-2"
     :class="{ 'flex-row': props.horizontal, 'flex-col': !props.horizontal }"
   >
     <div v-for="item in toolkit" class="w-full">

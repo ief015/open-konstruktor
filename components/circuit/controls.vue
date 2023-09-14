@@ -67,7 +67,10 @@
         +10
       </button>
     </div>
-    <div class="flex flex-row items-center text-sm" title="Toggle looping.">
+    <div
+      class="flex flex-row items-center text-sm"
+      title="Toggle looping. Verification testing will not completed until disabled."
+    >
       <label for="circuit-controls-loop-checkbox">Loop</label>
       <input id="circuit-controls-loop-checkbox" type="checkbox" v-model="loop" />
     </div>

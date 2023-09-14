@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col" :style="{ 'background-color': COLOR_CHART }">
+  <div class="flex flex-col justify-between" :style="{ 'background-color': COLOR_CHART }">
     <div
       ref="canvasContainer"
       :class="`m-[8px] overflow-auto max-h-[${maxScopeHeight}px]`"
