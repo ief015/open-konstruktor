@@ -43,7 +43,7 @@ const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
           contentHtml: `
 <b>Welcome to Open-Konstruktor!</b><br/>
 </br>
-Your primary objective is to build integrated circuits based on the provided specifications.<br/>
+Your primary objective is to construct integrated circuits based on the provided specifications.<br/>
 <br/>
 Your circuits will be verified and graded based on how well they can produce the expected outputs
 from a set of input signals.<br/>
@@ -92,7 +92,7 @@ verification test.<br/>
 <img src="/tutorial/01/verified.png" /><br/>
 <br/>
 After passing the verification test, the level will be marked as complete. In order to pass
-the verification test, your circuit must reach a grade of at least <u><b>97%</b></u>.<br/>
+verification, your circuit must reach a grade of at least <u><b>97%</b></u>.<br/>
 <br/>
 Completing levels will unlock more levels, and you can always go back and replay previous
 levels.<br/>
@@ -235,9 +235,8 @@ drawn over <b style="color:#FFFF00">P-Type</b> silicon, as shown above.
           contentHtml: `
 A PNP gate allows current to flow through the <b style="color:#FFFF00">P-Type</b> silicon, unless a
 signal is applied to the <b style="color:#FF0000">N-Type</b> silicon, in which case the gate will
-close. When the signal is removed, the gate opens allowing current to flow again.<br/>
-<br/>
-By using a PNP gate, we can invert a signal. This is also called a <u><b>NOT gate</b></u>:<br/>
+close. When the signal is removed, the gate opens allowing current to flow again. By using a PNP
+gate, we can invert a signal. This is also called a <u><b>NOT gate</b></u>:<br/>
 <br/>
 <img src="/tutorial/03/low.png" />
 <img src="/tutorial/03/high.png" />
@@ -462,10 +461,8 @@ Build a circuit to delay the input by 10 cycles.
       pages: [
         {
           contentHtml: `
-Tutorial complete! Select a level from the menu bar to start building on your own.<br/>
-<br/>
-Besides this tutorial, there are two other categories of levels: **KOHCTPYKTOP** and
-**Open-Konstruktor**.<br/>
+Tutorial complete! Select a level from the menu bar to start building on your own. Besides this
+tutorial, there are two other categories of levels: **KOHCTPYKTOP** and **Open-Konstruktor**.<br/>
 <br/>
 **KOHCTPYKTOP**: These levels are based on the levels in the game KOHCTPYKTOP: Engineer of the
 People. There are only a handful, but they can quickly become very challenging.<br/>
