@@ -12,7 +12,6 @@ const profiler = reactive({
   steps: 0,
   elapsed: 0,
 });
-
 const network = shallowRef<Network>(new Network());
 const sim = shallowRef<CircuitSimulation>(new CircuitSimulation(network.value));
 const isRunning = ref(false);
@@ -38,7 +37,7 @@ const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
 
 const defaultFactory: CircuitSimulationFactory = { setup: (network) => new CircuitSimulation(network) };
-const currentFactory = ref<CircuitSimulationFactory>(defaultFactory);
+const currentFactory = shallowRef<CircuitSimulationFactory>(defaultFactory);
 
 const invokeRenderers = () => {
   onRenderHandlers.forEach(handler => handler());
@@ -212,7 +211,7 @@ export default function useCircuitSimulator() {
   return {
     sim,
     network,
-    circuitFactory: readonly(currentFactory),
+    circuitFactory: currentFactory,
     isRunning,
     isPaused,
     loop,
