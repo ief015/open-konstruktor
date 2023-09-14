@@ -9,7 +9,7 @@
           🗙
         </div>
       </div>
-      <div class="font-ttw text-sm h-[200px] overflow-auto">
+      <div class="font-mono text-sm h-[200px] overflow-auto">
         <div v-html="contentHtml" />
       </div>
       <div class="flex flex-row justify-center gap-4">
