@@ -15,14 +15,15 @@
     </template>
     <template #left>
       <div class="w-[10em] h-full right-border flex flex-col">
-        <label class="text-xs font-ttw m-1">Designs</label>
+        <div class="text-xs font-ttw text-center m-1 select-none">Designs</div>
         <ToolboxDesignSelect class="flex-1" />
-        <label class="text-xs font-ttw m-1">Snippets</label>
+        <div class="text-xs font-ttw text-center m-1 select-none">Snippets</div>
         <ToolboxSnippetsSelect class="flex-1" />
       </div>
     </template>
     <template #right>
       <div class="w-[5em] h-full left-border">
+        <div class="text-xs font-ttw text-center select-none">Toolbox</div>
         <ToolboxControls />
       </div>
     </template>
