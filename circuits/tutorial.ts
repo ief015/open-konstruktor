@@ -37,13 +37,13 @@ const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
       return sim;
     },
     info: {
-      title: 'Tutorial - Introduction',
+      title: 'Tutorial pt. 1 - Introduction',
       pages: [
         {
           contentHtml: `
 <b>Welcome to Open-Konstruktor!</b><br/>
 </br>
-Your primary objective is to build integrated circuits based on provided specifications.<br/>
+Your primary objective is to build integrated circuits based on the provided specifications.<br/>
 <br/>
 Your circuits will be verified and graded based on how well they can produce the expected outputs
 from a set of input signals.<br/>
@@ -56,8 +56,9 @@ of your circuit.<br/>
 <br/>
 <img src="/tutorial/01/in_out.png" /><br/>
 <br/>
-Here, "In" represents a signal from an input, and "Out" represents an output signal your circuit is
-expected to produce. Signals can be one of two states: <u><b>high</b></u> or <u><b>low</b></u>.
+In this case, "In" represents a signal from an input, and "Out" represents an output signal your
+circuit is expected to produce. Signals can be one of two states:
+<u><b>high</b></u> or <u><b>low</b></u>.
           `,
         },
         {
@@ -66,7 +67,9 @@ On the right of the screen is the <u><b>toolbox</b></u>, which contains all the 
 draw on the board to build your circuit.<br/>
 <br/>
 The first one we'll look at is the <u><b>metal</b></u> tool. Metal is a basic conductor, and is the
-only material that can connect to the pins of the circuit.
+only material that can connect to the pins of the circuit:<br/>
+<br/>
+<img src="/tutorial/01/pins.png" /><br/>
           `,
         },
         {
@@ -75,16 +78,19 @@ only material that can connect to the pins of the circuit.
 <br/>
 Connect the input pin to the output pin by drawing metal, and click Start to run the
 verification test.<br/>
-[IMG: Show Start button]
+<br/>
+<img src="/tutorial/01/start.png" />
           `,
         },
       ],
     },
     infoCompleted: {
-      title: 'Tutorial - Introduction',
+      title: 'Tutorial pt. 1 - Introduction',
       pages: [
         {
           contentHtml: `
+<img src="/tutorial/01/verified.png" /><br/>
+<br/>
 After passing the verification test, the level will be marked as complete. In order to pass
 the verification test, your circuit must reach a grade of at least <u><b>97%</b></u>.<br/>
 <br/>
@@ -94,12 +100,14 @@ levels.<br/>
         },
         {
           contentHtml: `
-The <u><b>design score</b></u> represents the amount of material you used to build your circuit.
-There is no limit to the amount of material you can use. The only limit is determined by the size of
-the board.<br/>
+The <u><b>design score</b></u> (shown on the bottom-right of the screen) represents the amount of
+material you used to build your circuit. There is no limit to the amount of material you can use.
+The only limit is determined by the size of the board.<br/>
 <br/>
 The design score is not related to the verification test, and is only used to compare your design to
-others.
+others.<br/>
+<br/>
+In the next level, we'll look at the other materials available in the toolbox: silicon and vias.
           `,
         },
       ],
@@ -133,23 +141,22 @@ others.
       return sim;
     },
     info: {
-      title: 'Tutorial - Metal, Silicon and Vias',
+      title: 'Tutorial pt. 2 - Metal, Silicon and Vias',
       pages: [
         {
           contentHtml: `
 <u><b>Metal</b></u> and <u><b>silicon</b></u> are the two primary materials used to build your circuits.<br/>
 <br/>
 Metal and silicon are placed on different layers of the chip, which allows current to flow across
-them.<br/>
-[IMG: show metal flowing current above silicon]<br/>
+them. Place <u><b>vias</b></u> to make connections between the two layers.<br/>
 <br/>
-Place <b>vias</b> to make connections between the two layers.<br/>
-[IMG: show silicon connected with metal]
+<img src="/tutorial/02/metal-over.png" />
+<img src="/tutorial/02/metal-connected.png" />
+<img src="/tutorial/02/metal-connected-power.png" />
           `,
         },
         {
           contentHtml: `
-
 Silicon comes in two flavors: <u><b>P-Type</b></u> and <u><b>N-Type</b></u>. By themselves, they are simply conductive
 materials just like metal. However, by drawing one type over another, we can create a <u><b>gate</b></u> to
 control the flow of current, which will be demonstrated in the next level.<br/>
@@ -164,11 +171,13 @@ Place metal, silicon and vias in order to connect the matching pairs of pins.
       ],
     },
     infoCompleted: {
-      title: 'Tutorial - Metal, Silicon and Vias',
+      title: 'Tutorial pt. 2 - Metal, Silicon and Vias',
       pages: [
         {
           contentHtml: `
-Next, you will be introduced to gates, which are used to control the flow of current.
+So far, the circuits we've built don't do anything practically useful. In the next level, you will
+be introduced to gates, which are used to control the flow of current and add logic to your
+circuits.
           `,
         },
       ],
@@ -204,15 +213,18 @@ Next, you will be introduced to gates, which are used to control the flow of cur
       return sim;
     },
     info: {
-      title: 'Tutorial - PNP Gates',
+      title: 'Tutorial pt. 3 - PNP Gates',
       pages: [
         {
           contentHtml: `
 There are two types of gates: the <u><b>PNP</b></u> gate and the <u><b>NPN</b></u> gate.<br/>
-[IMG: Show PNP and NPN gates]<br/>
 <br/>
-Gates can be built by drawing silicon over top silicon of the opposite type.<br/>
-[IMG: Show steps of PNP gate being drawn]<br/>
+<img src="/tutorial/03/gate-types.png" /><br/>
+<br/>
+Gates can be built by drawing silicon over top silicon of the opposite type:<br/>
+<br/>
+<img src="/tutorial/03/draw-1.png" />
+<img src="/tutorial/03/draw-2.png" /><br/>
 <br/>
 The first gate we will build is the PNP gate, which is N-Type silicon drawn over P-Type
 silicon, as shown above.
@@ -224,9 +236,14 @@ A PNP gate allows current to flow through the P-Type silicon, unless a signal is
 N-Type silicon, in which case the gate will close. When the signal is removed, the gate opens
 allowing current to flow again.<br/>
 <br/>
-By using a PNP gate, we can invert a signal. This is also called a <u><b>NOT gate</b></u>.<br/>
-[IMG: Show NOT gate with and without input]<br/>
-[IMG: Scope of inverted signal]
+By using a PNP gate, we can invert a signal. This is also called a <u><b>NOT gate</b></u>:<br/>
+<br/>
+<img src="/tutorial/03/low.png" />
+<img src="/tutorial/03/high.png" />
+<img src="/tutorial/03/scope.png" /><br/>
+<br/>
+<u><b>VCC</b></u>, or <u><b>Voltage Common Collector</b></u>, is a special type of pin that is
+always high. In other words, it can be used as a constant power source.
           `,
         },
         {
@@ -239,7 +256,7 @@ Build a NOT gate to invert the input signal.
       ],
     },
     infoCompleted: {
-      title: 'Tutorial - PNP Gates',
+      title: 'Tutorial pt. 3 - PNP Gates',
       pages: [
         {
           contentHtml: `
@@ -293,22 +310,32 @@ In the next level, you will be introduced to the counterpart of the PNP gate: th
       return sim;
     },
     info: {
-      title: 'Tutorial - NPN Gates',
+      title: 'Tutorial pt. 4 - NPN Gates',
       pages: [
         {
           contentHtml: `
 The other type of gate is the NPN gate, which is P-Type silicon drawn over N-Type silicon.<br/>
 <br/>
-An NPN works the opposite way of a PNP gate. It gate allows current to flow through the N-Type
+An NPN gate works the opposite way of a PNP gate. It allows current to flow through the N-Type
 silicon, but only when there is a signal applied to the P-Type silicon. When the signal is removed,
 the gate closes again.<br/>
-[IMG: Show NPN gate with and without signal]<br/>
-[IMG: Scope of signal]<br/>
 <br/>
-A single NPN gate used as shown above is not very useful here, but by chaining multiple NPN gates
-we can stop the flow of current unless all inputs are active. This is also called an
-<u><b>AND gate</b></u>.<br/>
-[IMG: Show AND gate in use: 00 10 01 11]<br/>
+<img src="/tutorial/04/low.png" />
+<img src="/tutorial/04/high.png" />
+<img src="/tutorial/04/npn-scope.png" />
+          `,
+        },
+        {
+          contentHtml: `
+A single NPN gate used as shown previously is not very useful here, but by chaining multiple NPN
+gates we can stop the flow of current unless all inputs are active. This is also called an
+<u><b>AND gate</b></u>:<br/>
+<br/>
+<img src="/tutorial/04/00.png" />
+<img src="/tutorial/04/10.png" />
+<img src="/tutorial/04/01.png" />
+<img src="/tutorial/04/11.png" />
+<img src="/tutorial/04/and-scope.png" />
           `,
         },
         {
@@ -321,7 +348,7 @@ Build an AND gate by using two NPN gates.
       ],
     },
     infoCompleted: {
-      title: 'Tutorial - NPN Gates',
+      title: 'Tutorial pt. 4 - NPN Gates',
       pages: [
         {
           contentHtml: `
@@ -375,7 +402,7 @@ In the next level, we will go into more detail about propagation delay.
       return sim;
     },
     info: {
-      title: 'Tutorial - Propagation Delay',
+      title: 'Tutorial pt. 5 - Propagation Delay',
       pages: [
         {
           contentHtml: `
@@ -392,8 +419,17 @@ The delay occurs when a PNP or NPN gate receives a signal to change its state fr
 or vice versa. The gate's state does not change immediately, and instead takes 1 cycle to
 transition.<br/>
 <br/>
-This means that the output signal will be delayed by 1 cycle if the current needs to wait.<br/>
-[IMG: Show timeline of NPN gate accepting a signal, and eventually changing state]
+This means that the output signal will be delayed by 1 cycle if the current needs to wait:<br/>
+<br/>
+<img src="/tutorial/05/step0.png" />
+<img src="/tutorial/05/step1.png" />
+<img src="/tutorial/05/step2.png" />
+<img src="/tutorial/05/step3.png" />
+<img src="/tutorial/05/step4.png" /><br/>
+<br/>
+In the above example, the gate's input signal is high on steps +1 and +2, but the current from VCC
+flows during steps +2 and +3.
+
           `,
         },
         {
@@ -404,7 +440,8 @@ it. However, it may also be useful to exploit this delay to create a delay in yo
 For example, if we wanted to delay a signal for a certain amount of time, we can chain multiple
 NPN gates together. Each gate will add 1 cycle of delay, so we can add as many gates as we
 need.<br/>
-[IMG: Show NPN chain]
+<br/>
+<img src="/tutorial/05/delay.png" />
           `,
         },
         {
@@ -417,7 +454,7 @@ Build a circuit to delay the input by 10 cycles.
       ],
     },
     infoCompleted: {
-      title: 'Tutorial - Propagation Delay',
+      title: 'Tutorial pt. 5 - Propagation Delay',
       pages: [
         {
           contentHtml: `
