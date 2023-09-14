@@ -157,8 +157,9 @@ them. Place <u><b>vias</b></u> to make connections between the two layers.<br/>
         },
         {
           contentHtml: `
-Silicon comes in two flavors: <u><b>P-Type</b></u> and <u><b>N-Type</b></u>. By themselves, they are simply conductive
-materials just like metal. However, by drawing one type over another, we can create a <u><b>gate</b></u> to
+Silicon comes in two flavors: <u style="color:#FFFF00"><b>P-Type</b></u> and
+<u style="color:#FF0000"><b>N-Type</b></u>. By themselves, they are simply conductive materials
+just like metal. However, by drawing one type over another, we can create a <u><b>gate</b></u> to
 control the flow of current, which will be demonstrated in the next level.<br/>
 <br/>
 In this level, either type of silicon will work.<br/>
@@ -175,9 +176,8 @@ Place metal, silicon and vias in order to connect the matching pairs of pins.
       pages: [
         {
           contentHtml: `
-So far, the circuits we've built don't do anything practically useful. In the next level, you will
-be introduced to gates, which are used to control the flow of current and add logic to your
-circuits.
+So far, the circuits we've built don't do anything practically useful. In the next level, we will
+construct gates which are used to control the flow of current and add logic to your circuits.
           `,
         },
       ],
@@ -217,6 +217,7 @@ circuits.
       pages: [
         {
           contentHtml: `
+Gates allow us to control the flow of current by opening or closing a path of silicon.<br/>
 There are two types of gates: the <u><b>PNP</b></u> gate and the <u><b>NPN</b></u> gate.<br/>
 <br/>
 <img src="/tutorial/03/gate-types.png" /><br/>
@@ -226,15 +227,15 @@ Gates can be built by drawing silicon over top silicon of the opposite type:<br/
 <img src="/tutorial/03/draw-1.png" />
 <img src="/tutorial/03/draw-2.png" /><br/>
 <br/>
-The first gate we will build is the PNP gate, which is N-Type silicon drawn over P-Type
-silicon, as shown above.
+The first gate we will build is the PNP gate, which is <b style="color:#FF0000">N-Type</b> silicon
+drawn over <b style="color:#FFFF00">P-Type</b> silicon, as shown above.
           `,
         },
         {
           contentHtml: `
-A PNP gate allows current to flow through the P-Type silicon, unless a signal is applied to the
-N-Type silicon, in which case the gate will close. When the signal is removed, the gate opens
-allowing current to flow again.<br/>
+A PNP gate allows current to flow through the <b style="color:#FFFF00">P-Type</b> silicon, unless a
+signal is applied to the <b style="color:#FF0000">N-Type</b> silicon, in which case the gate will
+close. When the signal is removed, the gate opens allowing current to flow again.<br/>
 <br/>
 By using a PNP gate, we can invert a signal. This is also called a <u><b>NOT gate</b></u>:<br/>
 <br/>
@@ -314,11 +315,13 @@ In the next level, you will be introduced to the counterpart of the PNP gate: th
       pages: [
         {
           contentHtml: `
-The other type of gate is the NPN gate, which is P-Type silicon drawn over N-Type silicon.<br/>
+The other type of gate is the NPN gate, which is <b style="color:#FFFF00">P-Type</b> silicon drawn
+over <b style="color:#FF0000">N-Type</b> silicon.<br/>
 <br/>
-An NPN gate works the opposite way of a PNP gate. It allows current to flow through the N-Type
-silicon, but only when there is a signal applied to the P-Type silicon. When the signal is removed,
-the gate closes again.<br/>
+An NPN gate works the opposite way of a PNP gate. It allows current to flow through the
+<b style="color:#FF0000">N-Type</b> silicon, but only when there is a signal applied to the
+<b style="color:#FFFF00">P-Type</b> silicon. When the signal is removed, the gate closes
+again.<br/>
 <br/>
 <img src="/tutorial/04/low.png" />
 <img src="/tutorial/04/high.png" />
@@ -353,7 +356,7 @@ Build an AND gate by using two NPN gates.
         {
           contentHtml: `
 The PNP gate and the NPN gate are the two fundamental building blocks of your circuits. By using
-them together, circuits can be built to perform complex logical operations.<br/>
+them together, circuits can be designed to perform complex logical operations.<br/>
 <br/>
 It is worth noting that building an AND gate is possible only one NPN gate. However, doing so can
 result with some side-effects due to propagation delay, which may or may not be beneficial to your
@@ -409,8 +412,9 @@ In the next level, we will go into more detail about propagation delay.
 <u><b>Propegation delay</b></u> is the time it takes for a gate to transition between its opened and
 closed states.<br/>
 <br/>
-For many of the earlier levels, propagation delay is usually not a significant concern. Although it
-is important to understand as it can affect the behavior of your circuits.
+For many of the earlier levels outside of this tutorial, propagation delay is usually not a
+significant concern. Although it is important to understand as it can affect the behavior of your
+circuits.
           `,
         },
         {
