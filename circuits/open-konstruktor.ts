@@ -1,7 +1,5 @@
 import { CircuitSimulationFactory } from "@/circuits";
-import { Network, PinNode } from "@/simulation";
-import { CircuitSimulation } from "@/simulation/CircuitSimulation";
-import Sequence from "@/simulation/Sequence";
+import { PinNode, CircuitSimulation, Sequence } from "@/simulation";
 import createSequencesFromInputs from "@/utils/createSequencesFromInputs";
 
 const assignVCC = (...pins: PinNode[]) => {
