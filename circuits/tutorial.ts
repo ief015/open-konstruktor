@@ -462,12 +462,13 @@ Build a circuit to delay the input by 10 cycles.
         {
           contentHtml: `
 Tutorial complete! Select a level from the menu bar to start building on your own. Besides this
-tutorial, there are two other categories of levels: **KOHCTPYKTOP** and **Open-Konstruktor**.<br/>
+tutorial, there are two other categories of levels: <u><b>KOHCTPYKTOP</b></u> and
+<u><b>Open-Konstruktor</b></u>.<br/>
 <br/>
-**KOHCTPYKTOP**: These levels are based on the levels in the game KOHCTPYKTOP: Engineer of the
+<u><b>KOHCTPYKTOP</b></u>: These levels are based on the levels in the game KOHCTPYKTOP: Engineer of the
 People. There are only a handful, but they can quickly become very challenging.<br/>
 <br/>
-**Open-Konstruktor**: These levels feature a more linear progression of difficulty and often build
+<u><b>Open-Konstruktor</b></u>: These levels feature a more linear progression of difficulty and often build
 upon previous levels. These levels start you off by designing very simple circuits, and by the end
 you will be building large, complex devices. If you're a newcomer to this game or KOHCTPYKTOP,
 these levels are a good place to start.<br/>
