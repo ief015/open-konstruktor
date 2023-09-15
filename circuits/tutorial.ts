@@ -157,7 +157,7 @@ them. Place <u><b>vias</b></u> to make connections between the two layers.<br/>
         },
         {
           contentHtml: `
-Silicon comes in two flavors: <u style="color:#FFFF00"><b>P-Type</b></u> and
+Silicon comes in two flavours: <u style="color:#FFFF00"><b>P-Type</b></u> and
 <u style="color:#FF0000"><b>N-Type</b></u>. By themselves, they are simply conductive materials
 just like metal. However, by drawing one type over another, we can create a <u><b>gate</b></u> to
 control the flow of current, which will be demonstrated in the next level.<br/>
