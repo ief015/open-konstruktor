@@ -264,7 +264,7 @@ You may notice that the output signal is not an exact inversion of the input sig
 is slightly delayed.<br/>
 <br/>
 This is due to <u><b>propagation delay</b></u>, which is the time it takes for
-the gate to transition between opened or closed. This is expected, and the verification test will
+the gate to transition between opened and closed. This is expected, and the verification test will
 succeed if the output signal matches within a short tolerance. Progagation delay will be explored
 further in a later tutorial level.<br/>
 <br/>
