@@ -20,7 +20,6 @@
 import { Layer, MetalValue, SiliconValue, ConnectionValue, ViaValue, GateValue } from '@/serialization';
 import { FieldGraph, GateNode, PathNode, Point } from '@/simulation';
 import { ToolboxMode } from '@/composables/use-toolbox';
-import useImageLoader from '@/composables/use-image-loader';
 
 const TILE_SIZE = 13;
 const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);
@@ -537,8 +536,9 @@ const startSelection = (e: MouseEvent) => {
     const [ left, top, right, bottom ] = selectionBounds.value!;
     const start: Point = [ left, top ];
     const end: Point = [ right, bottom ];
-    // TODO: do not clear if user wants to do a copy+drag
-    field.value.clearRect(start, end);
+    if (!e.shiftKey) {
+      field.value.clearRect(start, end);
+    }
     selectionState.value = 'dragging';
     queueAnimFuncs.add(renderTiles);
     queueAnimFuncs.add(renderOverlay);
@@ -550,34 +550,88 @@ const startSelection = (e: MouseEvent) => {
   }
 }
 
-const endSelection = (e: MouseEvent) => {
-  if (selectionState.value === 'selecting') {
-    const [ left, top, right, bottom ] = selectionBounds.value!;
-    const start: Point = [ left, top ];
-    const end: Point = [ right, bottom ];
-    selectionData.value = field.value.copy(start, end);
-    selectionState.value = 'selected';
-  }
-  if (selectionState.value === 'dragging') {
-    selectionState.value = undefined;
-    if (selectionData.value && selectionBounds.value) {
-      const [ left, top, right, bottom ] = selectionBounds.value;
-      const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
-      const pasteStart: Point = [ Math.round(left + ox), Math.round(top + oy) ];
-      const pasted = field.value.paste(pasteStart, selectionData.value);
-      if (pasted) {
-        console.log('Pasted successfully');
+const endSelection = () => {
+  switch (selectionState.value) {
+    case 'selecting': {
+      const [ left, top, right, bottom ] = selectionBounds.value!;
+      const start: Point = [ left, top ];
+      const end: Point = [ right, bottom ];
+      selectionData.value = field.value.copy(start, end);
+      selectionState.value = 'selected';
+      break;
+    }
+    case 'selected': {
+      selectionStart.value = undefined;
+      selectionEnd.value = undefined;
+      selectionTranslate.value = undefined;
+      selectionData.value = undefined;
+    }
+    case 'dragging': {
+      selectionState.value = undefined;
+      if (selectionData.value && selectionBounds.value) {
+        const [ left, top, right, bottom ] = selectionBounds.value;
+        const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
+        const pasteStart: Point = [ Math.round(left + ox), Math.round(top + oy) ];
+        const pasted = field.value.paste(pasteStart, selectionData.value);
+        if (pasted) {
+          selectionStart.value = undefined;
+          selectionEnd.value = undefined;
+          selectionTranslate.value = undefined;
+          selectionData.value = undefined;
+        } else {
+          field.value.paste([ left, top ], selectionData.value, { overwrite: true });
+          selectionTranslate.value = [0, 0];
+        }
+        queueAnimFuncs.add(renderTiles);
+      } else {
         selectionStart.value = undefined;
         selectionEnd.value = undefined;
         selectionTranslate.value = undefined;
-      } else {
-        console.log('Failed paste');
-        field.value.paste([ left, top ], selectionData.value, { overwrite: true });
-        selectionTranslate.value = [0, 0];
+        selectionData.value = undefined;
       }
-      queueAnimFuncs.add(renderTiles);
+      break;
     }
-    selectionData.value = undefined;
+  }
+}
+
+const modifySelection = (e: KeyboardEvent) => {
+  if (!selectionData.value)
+    return;
+  switch (e.key.toLowerCase()) {
+    case 'f':
+      if (e.shiftKey) {
+        selectionData.value.flipVertical();
+      } else {
+        selectionData.value.flipHorizontal();
+      }
+      queueAnimFuncs.add(renderOverlay);
+      break;
+    case 'r':
+      if (e.shiftKey) {
+        selectionData.value.rotateCCW();
+      } else {
+        selectionData.value.rotateCW();
+      }
+      queueAnimFuncs.add(renderOverlay);
+      break;
+  }
+}
+
+const deleteSelection = (e: KeyboardEvent) => {
+  if (!selectionBounds.value)
+    return;
+  switch (e.key) {
+    case 'Delete':
+    case 'Backspace':
+      const [ left, top, right, bottom ] = selectionBounds.value!;
+      const start: Point = [ left, top ];
+      const end: Point = [ right, bottom ];
+      field.value.clearRect(start, end);
+      selectionData.value = undefined;
+      endSelection();
+      queueAnimFuncs.add(renderTiles);
+      queueAnimFuncs.add(renderOverlay);
+      break;
   }
 }
 
@@ -651,12 +705,17 @@ useEventListener('mouseup', (e) => {
   switch (e.button) {
     case 0:
       isDrawing.value = false;
-      endSelection(e);
+      endSelection();
       break;
     case 2:
       isPanning.value = false;
       break;
   }
+});
+
+useEventListener('keydown', (e) => {
+  modifySelection(e);
+  deleteSelection(e);
 });
 
 useResizeObserver(canvas, (entries, obs) => {

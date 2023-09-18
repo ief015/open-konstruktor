@@ -471,9 +471,7 @@ People. There are only a handful, but they can quickly become very challenging.<
 <u><b>Open-Konstruktor</b></u>: These levels feature a more linear progression of difficulty and often build
 upon previous levels. These levels start you off by designing very simple circuits, and by the end
 you will be building large, complex devices. If you're a newcomer to this game or KOHCTPYKTOP,
-these levels are a good place to start.<br/>
-<br/>
-Good luck!
+these levels are a good place to start.
           `,
         },
       ],

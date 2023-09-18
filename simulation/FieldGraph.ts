@@ -556,7 +556,6 @@ export default class FieldGraph {
     fieldCopy.minDrawColumn = 0;
     fieldCopy.maxDrawColumn = width - 1;
     for (const p of traceRectBorder([ 0, 0 ], [ width - 1, height - 1 ])) {
-      console.log(p);
       fieldCopy.checkAndRemoveInvalidGate(p);
     }
     return fieldCopy;
@@ -716,6 +715,14 @@ export default class FieldGraph {
       }
     }
     this.data = dest;
+  }
+
+  public rotateCW() {
+    console.warn('Not implemented');
+  }
+
+  public rotateCCW() {
+    console.warn('Not implemented');
   }
 
   public toSaveString(): string {
