@@ -597,10 +597,8 @@ export default class FieldGraph {
   public paste(leftTop: Point, graph: FieldGraph, options: PasteOptions = {}): boolean {
     const {
       overwrite,
-      //includeBorderConnections,
     } = Object.assign({
       overwrite: false,
-      //includeBorderConnections: false,
     }, options);
     if (!overwrite && !this.canPaste(leftTop, graph)) {
       return false;
@@ -614,62 +612,34 @@ export default class FieldGraph {
       for (let y = 0; y < otherRows; y++) {
         const ay = y + top;
         if (ax >= this.minDrawColumn && ax <= this.maxDrawColumn) {
-          if (otherData.get(Layer.Metal, x, y) !== MetalValue.None) {
+          if (overwrite || otherData.get(Layer.Metal, x, y) !== MetalValue.None) {
             myData.set(Layer.Metal, ax, ay, otherData.get(Layer.Metal, x, y));
           }
-          if (otherData.get(Layer.Silicon, x, y) !== SiliconValue.None) {
+          if (overwrite || otherData.get(Layer.Silicon, x, y) !== SiliconValue.None) {
             myData.set(Layer.Silicon, ax, ay, otherData.get(Layer.Silicon, x, y));
           }
-          if (otherData.get(Layer.Vias, x, y) !== ViaValue.None) {
+          if (overwrite || otherData.get(Layer.Vias, x, y) !== ViaValue.None) {
             myData.set(Layer.Vias, ax, ay, otherData.get(Layer.Vias, x, y));
           }
-          if (otherData.get(Layer.GatesH, x, y) !== GateValue.None) {
+          if (overwrite || otherData.get(Layer.GatesH, x, y) !== GateValue.None) {
             myData.set(Layer.GatesH, ax, ay, otherData.get(Layer.GatesH, x, y));
           }
-          if (otherData.get(Layer.GatesV, x, y) !== GateValue.None) {
+          if (overwrite || otherData.get(Layer.GatesV, x, y) !== GateValue.None) {
             myData.set(Layer.GatesV, ax, ay, otherData.get(Layer.GatesV, x, y));
           }
-          if (otherData.get(Layer.MetalConnectionsH, x, y) !== ConnectionValue.None) {
+          if (overwrite || otherData.get(Layer.MetalConnectionsH, x, y) !== ConnectionValue.None) {
             myData.set(Layer.MetalConnectionsH, ax, ay, otherData.get(Layer.MetalConnectionsH, x, y));
           }
-          if (otherData.get(Layer.MetalConnectionsV, x, y) !== ConnectionValue.None) {
+          if (overwrite || otherData.get(Layer.MetalConnectionsV, x, y) !== ConnectionValue.None) {
             myData.set(Layer.MetalConnectionsV, ax, ay, otherData.get(Layer.MetalConnectionsV, x, y));
           }
-          if (otherData.get(Layer.SiliconConnectionsH, x, y) !== ConnectionValue.None) {
+          if (overwrite || otherData.get(Layer.SiliconConnectionsH, x, y) !== ConnectionValue.None) {
             myData.set(Layer.SiliconConnectionsH, ax, ay, otherData.get(Layer.SiliconConnectionsH, x, y));
           }
-          if (otherData.get(Layer.SiliconConnectionsV, x, y) !== ConnectionValue.None) {
+          if (overwrite || otherData.get(Layer.SiliconConnectionsV, x, y) !== ConnectionValue.None) {
             myData.set(Layer.SiliconConnectionsV, ax, ay, otherData.get(Layer.SiliconConnectionsV, x, y));
           }
         }
-        /*
-        if (includeBorderConnections) {
-          if (x >= this.minDrawColumn - 1 && x <= this.maxDrawColumn) {
-            if ((x == left || x == right) && (y == top || y == bottom)) {
-              if (otherData.get(Layer.MetalConnectionsH, ax, ay) !== ConnectionValue.None) {
-                if (myData.get(Layer.Metal, x - 1, y) !== MetalValue.None) {
-                  myData.set(Layer.MetalConnectionsH, x, y, otherData.get(Layer.MetalConnectionsH, ax, ay));
-                }
-              }
-              if (otherData.get(Layer.MetalConnectionsV, ax, ay) !== ConnectionValue.None) {
-                if (myData.get(Layer.Metal, x, y - 1) !== MetalValue.None) {
-                  myData.set(Layer.MetalConnectionsV, x, y, otherData.get(Layer.MetalConnectionsV, ax, ay));
-                }
-              }
-              if (otherData.get(Layer.SiliconConnectionsH, ax, ay) !== ConnectionValue.None) {
-                if (myData.get(Layer.Silicon, x - 1, y) !== SiliconValue.None) {
-                  myData.set(Layer.SiliconConnectionsH, x, y, otherData.get(Layer.SiliconConnectionsH, ax, ay));
-                }
-              }
-              if (otherData.get(Layer.SiliconConnectionsV, ax, ay) !== ConnectionValue.None) {
-                if (myData.get(Layer.Silicon, x, y - 1) !== SiliconValue.None) {
-                  myData.set(Layer.SiliconConnectionsV, x, y, otherData.get(Layer.SiliconConnectionsV, ax, ay));
-                }
-              }
-            }
-          }
-        }
-        */
       }
     }
     return true;
