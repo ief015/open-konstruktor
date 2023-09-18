@@ -12,12 +12,12 @@
     <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">Load</button>
     <button class="flex-1" @click="onDelete" :disabled="!selected.length">Delete</button>
   </div>
-  <div class="flex flex-row m-1 gap-1">
+  <!--div class="flex flex-row m-1 gap-1">
     <button class="flex-1" @click="onFlipHorizontal" :disabled="!selectionData">FH</button>
     <button class="flex-1" @click="onFlipVertical" :disabled="!selectionData">FV</button>
     <button class="flex-1" @click="onRotateLeft" :disabled="!selectionData">RL</button>
     <button class="flex-1" @click="onRotateRight" :disabled="!selectionData">RR</button>
-  </div>
+  </div-->
 </div>
 </template>
 
@@ -67,6 +67,7 @@ const onDelete = async () => {
   }
 }
 
+/*
 const onFlipHorizontal = () => {
   if (selectionData.value) {
     selectionData.value.flipHorizontal();
@@ -86,5 +87,6 @@ const onRotateLeft = () => {
 const onRotateRight = () => {
   alert("Not yet implemented");
 }
+*/
 
 </script>
