@@ -95,31 +95,23 @@ const debugMsg = computed(() => {
   // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
   dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
   dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
+  dbg.push(`Sel start: ${selectionStart.value}`);
+  dbg.push(`Sel end: ${selectionEnd.value}`);
+  dbg.push(`Sel bounds: ${selectionBounds.value}`);
+  dbg.push(`Sel translate: ${selectionTranslate.value}`);
+  dbg.push(`Sel data: ${selectionData.value}`);
+  dbg.push(`Sel state: ${selectionState.value}`);
   return dbg.join('<br/>');
 });
 const queueAnimFuncs: Set<() => void> = new Set();
-const selectionStart = ref<Point>();
-const selectionEnd = ref<Point>();
-const selectionBounds = computed<[
-  left: number,
-  top: number,
-  right: number,
-  bottom: number
-]|undefined>(() => {
-  if (!selectionStart.value || !selectionEnd.value)
-    return undefined;
-  const [ sx, sy ] = selectionStart.value;
-  const [ ex, ey ] = selectionEnd.value;
-  return [
-    Math.min(sx, ex),
-    Math.min(sy, ey),
-    Math.max(sx, ex),
-    Math.max(sy, ey),
-  ];
-})
-const selectionTranslate = ref<Point>();
-const selectionData = shallowRef<FieldGraph>();
-const selectionState = ref<'selecting'|'dragging'>();
+const {
+  state: selectionState,
+  start: selectionStart,
+  end: selectionEnd,
+  bounds: selectionBounds,
+  translate: selectionTranslate,
+  data: selectionData,
+} = useSelection();
 
 const getTileViewport = (): { left: number, top: number, right: number, bottom: number } => {
   const { columns, rows } = dimensions;
@@ -404,7 +396,7 @@ const renderOverlay = () => {
       ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
       ctx.restore();
     }
-    if (selectionData.value) {
+    if (selectionData.value && selectionState.value === 'dragging') {
       ctx.save();
       const [ left, top ] = selectionBounds.value ?? [ 0, 0 ];
       const [ tx, ty ] = selectionTranslate.value ?? [ 0, 0 ];
@@ -545,11 +537,11 @@ const startSelection = (e: MouseEvent) => {
     const [ left, top, right, bottom ] = selectionBounds.value!;
     const start: Point = [ left, top ];
     const end: Point = [ right, bottom ];
-    selectionData.value = field.value.copy(start, end);
     // TODO: do not clear if user wants to do a copy+drag
     field.value.clearRect(start, end);
-    queueAnimFuncs.add(renderTiles);
     selectionState.value = 'dragging';
+    queueAnimFuncs.add(renderTiles);
+    queueAnimFuncs.add(renderOverlay);
   } else {
     selectionStart.value = clampCoords(mouseCoords);
     selectionEnd.value = clampCoords(mouseCoords);
@@ -560,7 +552,11 @@ const startSelection = (e: MouseEvent) => {
 
 const endSelection = (e: MouseEvent) => {
   if (selectionState.value === 'selecting') {
-    selectionState.value = undefined;
+    const [ left, top, right, bottom ] = selectionBounds.value!;
+    const start: Point = [ left, top ];
+    const end: Point = [ right, bottom ];
+    selectionData.value = field.value.copy(start, end);
+    selectionState.value = 'selected';
   }
   if (selectionState.value === 'dragging') {
     selectionState.value = undefined;
