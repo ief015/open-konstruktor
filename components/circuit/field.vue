@@ -602,12 +602,17 @@ const modifySelection = (e: KeyboardEvent) => {
       queueAnimFuncs.add(renderOverlay);
       break;
     case 'r':
-      if (e.shiftKey) {
-        selectionData.value.rotateCCW();
+      if (selectionState.value === 'dragging') {
+        if (e.shiftKey) {
+          selectionData.value.rotateCCW();
+        } else {
+          selectionData.value.rotateCW();
+        }
+        queueAnimFuncs.add(renderOverlay);
       } else {
-        selectionData.value.rotateCW();
+        modified = false;
+        console.log('Rotate only works when dragging a selection');
       }
-      queueAnimFuncs.add(renderOverlay);
       break;
     default:
       modified = false;
