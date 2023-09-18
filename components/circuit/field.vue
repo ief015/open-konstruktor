@@ -597,6 +597,7 @@ const endSelection = () => {
 const modifySelection = (e: KeyboardEvent) => {
   if (!selectionData.value)
     return;
+  let modified = true;
   switch (e.key.toLowerCase()) {
     case 'f':
       if (e.shiftKey) {
@@ -614,6 +615,17 @@ const modifySelection = (e: KeyboardEvent) => {
       }
       queueAnimFuncs.add(renderOverlay);
       break;
+    default:
+      modified = false;
+      break;
+  }
+  if (modified && selectionState.value === 'selected') {
+    const [ left, top, right, bottom ] = selectionBounds.value!;
+    const start: Point = [ left, top ];
+    const end: Point = [ right, bottom ];
+    field.value.clearRect(start, end);
+    field.value.paste(start, selectionData.value);
+    queueAnimFuncs.add(renderTiles);
   }
 }
 
