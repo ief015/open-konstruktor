@@ -21,7 +21,7 @@ const bounds = computed<[
     Math.max(sx, ex),
     Math.max(sy, ey),
   ];
-})
+});
 const translate = ref<Point>();
 const data = shallowRef<FieldGraph>();
 

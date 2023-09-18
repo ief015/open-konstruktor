@@ -676,6 +676,48 @@ export default class FieldGraph {
     return true;
   }
 
+  public flipHorizontal() {
+    const { columns, rows } = this.data.getDimensions();
+    const dest = new DesignData(columns, rows, 0);
+    for (let x = 0; x < columns; x++) {
+      for (let y = 0; y < rows; y++) {
+        const ax = columns - x - 1;
+        const ay = y;
+        dest.set(Layer.Metal, ax, ay, this.data.get(Layer.Metal, x, y));
+        dest.set(Layer.Silicon, ax, ay, this.data.get(Layer.Silicon, x, y));
+        dest.set(Layer.Vias, ax, ay, this.data.get(Layer.Vias, x, y));
+        dest.set(Layer.GatesH, ax, ay, this.data.get(Layer.GatesH, x, y));
+        dest.set(Layer.GatesV, ax, ay, this.data.get(Layer.GatesV, x, y));
+        dest.set(Layer.MetalConnectionsH, ax - 1, ay, this.data.get(Layer.MetalConnectionsH, x, y));
+        dest.set(Layer.MetalConnectionsV, ax, ay, this.data.get(Layer.MetalConnectionsV, x, y));
+        dest.set(Layer.SiliconConnectionsH, ax - 1, ay, this.data.get(Layer.SiliconConnectionsH, x, y));
+        dest.set(Layer.SiliconConnectionsV, ax, ay, this.data.get(Layer.SiliconConnectionsV, x, y));
+      }
+    }
+    this.data = dest;
+  }
+
+  public flipVertical() {
+    const { columns, rows } = this.data.getDimensions();
+    const dest = new DesignData(columns, rows, 0);
+    for (let x = 0; x < columns; x++) {
+      for (let y = 0; y < rows; y++) {
+        const ax = x;
+        const ay = rows - y - 1;
+        dest.set(Layer.Metal, ax, ay, this.data.get(Layer.Metal, x, y));
+        dest.set(Layer.Silicon, ax, ay, this.data.get(Layer.Silicon, x, y));
+        dest.set(Layer.Vias, ax, ay, this.data.get(Layer.Vias, x, y));
+        dest.set(Layer.GatesH, ax, ay, this.data.get(Layer.GatesH, x, y));
+        dest.set(Layer.GatesV, ax, ay, this.data.get(Layer.GatesV, x, y));
+        dest.set(Layer.MetalConnectionsH, ax, ay, this.data.get(Layer.MetalConnectionsH, x, y));
+        dest.set(Layer.MetalConnectionsV, ax, ay - 1, this.data.get(Layer.MetalConnectionsV, x, y));
+        dest.set(Layer.SiliconConnectionsH, ax, ay, this.data.get(Layer.SiliconConnectionsH, x, y));
+        dest.set(Layer.SiliconConnectionsV, ax, ay - 1, this.data.get(Layer.SiliconConnectionsV, x, y));
+      }
+    }
+    this.data = dest;
+  }
+
   public toSaveString(): string {
     return encodeSync(this.data);
   }
