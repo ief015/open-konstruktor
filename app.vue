@@ -22,9 +22,9 @@
       </div>
     </template>
     <template #right>
-      <div class="w-[5em] h-full left-border">
+      <div class="w-[5em] h-full left-border flex flex-col">
         <div class="text-xs font-ttw text-center m-1 select-none">Toolbox</div>
-        <ToolboxControls class="m-2" />
+        <ToolboxControls class="mx-2" />
       </div>
     </template>
     <div class="absolute inset-0">
