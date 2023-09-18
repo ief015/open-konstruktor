@@ -94,12 +94,6 @@ const debugMsg = computed(() => {
   // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
   dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
   dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
-  dbg.push(`Sel start: ${selectionStart.value}`);
-  dbg.push(`Sel end: ${selectionEnd.value}`);
-  dbg.push(`Sel bounds: ${selectionBounds.value}`);
-  dbg.push(`Sel translate: ${selectionTranslate.value}`);
-  dbg.push(`Sel data: ${selectionData.value}`);
-  dbg.push(`Sel state: ${selectionState.value}`);
   return dbg.join('<br/>');
 });
 const queueAnimFuncs: Set<() => void> = new Set();
