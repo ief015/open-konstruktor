@@ -525,6 +525,8 @@ const startDraw = (e: MouseEvent) => {
 }
 
 const startSelection = (e: MouseEvent) => {
+  if (selectionState.value === 'dragging')
+    return;
   const mouseCoords = mouseToGrid(e.offsetX, e.offsetY);
   if (coordInSelection(mouseCoords)) {
     const [ left, top, right, bottom ] = selectionBounds.value!;
