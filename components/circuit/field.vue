@@ -566,12 +566,14 @@ const endSelection = () => {
         const [ left, top, right, bottom ] = selectionBounds.value;
         const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
         const pasteStart: Point = [ Math.round(left + ox), Math.round(top + oy) ];
+        const pasteEnd: Point = [ Math.round(right + ox), Math.round(bottom + oy) ];
         const pasted = field.value.paste(pasteStart, selectionData.value);
         if (pasted) {
-          selectionStart.value = undefined;
-          selectionEnd.value = undefined;
-          selectionTranslate.value = undefined;
-          selectionData.value = undefined;
+          selectionState.value = 'selected';
+          selectionStart.value = pasteStart;
+          selectionEnd.value = pasteEnd;
+          selectionTranslate.value = [ 0, 0 ];
+          selectionData.value = field.value.copy(pasteStart, pasteEnd);
         } else {
           field.value.paste([ left, top ], selectionData.value, { overwrite: true });
           selectionTranslate.value = [0, 0];
@@ -686,13 +688,16 @@ watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
   } else if (isPanning.value) {
     panView(-dx, -dy);
   } else if (selectionState.value) {
-    if (selectionState.value === 'dragging') {
-      if (selectionTranslate.value) {
-        selectionTranslate.value[0] += dx / TILE_SIZE;
-        selectionTranslate.value[1] += dy / TILE_SIZE;
-      }
-    } else if (selectionState.value === 'selecting') {
-      selectionEnd.value = clampCoords(coords);
+    switch (selectionState.value) {
+      case 'dragging':
+        if (selectionTranslate.value) {
+          selectionTranslate.value[0] += dx / TILE_SIZE;
+          selectionTranslate.value[1] += dy / TILE_SIZE;
+        }
+        break;
+      case 'selecting':
+        selectionEnd.value = clampCoords(coords);
+        break;
     }
   }
 });
