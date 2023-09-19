@@ -11,6 +11,13 @@ export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
 export type EraseType = 'metal' | 'silicon' | 'via' | 'gate';
 export type Direction = 'h' | 'v';
 
+export interface CopyOptions {
+  /**
+   * Copy will ignore tiles that are outside of the min/max draw columns.
+   */
+  enforceBounds?: boolean;
+}
+
 export interface PasteOptions {
   /**
    * Force overwriting data in destination graph.
@@ -19,10 +26,19 @@ export interface PasteOptions {
    */
   overwrite?: boolean;
   /**
+   * **Do not use - not yet implemented.**
+   *
    * Includes the connection data around the border.
    * Default `false`.
    */
-  includeBorderConnections?: boolean;
+  // includeBorderConnections?: boolean;
+}
+
+export interface ClearOptions {
+  /**
+   * Clear will ignore tiles that are outside of the min/max draw columns.
+   */
+  enforceBounds?: boolean;
 }
 
 export interface QueryMetalResult {
@@ -486,20 +502,26 @@ export default class FieldGraph {
     };
   }
 
-  public clearRect(start: Point, end: Point) {
+  public clearRect(start: Point, end: Point, options: ClearOptions = {}) {
+    const {
+      enforceBounds,
+    } = Object.assign(<CopyOptions>{
+      enforceBounds: false,
+    }, options);
     const { data } = this;
+    const { columns, rows } = this.getDimensions();
     const [ x1, y1 ] = start;
     const [ x2, y2 ] = end;
-    const minX = Math.min(x1, x2);
-    const minY = Math.min(y1, y2);
-    const maxX = Math.max(x1, x2);
-    const maxY = Math.max(y1, y2);
+    const minX = Math.max(enforceBounds ? this.minDrawColumn : 0, Math.min(x1, x2));
+    const minY = Math.max(0, Math.min(y1, y2));
+    const maxX = Math.min(enforceBounds ? this.maxDrawColumn : (columns - 1), Math.max(x1, x2));
+    const maxY = Math.min(rows - 1, Math.max(y1, y2));
     const width = maxX - minX + 1;
     const height = maxY - minY + 1;
     for (let x = -1; x < width; x++) {
-      const ax = x + x1;
+      const ax = x + minX;
       for (let y = -1; y < height; y++) {
-        const ay = y + y1;
+        const ay = y + minY;
         if (x >= 0 && y >= 0) {
           data.set(Layer.Metal, ax, ay, MetalValue.None);
           data.set(Layer.Silicon, ax, ay, SiliconValue.None);
@@ -517,19 +539,25 @@ export default class FieldGraph {
         }
       }
     }
-    for (const p of traceRectBorder([ x1 - 1, y1 - 1 ], [ x2 + 1, y2 + 1 ])) {
+    for (const p of traceRectBorder([ minX - 1, minY - 1 ], [ maxX + 1, maxY + 1 ])) {
       this.checkAndRemoveInvalidGate(p);
     }
   }
 
-  public copy(start: Point, end: Point): FieldGraph {
+  public copy(start: Point, end: Point, options: CopyOptions = {}): FieldGraph {
+    const {
+      enforceBounds,
+    } = Object.assign(<CopyOptions>{
+      enforceBounds: false,
+    }, options);
     const { data } = this;
+    const { columns, rows } = this.getDimensions();
     const [ x1, y1 ] = start;
     const [ x2, y2 ] = end;
-    const minX = Math.min(x1, x2);
-    const minY = Math.min(y1, y2);
-    const maxX = Math.max(x1, x2);
-    const maxY = Math.max(y1, y2);
+    const minX = Math.max(enforceBounds ? this.minDrawColumn : 0, Math.min(x1, x2));
+    const minY = Math.max(0, Math.min(y1, y2));
+    const maxX = Math.min(enforceBounds ? this.maxDrawColumn : (columns - 1), Math.max(x1, x2));
+    const maxY = Math.min(rows - 1, Math.max(y1, y2));
     const width = (maxX - minX) + 1;
     const height = (maxY - minY) + 1;
     const copy = new DesignData(width, height, 0);
@@ -537,18 +565,22 @@ export default class FieldGraph {
       const ax = x + minX;
       for (let y = 0; y < height; y++) {
         const ay = y + minY;
-        copy.set(Layer.Metal, x, y, data.get(Layer.Metal, ax, ay));
-        copy.set(Layer.Silicon, x, y, data.get(Layer.Silicon, ax, ay));
-        copy.set(Layer.Vias, x, y, data.get(Layer.Vias, ax, ay));
-        copy.set(Layer.GatesH, x, y, data.get(Layer.GatesH, ax, ay));
-        copy.set(Layer.GatesV, x, y, data.get(Layer.GatesV, ax, ay));
+        copy.set(Layer.Metal, x, y, data.get(Layer.Metal, ax, ay) ?? MetalValue.None);
+        copy.set(Layer.Silicon, x, y, data.get(Layer.Silicon, ax, ay) ?? SiliconValue.None);
+        copy.set(Layer.Vias, x, y, data.get(Layer.Vias, ax, ay) ?? ViaValue.None);
+        copy.set(Layer.GatesH, x, y, data.get(Layer.GatesH, ax, ay) ?? GateValue.None);
+        copy.set(Layer.GatesV, x, y, data.get(Layer.GatesV, ax, ay) ?? GateValue.None);
         if (x < width - 1) {
-          copy.set(Layer.MetalConnectionsH, x, y, data.get(Layer.MetalConnectionsH, ax, ay));
-          copy.set(Layer.SiliconConnectionsH, x, y, data.get(Layer.SiliconConnectionsH, ax, ay));
+          copy.set(Layer.MetalConnectionsH, x, y,
+            data.get(Layer.MetalConnectionsH, ax, ay) ?? ConnectionValue.None);
+          copy.set(Layer.SiliconConnectionsH, x, y,
+            data.get(Layer.SiliconConnectionsH, ax, ay) ?? ConnectionValue.None);
         }
         if (y < height - 1) {
-          copy.set(Layer.MetalConnectionsV, x, y, data.get(Layer.MetalConnectionsV, ax, ay));
-          copy.set(Layer.SiliconConnectionsV, x, y, data.get(Layer.SiliconConnectionsV, ax, ay));
+          copy.set(Layer.MetalConnectionsV, x, y,
+            data.get(Layer.MetalConnectionsV, ax, ay) ?? ConnectionValue.None);
+          copy.set(Layer.SiliconConnectionsV, x, y,
+            data.get(Layer.SiliconConnectionsV, ax, ay) ?? ConnectionValue.None);
         }
       }
     }
@@ -597,7 +629,7 @@ export default class FieldGraph {
   public paste(leftTop: Point, graph: FieldGraph, options: PasteOptions = {}): boolean {
     const {
       overwrite,
-    } = Object.assign({
+    } = Object.assign(<PasteOptions>{
       overwrite: false,
     }, options);
     if (!overwrite && !this.canPaste(leftTop, graph)) {
