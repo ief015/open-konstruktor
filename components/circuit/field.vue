@@ -391,6 +391,7 @@ const renderOverlay = () => {
     }
     if (selectionData.value && selectionState.value === 'dragging') {
       ctx.save();
+      ctx.translate(1, 1);
       const [ left, top ] = selectionBounds.value ?? [ 0, 0 ];
       const [ tx, ty ] = selectionTranslate.value ?? [ 0, 0 ];
       ctx.translate(Math.floor((left + tx) * TILE_SIZE), Math.floor((top + ty) * TILE_SIZE));
@@ -533,7 +534,7 @@ const startSelection = (e: MouseEvent) => {
     const start: Point = [ left, top ];
     const end: Point = [ right, bottom ];
     if (!e.shiftKey) {
-      field.value.clearRect(start, end);
+      field.value.clearRect(start, end, { enforceBounds: true });
     }
     selectionState.value = 'dragging';
     queueAnimFuncs.add(renderTiles);
@@ -552,7 +553,7 @@ const endSelection = () => {
       const [ left, top, right, bottom ] = selectionBounds.value!;
       const start: Point = [ left, top ];
       const end: Point = [ right, bottom ];
-      selectionData.value = field.value.copy(start, end);
+      selectionData.value = field.value.copy(start, end, { enforceBounds: true });
       selectionState.value = 'selected';
       break;
     }
@@ -572,10 +573,10 @@ const endSelection = () => {
         const pasted = field.value.paste(pasteStart, selectionData.value);
         if (pasted) {
           selectionState.value = 'selected';
-          selectionStart.value = pasteStart;
-          selectionEnd.value = pasteEnd;
+          selectionStart.value = clampCoords(pasteStart);
+          selectionEnd.value = clampCoords(pasteEnd);
           selectionTranslate.value = [ 0, 0 ];
-          selectionData.value = field.value.copy(pasteStart, pasteEnd);
+          selectionData.value = field.value.copy(pasteStart, pasteEnd, { enforceBounds: true });
         } else {
           field.value.paste([ left, top ], selectionData.value, { overwrite: true });
           selectionTranslate.value = [0, 0];
@@ -626,7 +627,7 @@ const modifySelection = (e: KeyboardEvent) => {
     const [ left, top, right, bottom ] = selectionBounds.value!;
     const start: Point = [ left, top ];
     const end: Point = [ right, bottom ];
-    field.value.clearRect(start, end);
+    field.value.clearRect(start, end, { enforceBounds: true });
     field.value.paste(start, selectionData.value);
     queueAnimFuncs.add(renderTiles);
   }
@@ -641,7 +642,7 @@ const deleteSelection = (e: KeyboardEvent) => {
       const [ left, top, right, bottom ] = selectionBounds.value!;
       const start: Point = [ left, top ];
       const end: Point = [ right, bottom ];
-      field.value.clearRect(start, end);
+      field.value.clearRect(start, end, { enforceBounds: true });
       selectionData.value = undefined;
       endSelection();
       queueAnimFuncs.add(renderTiles);
