@@ -165,7 +165,7 @@ export class DesignData {
     const cols = data.readUInt8(1);
     const rows = data.readUInt8(3);
     let offset = 4;
-    const design = new DesignData(cols, rows);
+    const design = new DesignData(cols, rows, 0);
     for (let i = 0; i < NUM_LAYERS; i++) {
       const layer = design.layers[i];
       const layerMarker = data.readUInt8(offset++) - data.readUInt8(offset++) - data.readUInt8(offset++);
