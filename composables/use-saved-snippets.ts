@@ -3,6 +3,9 @@ export interface SnippetRecord {
   categoryId?: number;
   name: string;
   data: string;
+  description?: string;
+  width: number;
+  height: number;
 }
 
 export interface SnippetCategoryRecord {

@@ -17,11 +17,18 @@
 
 <script setup lang="ts">
 import { SnippetRecord } from "@/composables/use-saved-snippets";
+import { DesignData } from "@/serialization";
+import { FieldGraph } from "@/simulation";
 
 const { groups, snippets, categories, saveSnippet, deleteSnippet } = useSavedSnippets();
 const {
+  start: startSelection,
+  end: endSelection,
+  translate: translateSelection,
   data: selectionData,
+  state: selectionState,
 } = useSelection();
+const { mode: toolboxMode } = useToolbox();
 const selected = ref<SnippetRecord[]>([]);
 const groupsSorted = computed(() => {
   const sorted = [...groups.value];
@@ -29,8 +36,16 @@ const groupsSorted = computed(() => {
   return sorted;
 });
 
-const loadOption = (opt: SnippetRecord) => {
-  alert("Not yet implemented");
+const loadOption = async (opt: SnippetRecord) => {
+  const field = FieldGraph.from(opt.data);
+  const { columns, rows } = field.getDimensions();
+  console.log(field);
+  selectionData.value = field;
+  startSelection.value = [ 0, 0 ];
+  endSelection.value = [ columns - 1, rows - 1 ];
+  translateSelection.value = [ 0, 0 ];
+  selectionState.value = 'dragging';
+  toolboxMode.value = 'select';
 }
 
 const onSelect = (opt: SnippetRecord) => {
@@ -40,12 +55,16 @@ const onSelect = (opt: SnippetRecord) => {
 const onSave = async () => {
   if (!selectionData.value)
     return;
+  const { columns, rows } = selectionData.value.getDimensions();
   const data = selectionData.value.toSaveString();
+  console.log(columns, rows, FieldGraph.from(data).getDimensions());
   const name = prompt("Enter a name for this snippet:");
   if (name) {
     await saveSnippet({
       name,
       data,
+      width: columns,
+      height: rows,
     });
   }
 }
