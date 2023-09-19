@@ -41,6 +41,10 @@ const confirmLoad = (opt: DesignRecord) => {
   }
 }
 
+const onSelect = (opt: DesignRecord) => {
+  confirmLoad(opt);
+}
+
 const onSave = async () => {
   const data = field.value.toSaveString();
   const name = prompt("Enter a name for this design:");
@@ -64,10 +68,6 @@ const onDelete = async () => {
   if (opt?.id && confirm(`Are you sure you want to delete "${opt.name}"?`)) {
     await deleteDesign(opt.id);
   }
-}
-
-const onSelect = (opt: DesignRecord) => {
-  confirmLoad(opt);
 }
 
 </script>
