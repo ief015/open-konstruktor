@@ -681,8 +681,8 @@ export default class FieldGraph {
     const { columns, rows } = this.data.getDimensions();
     const dest = new DesignData(columns, rows, 0);
     for (let x = 0; x < columns; x++) {
+      const ax = columns - x - 1;
       for (let y = 0; y < rows; y++) {
-        const ax = columns - x - 1;
         const ay = y;
         dest.set(Layer.Metal, ax, ay, this.data.get(Layer.Metal, x, y));
         dest.set(Layer.Silicon, ax, ay, this.data.get(Layer.Silicon, x, y));
@@ -702,8 +702,8 @@ export default class FieldGraph {
     const { columns, rows } = this.data.getDimensions();
     const dest = new DesignData(columns, rows, 0);
     for (let x = 0; x < columns; x++) {
+      const ax = x;
       for (let y = 0; y < rows; y++) {
-        const ax = x;
         const ay = rows - y - 1;
         dest.set(Layer.Metal, ax, ay, this.data.get(Layer.Metal, x, y));
         dest.set(Layer.Silicon, ax, ay, this.data.get(Layer.Silicon, x, y));
