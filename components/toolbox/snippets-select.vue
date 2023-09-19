@@ -39,11 +39,11 @@ const groupsSorted = computed(() => {
 const loadOption = async (opt: SnippetRecord) => {
   const field = FieldGraph.from(opt.data);
   const { columns, rows } = field.getDimensions();
-  console.log(field);
+  console.log(columns, rows);
   selectionData.value = field;
-  startSelection.value = [ 0, 0 ];
-  endSelection.value = [ columns - 1, rows - 1 ];
-  translateSelection.value = [ 0, 0 ];
+  startSelection.value = [ -columns, 0 ];
+  endSelection.value = [ -1, rows - 1 ];
+  translateSelection.value = [ 0, 0 ]; // TODO: maybe translation wasn't the way to go for moving selections
   selectionState.value = 'dragging';
   toolboxMode.value = 'select';
 }
