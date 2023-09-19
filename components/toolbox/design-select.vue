@@ -46,12 +46,15 @@ const onSelect = (opt: DesignRecord) => {
 }
 
 const onSave = async () => {
+  const { columns, rows } = field.value.getDimensions();
   const data = field.value.toSaveString();
   const name = prompt("Enter a name for this design:");
   if (name) {
     await saveDesign({
       name,
       data,
+      width: columns,
+      height: rows,
     });
   }
 }
