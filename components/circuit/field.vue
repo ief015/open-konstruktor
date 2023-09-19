@@ -716,10 +716,17 @@ useEventListener('mouseup', (e) => {
   switch (e.button) {
     case 0:
       isDrawing.value = false;
-      endSelection();
       break;
     case 2:
       isPanning.value = false;
+      break;
+  }
+});
+
+useEventListener(canvas, 'mouseup', (e) => {
+  switch (e.button) {
+    case 0:
+      endSelection();
       break;
   }
 });
