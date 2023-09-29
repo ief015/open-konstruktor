@@ -108,7 +108,7 @@ The design score is not related to the verification test, and is only used to co
 others.<br/>
 <br/>
 In the next level, we'll look at the other materials available in the toolbox: silicon and vias.
-Click the "Start Next Level" button to continue.
+Click "Start Next Level" to continue.
           `,
         },
       ],
@@ -178,7 +178,9 @@ Place metal, silicon and vias in order to connect the matching pairs of pins.
         {
           contentHtml: `
 So far, the circuits we've built don't do anything practically useful. In the next level, we will
-construct gates which are used to control the flow of current and add logic to your circuits.
+construct gates which are used to control the flow of current and add logic to your circuits.<br/>
+<br/>
+Click "Start Next Level" to continue.
           `,
         },
       ],
@@ -269,7 +271,8 @@ the gate to transition between opened and closed. This is expected, and the veri
 succeed if the output signal matches within a short tolerance. Progagation delay will be explored
 further in a later tutorial level.<br/>
 <br/>
-In the next level, you will be introduced to the counterpart of the PNP gate: the NPN gate.
+In the next level, you will be introduced to the counterpart of the PNP gate: the NPN gate. Click
+"Start Next Level" to continue.
           `,
         },
       ],
@@ -362,7 +365,8 @@ It is worth noting that building an AND gate is possible only one NPN gate. Howe
 result with some side-effects due to propagation delay, which may or may not be beneficial to your
 circuit design. Feel free to give it a try and see what happens!<br/>
 <br/>
-In the next level, we will go into more detail about propagation delay.
+In the next level, we will go into more detail about propagation delay. Click "Start Next Level" to
+continue.
           `,
         },
       ],
