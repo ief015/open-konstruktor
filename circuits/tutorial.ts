@@ -76,7 +76,7 @@ only material that can connect to the pins of the circuit:<br/>
           contentHtml: `
 <b>GOAL:</b><br/>
 <br/>
-Connect the input pin to the output pin by drawing metal, and click Start to run the
+Connect the input pin to the output pin by drawing metal, and click "Start" to run the
 verification test.<br/>
 <br/>
 <img src="/tutorial/01/start.png" />
@@ -108,6 +108,7 @@ The design score is not related to the verification test, and is only used to co
 others.<br/>
 <br/>
 In the next level, we'll look at the other materials available in the toolbox: silicon and vias.
+Click the "Start Next Level" button to continue.
           `,
         },
       ],
