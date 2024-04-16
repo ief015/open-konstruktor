@@ -100,12 +100,12 @@ levels.<br/>
         },
         {
           contentHtml: `
-The <u><b>design score</b></u> (shown on the bottom-right of the screen) represents the amount of
-material you used to build your circuit. There is no limit to the amount of material you can use.
-The only limit is determined by the size of the board.<br/>
+The <u><b>design score</b></u> (shown on the bottom-right of the verification graph) represents the
+amount of material you have used to build your circuit. There is no limit to the amount of material you
+can use.<br/>
 <br/>
-The design score is not related to the verification test, and is only used to compare your design to
-others.<br/>
+The design score is not related to your grade on the verification test, and is only used to
+compare your design to others.<br/>
 <br/>
 In the next level, we'll look at the other materials available in the toolbox: silicon and vias.
 Click "Start Next Level" to continue.
@@ -149,7 +149,7 @@ Click "Start Next Level" to continue.
 <u><b>Metal</b></u> and <u><b>silicon</b></u> are the two primary materials used to build your circuits.<br/>
 <br/>
 Metal and silicon are placed on different layers of the chip, which allows current to flow across
-them. Place <u><b>vias</b></u> to make connections between the two layers.<br/>
+them. Place <u><b>vias</b></u> on silicon to make connections between the two layers.<br/>
 <br/>
 <img src="/tutorial/02/metal-over.png" />
 <img src="/tutorial/02/metal-connected.png" />
