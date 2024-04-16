@@ -20,18 +20,28 @@ import { SnippetRecord } from "@/composables/use-saved-snippets";
 import { DesignData } from "@/serialization";
 import { FieldGraph } from "@/simulation";
 
+const fieldCanvas = ref();
+const updateFieldCanvas = () => {
+  fieldCanvas.value = document.getElementById('field-canvas');
+  if (!fieldCanvas.value) {
+    console.warn('Field canvas not found, retrying...');
+    nextTick(updateFieldCanvas);
+  }
+}
+updateFieldCanvas();
+
 const TILE_SIZE = 13; // TODO: this needs to be shared with field.vue
 const {
   elementX: canvasMouseX,
   elementY: canvasMouseY,
-} = useMouseInElement(document.getElementById("field-canvas"));
+} = useMouseInElement(fieldCanvas);
+
 const coordMouseX = computed(() => {
   return Math.floor(canvasMouseX.value / TILE_SIZE);
 });
 const coordMouseY = computed(() => {
   return Math.floor(canvasMouseY.value / TILE_SIZE);
 });
-watch([coordMouseX, coordMouseY], (a) => console.log(a));
 
 const { groups, snippets, categories, saveSnippet, deleteSnippet } = useSavedSnippets();
 const {
@@ -57,8 +67,8 @@ const loadOption = async (opt: SnippetRecord) => {
   selectionFieldGraph.value = field;
   startSelection.value = [ 0, 0 ];
   endSelection.value = [ columns - 1, rows - 1 ];
-  const viewX = Math.ceil(selectionFieldView.value[0] / TILE_SIZE);
-  const viewY = Math.ceil(selectionFieldView.value[1] / TILE_SIZE);
+  const viewX = Math.ceil(selectionFieldView.value[0] / TILE_SIZE) || 0;
+  const viewY = Math.ceil(selectionFieldView.value[1] / TILE_SIZE) || 0;
   translateSelection.value = [
     coordMouseX.value + viewX - columns / 2,
     coordMouseY.value + viewY - rows / 2,
