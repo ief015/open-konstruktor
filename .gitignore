@@ -25,3 +25,8 @@ logs
 
 # open-konstruktor
 .dev/
+
+# GCloud
+.gcloudignore
+app.yaml
+deploy.bat
