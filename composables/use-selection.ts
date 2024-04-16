@@ -23,7 +23,10 @@ const bounds = computed<[
   ];
 });
 const translate = ref<Point>();
-const data = shallowRef<FieldGraph>();
+const fieldGraph = shallowRef<FieldGraph>();
+const isSnippet = ref(false);
+
+const fieldView = ref<Point>([0, 0]); // TODO: hacky, gets updated by watch on FieldGraph.
 
 export default function useSelection() {
   return {
@@ -32,6 +35,8 @@ export default function useSelection() {
     end,
     bounds,
     translate,
-    data,
+    fieldGraph,
+    isSnippet,
+    fieldView,
   };
 }

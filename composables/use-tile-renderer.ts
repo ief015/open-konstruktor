@@ -138,8 +138,6 @@ const connectionTiles = {
 export default function useTileRenderer(ctx: CanvasRenderingContext2D) {
 
   const tileSize = 12;
-  const halfTileSize = tileSize / 2;
-  const pi2 = Math.PI / 2;
 
   const getDirectionX = (layerH: DesignDataLayer, x: number, y: number): TileRenderDirection => {
     const cx = (layerH[x]?.[y] === ConnectionValue.Connected) ? 1 : 0;

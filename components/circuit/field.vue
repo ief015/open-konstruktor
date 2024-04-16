@@ -2,6 +2,7 @@
   <div class="relative w-full h-full">
     <canvas
       ref="canvas"
+      id="field-canvas"
       class="absolute w-full h-full"
       @mousedown="onMouseDown"
       oncontextmenu="return false;"
@@ -34,6 +35,7 @@ const canvasLayers = {
   'metal-hot':     document.createElement('canvas'),
   'overlay':       document.createElement('canvas'),
 };
+
 const { field, dimensions, updateDesignScore } = useFieldGraph();
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 const {
@@ -41,10 +43,13 @@ const {
   onRender: onCircuitRender,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
+const images = useImageLoader();
+
 const canvasWidth = ref(0);
 const canvasHeight = ref(0);
 const fieldWidth = computed(() => dimensions.columns * TILE_SIZE);
 const fieldHeight = computed(() => dimensions.rows * TILE_SIZE);
+
 const viewX = ref(0);
 const viewY = ref(0);
 const viewBounds = computed(() => {
@@ -55,6 +60,7 @@ const viewBounds = computed(() => {
     maxY: Math.max(fieldHeight.value - canvasHeight.value + 1, 0),
   };
 });
+
 const {
   elementX: canvasMouseX,
   elementY: canvasMouseY,
@@ -62,10 +68,10 @@ const {
 } = useMouseInElement(canvas);
 const coordMouseX = computed(() => Math.floor((canvasMouseX.value + viewX.value) / TILE_SIZE));
 const coordMouseY = computed(() => Math.floor((canvasMouseY.value + viewY.value) / TILE_SIZE));
-const images = useImageLoader();
 const isDrawing = ref(false);
 const isPanning = ref(false);
 let prevDrawingCoords: Point = [0, 0];
+
 const perfRenderTime = ref(0);
 const debugMsg = computed(() => {
   const dbg: string[] = [];
@@ -96,15 +102,20 @@ const debugMsg = computed(() => {
   dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
   return dbg.join('<br/>');
 });
+
 const queueAnimFuncs: Set<() => void> = new Set();
+
 const {
   state: selectionState,
   start: selectionStart,
   end: selectionEnd,
   bounds: selectionBounds,
   translate: selectionTranslate,
-  data: selectionData,
+  fieldGraph: selectionFieldGraph,
+  isSnippet: selectionIsSnippet,
+  fieldView: selectionFieldView,
 } = useSelection();
+watch([viewX, viewY], ([x, y]) => selectionFieldView.value = [ x, y ]); // TODO: yuck, crappy way of providing viewX and viewY to the selection composable
 
 const getTileViewport = (): { left: number, top: number, right: number, bottom: number } => {
   const { columns, rows } = dimensions;
@@ -389,13 +400,13 @@ const renderOverlay = () => {
       ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
       ctx.restore();
     }
-    if (selectionData.value && selectionState.value === 'dragging') {
+    if (selectionFieldGraph.value && selectionState.value === 'dragging') {
       ctx.save();
       ctx.translate(1, 1);
       const [ left, top ] = selectionBounds.value ?? [ 0, 0 ];
       const [ tx, ty ] = selectionTranslate.value ?? [ 0, 0 ];
       ctx.translate(Math.floor((left + tx) * TILE_SIZE), Math.floor((top + ty) * TILE_SIZE));
-      renderTiles({ context2d: ctx, field: selectionData.value, noTranslate: true });
+      renderTiles({ context2d: ctx, field: selectionFieldGraph.value, noTranslate: true });
       ctx.restore();
     }
   }
@@ -547,71 +558,81 @@ const startSelection = (e: MouseEvent) => {
   }
 }
 
+const clearSelection = () => {
+  selectionStart.value = undefined;
+  selectionEnd.value = undefined;
+  selectionTranslate.value = undefined;
+  selectionFieldGraph.value = undefined;
+  selectionIsSnippet.value = false;
+}
+
 const endSelection = () => {
   switch (selectionState.value) {
     case 'selecting': {
       const [ left, top, right, bottom ] = selectionBounds.value!;
       const start: Point = [ left, top ];
       const end: Point = [ right, bottom ];
-      selectionData.value = field.value.copy(start, end, { enforceBounds: true });
+      selectionFieldGraph.value = field.value.copy(start, end, { enforceBounds: true });
       selectionState.value = 'selected';
       break;
     }
     case 'selected': {
-      selectionStart.value = undefined;
-      selectionEnd.value = undefined;
-      selectionTranslate.value = undefined;
-      selectionData.value = undefined;
+      clearSelection();
+      break;
     }
     case 'dragging': {
       selectionState.value = undefined;
-      if (selectionData.value && selectionBounds.value) {
+      if (selectionFieldGraph.value && selectionBounds.value) {
         const [ left, top, right, bottom ] = selectionBounds.value;
         const [ ox, oy ] = selectionTranslate.value ?? [ 0, 0 ];
         const pasteStart: Point = [ Math.round(left + ox), Math.round(top + oy) ];
         const pasteEnd: Point = [ Math.round(right + ox), Math.round(bottom + oy) ];
-        const pasted = field.value.paste(pasteStart, selectionData.value);
-        if (pasted) {
+        const success = field.value.paste(pasteStart, selectionFieldGraph.value);
+        if (success) {
           selectionState.value = 'selected';
           selectionStart.value = clampCoords(pasteStart);
           selectionEnd.value = clampCoords(pasteEnd);
+          selectionIsSnippet.value = false;
           selectionTranslate.value = [ 0, 0 ];
-          selectionData.value = field.value.copy(pasteStart, pasteEnd, { enforceBounds: true });
+          selectionFieldGraph.value = field.value.copy(pasteStart, pasteEnd, { enforceBounds: true });
         } else {
-          field.value.paste([ left, top ], selectionData.value, { overwrite: true });
-          selectionTranslate.value = [0, 0];
+          if (selectionIsSnippet.value) {
+            // Continue dragging the snippet
+            selectionState.value = 'dragging';
+          } else {
+            // Force the selection back to its original position
+            field.value.paste([ left, top ], selectionFieldGraph.value, { overwrite: true });
+            selectionTranslate.value = [0, 0];
+          }
         }
         queueAnimFuncs.add(renderTiles);
       } else {
-        selectionStart.value = undefined;
-        selectionEnd.value = undefined;
-        selectionTranslate.value = undefined;
-        selectionData.value = undefined;
+        clearSelection();
       }
       break;
     }
   }
 }
 
-const modifySelection = (e: KeyboardEvent) => {
-  if (!selectionData.value)
+const onKeyDownModifySelection = (e: KeyboardEvent) => {
+  if (!selectionFieldGraph.value)
     return;
   let modified = true;
   switch (e.key.toLowerCase()) {
     case 'f':
       if (e.shiftKey) {
-        selectionData.value.flipVertical();
+        selectionFieldGraph.value.flipVertical();
       } else {
-        selectionData.value.flipHorizontal();
+        selectionFieldGraph.value.flipHorizontal();
       }
       queueAnimFuncs.add(renderOverlay);
       break;
     case 'r':
       if (selectionState.value === 'dragging') {
         if (e.shiftKey) {
-          selectionData.value.rotateCCW();
+          selectionFieldGraph.value.rotateCCW();
         } else {
-          selectionData.value.rotateCW();
+          selectionFieldGraph.value.rotateCW();
         }
         queueAnimFuncs.add(renderOverlay);
       } else {
@@ -628,12 +649,12 @@ const modifySelection = (e: KeyboardEvent) => {
     const start: Point = [ left, top ];
     const end: Point = [ right, bottom ];
     field.value.clearRect(start, end, { enforceBounds: true });
-    field.value.paste(start, selectionData.value);
+    field.value.paste(start, selectionFieldGraph.value);
     queueAnimFuncs.add(renderTiles);
   }
 }
 
-const deleteSelection = (e: KeyboardEvent) => {
+const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
   if (!selectionBounds.value)
     return;
   switch (e.key) {
@@ -643,7 +664,7 @@ const deleteSelection = (e: KeyboardEvent) => {
       const start: Point = [ left, top ];
       const end: Point = [ right, bottom ];
       field.value.clearRect(start, end, { enforceBounds: true });
-      selectionData.value = undefined;
+      selectionFieldGraph.value = undefined;
       endSelection();
       queueAnimFuncs.add(renderTiles);
       queueAnimFuncs.add(renderOverlay);
@@ -705,13 +726,13 @@ watch([ canvasMouseX, canvasMouseY ], ([ x, y ], [ oldX, oldY ]) => {
   }
 });
 
-watch([selectionData, selectionStart, selectionEnd, selectionTranslate], () => {
+watch([selectionFieldGraph, selectionStart, selectionEnd, selectionTranslate], () => {
   queueAnimFuncs.add(renderOverlay);
 }, { deep: true });
 
 watch(toolBoxMode, (mode, was) => {
   if (was === 'select') {
-    selectionData.value = undefined;
+    selectionFieldGraph.value = undefined;
     selectionStart.value = undefined;
     selectionEnd.value = undefined;
     selectionTranslate.value = undefined;
@@ -740,8 +761,8 @@ useEventListener(canvas, 'mouseup', (e) => {
 });
 
 useEventListener('keydown', (e) => {
-  modifySelection(e);
-  deleteSelection(e);
+  onKeyDownModifySelection(e);
+  onKeyDownDeleteSelection(e);
 });
 
 useResizeObserver(canvas, (entries, obs) => {
