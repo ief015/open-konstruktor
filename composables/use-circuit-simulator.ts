@@ -1,5 +1,6 @@
-import { CircuitSimulationFactory } from "@/circuits";
-import { CircuitSimulation, FieldGraph, Network, VerificationResult } from "@/simulation";
+import type { CircuitSimulationFactory } from "@/circuits";
+import { CircuitSimulation, FieldGraph, Network } from "@/simulation";
+import type { VerificationResult } from "@/simulation";
 
 export type OnRenderHandler = () => void;
 export type OnCompleteHandler = (result?: VerificationResult) => void;
@@ -204,6 +205,7 @@ export default function useCircuitSimulator() {
     return removeCompleteHandler;
   }
 
+  // TODO: causing warns - use-level-info.ts calls this outside of component
   onUnmounted(stop);
   onUnmounted(removeRenderHandler);
   onUnmounted(removeCompleteHandler);

@@ -1,4 +1,5 @@
-import { DesignDataLayer, ConnectionValue } from "@/serialization";
+import { ConnectionValue } from "@/serialization";
+import type { DesignDataLayer } from "@/serialization";
 
 const loader = useImageLoader();
 

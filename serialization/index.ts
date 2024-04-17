@@ -23,13 +23,16 @@ export {
   decode,
   decodeSync,
   DesignData,
-  DesignDataLayer,
   Layer,
-  LayerColumn,
-  LayerDimensions,
   SiliconValue,
   MetalValue,
   GateValue,
   ViaValue,
   ConnectionValue,
+};
+
+export type {
+  DesignDataLayer,
+  LayerColumn,
+  LayerDimensions,
 };

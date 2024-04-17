@@ -40,6 +40,15 @@ export type NetworkNode = PinNode | PathNode | GateNode;
 
 export {
   CircuitSimulation,
+  FieldGraph,
+  Network,
+  GateNode,
+  PinNode,
+  PathNode,
+  Sequence,
+};
+
+export type {
   PinFilter,
   PinSort,
   PrintPinOrdering,
@@ -49,7 +58,6 @@ export {
   SequenceMap,
   VerificationResult,
   VerificationResultOutput,
-  FieldGraph,
   Direction,
   DrawType,
   EraseType,
@@ -57,12 +65,7 @@ export {
   QueryResult,
   QuerySiliconResult,
   SiliconType,
-  Network,
   GraphLayer,
-  GateNode,
-  PinNode,
-  PathNode,
-  Sequence,
   DifferenceMethod,
   DifferenceOptions,
   DifferenceResult,

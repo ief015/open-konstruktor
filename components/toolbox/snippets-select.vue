@@ -7,16 +7,16 @@
         </option>
       </optgroup>
     </select>
-  <div class="flex flex-row m-1 gap-1">
-    <button class="flex-1" @click="onSave" :disabled="!selectionFieldGraph">Save</button>
-    <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">Load</button>
-    <button class="flex-1" @click="onDelete" :disabled="!selected.length">Delete</button>
+    <div class="flex flex-row m-1 gap-1">
+      <button class="flex-1" @click="onSave" :disabled="!selectionFieldGraph">Save</button>
+      <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">Load</button>
+      <button class="flex-1" @click="onDelete" :disabled="!selected.length">Delete</button>
+    </div>
   </div>
-</div>
 </template>
 
 <script setup lang="ts">
-import { SnippetRecord } from "@/composables/use-saved-snippets";
+import type { SnippetRecord } from "@/composables/use-saved-snippets";
 import { DesignData } from "@/serialization";
 import { FieldGraph } from "@/simulation";
 

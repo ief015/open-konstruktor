@@ -1,4 +1,5 @@
-import { DesignData, LayerDimensions } from "@/serialization";
+import { DesignData} from "@/serialization";
+import type { LayerDimensions } from "@/serialization";
 import { FieldGraph } from "@/simulation";
 
 const field = shallowRef<FieldGraph>(new FieldGraph());

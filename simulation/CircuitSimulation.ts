@@ -1,6 +1,7 @@
 import Network from "@/simulation/Network";
 import PinNode from "@/simulation/PinNode";
-import Sequence, { DifferenceMethod } from "@/simulation/Sequence";
+import Sequence from "@/simulation/Sequence";
+import type { DifferenceMethod } from "@/simulation/Sequence";
 
 export type PrintPinOrdering = 'none' | 'even-odd';
 export type PinFilter = (id: number, pin: PinNode) => boolean;

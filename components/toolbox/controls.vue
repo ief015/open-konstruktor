@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ToolboxMode } from "@/composables/use-toolbox";
+import type { ToolboxMode } from "@/composables/use-toolbox";
 
 interface ToolkitItem {
   name: string;

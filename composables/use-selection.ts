@@ -1,4 +1,5 @@
-import { FieldGraph, Point } from "@/simulation";
+import { FieldGraph } from "@/simulation";
+import type { Point } from "@/simulation";
 
 export type SelectionState = 'selecting' | 'selected' | 'dragging';
 

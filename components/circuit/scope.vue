@@ -40,7 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import { PinNode, Point, VerificationResult } from '@/simulation'; 
+import { PinNode } from '@/simulation';
+import type { Point, VerificationResult } from '@/simulation';
 
 type DrawMode = 'high' | 'low';
 

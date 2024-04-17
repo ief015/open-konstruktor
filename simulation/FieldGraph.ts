@@ -1,8 +1,9 @@
 import {
-  DesignData, ConnectionValue, GateValue, Layer, LayerDimensions, MetalValue, SiliconValue, ViaValue
+  DesignData, ConnectionValue, GateValue, Layer, MetalValue, SiliconValue, ViaValue
 } from '@/serialization/DesignData';
+import type { LayerDimensions } from '@/serialization/DesignData';
 import { decodeSync, encodeSync } from '@/serialization';
-import { GraphLayer, Point } from '@/simulation';
+import type { GraphLayer, Point } from '@/simulation';
 import { traceLine } from '@/utils/traceLine';
 import { traceRectBorder } from '@/utils/traceRectBorder';
 

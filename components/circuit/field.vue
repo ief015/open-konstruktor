@@ -19,8 +19,9 @@
 
 <script setup lang="ts">
 import { Layer, MetalValue, SiliconValue, ConnectionValue, ViaValue, GateValue } from '@/serialization';
-import { FieldGraph, GateNode, PathNode, Point } from '@/simulation';
-import { ToolboxMode } from '@/composables/use-toolbox';
+import { FieldGraph, GateNode, PathNode } from '@/simulation';
+import type { Point } from '@/simulation';
+import type { ToolboxMode } from '@/composables/use-toolbox';
 
 const TILE_SIZE = 13;
 const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);

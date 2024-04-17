@@ -1,4 +1,4 @@
-import { CircuitSimulationFactory } from "@/circuits";
+import type { CircuitSimulationFactory } from "@/circuits";
 import { tutorial } from "@/circuits/tutorial";
 import { openkonstruktor } from "@/circuits/open-konstruktor";
 import { kohctpyktop } from "@/circuits/kohctpyktop";

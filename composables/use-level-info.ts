@@ -1,4 +1,4 @@
-import { LevelInfo, LevelInfoPage } from "@/circuits";
+import type { LevelInfo, LevelInfoPage } from "@/circuits";
 
 const { circuitFactory } = useCircuitSimulator();
 

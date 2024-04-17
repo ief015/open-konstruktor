@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { DesignRecord } from "@/composables/use-saved-designs";
+import type { DesignRecord } from "@/composables/use-saved-designs";
 
 const { groups, designs, categories, saveDesign, deleteDesign } = useSavedDesigns();
 const { load: loadField, field } = useFieldGraph();
