@@ -565,6 +565,7 @@ const clearSelection = () => {
   selectionTranslate.value = undefined;
   selectionFieldGraph.value = undefined;
   selectionIsSnippet.value = false;
+  selectionState.value = undefined;
 }
 
 const endSelection = () => {

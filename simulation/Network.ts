@@ -1,6 +1,8 @@
 import FieldGraph from "@/simulation/FieldGraph";
 import type { QueryResult } from "@/simulation/FieldGraph";
-import type { GateNode, NetworkNode, PathNode, PinNode, Point } from "@/simulation";
+import { GateNode, PathNode, PinNode } from "@/simulation";
+import type { NetworkNode, Point } from "@/simulation";
+
 
 type FoundGate = {
   query: QueryResult;
