@@ -426,19 +426,15 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // Q0, Q1
       const [ seqQ0, seqQ1 ] = createSequencesFromInputs(
         [ seqT0, seqT1 ],
-        ({ inputs: [ T0, T1 ], state }) => {
+        ({ inputs: [ T0, T1 ], edges: [ dT0, dT1 ], state }) => {
           // Rising edge triggered
-          if (T0 && !state.lastT0)
+          if (dT0 > 0)
             state.q0 = !state.q0;
-          if (T1 && !state.lastT1)
+          if (dT1 > 0)
             state.q1 = !state.q1;
-          state.lastT0 = T0;
-          state.lastT1 = T1;
           return [ state.q0, state.q1 ];
         },
         {
-          lastT0: false,
-          lastT1: false,
           q0: false,
           q1: false,
         },
@@ -788,12 +784,13 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // Y0, Y1, Y2, Y3
       const [ seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
         [ seqCLR, seqINC ],
-        ({ inputs: [ CLR, INC ], state }) => {
-          if (INC && !state.lastINC) {
+        ({ inputs: [ CLR, INC ], edges: [ dCLR, dINC ], state }) => {
+          if (dINC > 0) {
             state.counter++;
           }
-          state.lastINC = INC;
-          CLR && (state.counter = 0);
+          if (CLR) {
+            state.counter = 0;
+          }
           return [
             (state.counter % 2) >= 1,
             (state.counter % 4) >= 2,
@@ -803,7 +800,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         },
         {
           counter: 0,
-          lastINC: false,
         },
         280,
       );
@@ -849,18 +845,16 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // Q0, Q1, Q2, Q3
       const [ seqQ0, seqQ1, seqQ2, seqQ3 ] = createSequencesFromInputs(
         [ seqD, seqCLK ],
-        ({ inputs: [ D, CLK ], state }) => {
-          if (CLK && !state.lastCLK) {
+        ({ inputs: [ D, CLK ], edges: [ dD, dCLK ], state }) => {
+          if (dCLK > 0) {
             state.q3 = state.q2;
             state.q2 = state.q1;
             state.q1 = state.q0;
             state.q0 = D;
           }
-          state.lastCLK = CLK;
           return [ state.q0, state.q1, state.q2, state.q3 ];
         },
         {
-          lastCLK: false,
           q0: false,
           q1: false,
           q2: false,
@@ -1092,13 +1086,12 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // OUT0, OUT1, OUT2
       const [ seqOUT0, seqOUT1, seqOUT2 ] = createSequencesFromInputs(
         [seqK0, seqK1, seqK2, seqIN, seqCLK],
-        ({ inputs: [ K0, K1, K2, IN, CLK ], state }) => {
-          if (CLK && !state.lastCLK) {
+        ({ inputs: [ K0, K1, K2, IN, CLK ], edges: [ dK0, dK1, dK2, dIN, dCLK ], state }) => {
+          if (dCLK > 0) {
             state.q2 = state.q1;
             state.q1 = state.q0;
             state.q0 = IN;
           }
-          state.lastCLK = CLK;
           return [
             state.q0 !== K0,
             state.q1 !== K1,
@@ -1106,7 +1099,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
           ];
         },
         {
-          lastCLK: false,
           q0: false,
           q1: false,
           q2: false,
@@ -1156,11 +1148,10 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // LOW, Y0, Y1, Y2, Y3
       const [ seqLOW, seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
         [ seqRST, seqDEC ],
-        ({ inputs: [ RST, DEC ], state }) => {
-          if (DEC && !state.lastDEC) {
+        ({ inputs: [ RST, DEC ], edges: [ dRST, dDEC ], state }) => {
+          if (dDEC > 0) {
             state.count--;
           }
-          state.lastDEC = DEC;
           if (RST) {
             state.count = 12;
           }
@@ -1173,7 +1164,6 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
           ];
         },
         {
-          lastDEC: false,
           count: 0,
         },
         280,
