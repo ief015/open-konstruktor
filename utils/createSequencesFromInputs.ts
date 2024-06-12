@@ -56,7 +56,7 @@ function createSequencesFromInputs<TState extends object>(
   const inputs = inputSequences.map(seq => seq.getFront());
   const deltas: number[] = [];
   const outputSequences: Sequence[] = [];
-  for (let frame = 0; frame < maxLength; frame++) {
+  for (let frame = 0; frame < maxLength!; frame++) {
     for (let i = 0; i < inputSequences.length; i++) {
       const seq = inputSequences[i];
       const newState = seq.getFrames()[frame];
