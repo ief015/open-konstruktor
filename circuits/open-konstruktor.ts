@@ -1,4 +1,4 @@
-import { CircuitSimulationFactory } from "@/circuits";
+import type { CircuitSimulationFactory } from "@/circuits";
 import { PinNode, CircuitSimulation, Sequence } from "@/simulation";
 import createSequencesFromInputs from "@/utils/createSequencesFromInputs";
 

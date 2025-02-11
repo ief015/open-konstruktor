@@ -56,6 +56,7 @@ const TICK_WIDTH_PX = 2; // 2px per tick
 const HEIGHT_PX_SCOPE = 25; // 25px per scope
 const GRID_LINE_INTERVAL = 5; // Grid line every 5 ticks
 const WIDTH_PX_LABELS = 52; // Minimum width for labels
+const FONT = '10px Georgia10';
 
 const VERIFY_PASS_THRESHOLD = 97;
 
@@ -99,8 +100,8 @@ const renderScope = () => {
   ctx.save();
   ctx.fillStyle = COLOR_CHART;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.translate(0.5, 0.25);
-  ctx.translate(-translateX.value, 0);
+  ctx.translate(0.5, 0.25); // Sharpens lines
+  ctx.translate(-translateX.value, 0); // Translate for horizontal autoscrolling
   ctx.lineWidth = 1;
 
   const runningLength = vsim.getRunningLength();
@@ -143,7 +144,7 @@ const renderScope = () => {
       if (pin.label) {
         ctx.save();
         ctx.translate(translateX.value, 0);
-        ctx.font = '10px Georgia10';
+        ctx.font = FONT;
         ctx.fillText(pin.label, -0.5, baseline - 4, WIDTH_PX_LABELS);
         ctx.restore();
       }
@@ -152,8 +153,8 @@ const renderScope = () => {
       ctx.save();
       ctx.translate(WIDTH_PX_LABELS, 0);
       if (input) {
-        ctx.strokeStyle = COLOR_SCOPE_LINE;
 
+        ctx.strokeStyle = COLOR_SCOPE_LINE;
         ctx.beginPath();
         ctx.moveTo(0, baseline);
         let i = 0;

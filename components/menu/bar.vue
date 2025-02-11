@@ -52,7 +52,7 @@
 // @ts-ignore
 import { DockMenu } from "@/external/vue-dock-menu/vue-dock-menu.es";
 import "@/external/vue-dock-menu/assets/output-9689c4bb.css";
-import { CircuitSimulationFactory } from "@/circuits";
+import type { CircuitSimulationFactory } from "@/circuits";
 
 const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim } = useCircuitSimulator();
