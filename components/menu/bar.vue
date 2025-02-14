@@ -91,9 +91,55 @@ const items = [
       {
         name: "Open-Konstruktor",
         menu: [
-          { id: 'level:OC2C1 DUAL FULL COMPARATOR', name: "OC2C1 DUAL FULL COMPARATOR" },
-          { id: 'level:OL2J1 DUAL J-K FLIP-FLOP',   name: "OL2J1 DUAL J-K FLIP-FLOP" },
-          { id: 'level:Very large test',            name: "Very large test" },
+          {
+            name: '01 - 10',
+            menu: [
+              { id: 'level:DUAL INVERTER GATE', name: "01 DUAL INVERTER GATE" },
+              { id: 'level:2-INPUT AND GATE', name: "02 2-INPUT AND GATE" },
+              { id: 'level:2-INPUT NAND GATE', name: "03 2-INPUT NAND GATE" },
+              { id: 'level:2-INPUT OR GATE', name: "04 2-INPUT OR GATE" },
+              { id: 'level:2-INPUT AND/NAND GATE', name: "05 2-INPUT AND/NAND GATE" },
+              { id: 'level:2-INPUT OR/NOR GATE', name: "06 2-INPUT OR/NOR GATE" },
+              
+              { id: 'level:', name: "07" },
+              { id: 'level:', name: "08" },
+              { id: 'level:', name: "09" },
+
+              { id: 'level:4-INPUT AND-OR GATE', name: "10 4-INPUT AND-OR GATE" },
+            ],
+          },
+          {
+            name: '11 - 20',
+            menu: [
+              { id: 'level:OM1SRL1 DUAL S-R LATCH', name: "14 OM1SRL1 DUAL S-R LATCH" },
+              { id: 'level:OM1TL1 DUAL T LATCH', name: "15 OM1TL1 DUAL T LATCH" },
+              { id: 'level:OM1DL1 DUAL D LATCH', name: "16 OM1DL1 DUAL D LATCH" },
+              { id: 'level:OM1SRF1 DUAL S-R FLIP-FLOP', name: "17 OM1SRF1 DUAL S-R FLIP-FLOP" },
+              { id: 'level:OM1TF1 DUAL T FLIP-FLOP', name: "18 OM1TF1 DUAL T FLIP-FLOP" },
+              { id: 'level:OM1DF1 DUAL D FLIP-FLOP', name: "19 OM1DF1 DUAL D FLIP-FLOP" },
+            ],
+          },
+          {
+            name: '21 - 30',
+            menu: [
+              { id: 'level:DUAL 2-INPUT CLOCKED AND GATE', name: "21 DUAL 2-INPUT CLOCKED AND GATE" },
+              { id: 'level:OM1SRAM1 SRAM CELL', name: "25 OM1SRAM1 SRAM CELL" },
+            ],
+          },
+          {
+            name: '31 - 40',
+            menu: [
+              { id: 'level:OC2C1 DUAL FULL COMPARATOR', name: "31 OC2C1 DUAL FULL COMPARATOR" },
+              { id: 'level:OM2JL1 DUAL J-K LATCH', name: "32 OM2JL1 DUAL J-K LATCH" },
+              { id: 'level:OM2JF1 DUAL J-K FLIP-FLOP', name: "33 OM2JF1 DUAL J-K FLIP-FLOP" },
+            ],
+          },
+          {
+            name: '41 - 50',
+            menu: [
+              { id: 'level:OM1S1 SRAM CELL', name: "41 OM1S1 SRAM CELL" },
+            ],
+          },
         ],
       },
       {
@@ -139,6 +185,12 @@ const items = [
               { id: 'level:19 X903 GATLING CANNON FIRE CONTROLLER', name: "19 - X903 - GATLING CANNON FIRE CONTROLLER" },
             ],
           },
+        ],
+      },
+      {
+        name: "Debugging",
+        menu: [
+          { id: 'level:Very large test',            name: "Very large test" },
         ],
       },
     ]
