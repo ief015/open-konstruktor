@@ -20,6 +20,8 @@ export enum Layer {
   MetalConnectionsV = 8,
 }
 
+const NUM_LAYERS = 9;
+
 export enum SiliconValue {
   None = 0x00,
   NSilicon = 0x01,
@@ -46,7 +48,6 @@ export enum ConnectionValue {
   Connected = 0x03,
 }
 
-const NUM_LAYERS = 9;
 const DEFAULT_NUM_COLUMNS = 44;
 const DEFAULT_NUM_ROWS = 27;
 const DEFAULT_PIN_SIZE = 3;
@@ -70,6 +71,13 @@ export class DesignData {
     }
     this.dimensions = { columns, rows };
     this.pinCount = numPinRows * 2;
+    this.rebuildLayers();
+    this.rebuildPins();
+  }
+
+  private rebuildLayers(): void {
+    const { columns, rows } = this.dimensions;
+    const layers: DesignDataLayer[] = [];
     for (let i = 0; i < NUM_LAYERS; i++) {
       const layer: DesignDataLayer = [];
       for (let col = 0; col < columns; col++) {
@@ -79,9 +87,14 @@ export class DesignData {
         }
         layer.push(column);
       }
-      this.layers.push(layer);
+      layers.push(layer);
     }
-    // Set the default values for the pins
+    this.layers.splice(0, this.layers.length, ...layers);
+  }
+
+  private rebuildPins(): void {
+    const { columns, rows } = this.dimensions;
+    const numPinRows = this.getPinRowsCount();
     const metalLayer = this.layers[Layer.Metal];
     const metalConnectionsHLayer = this.layers[Layer.MetalConnectionsH];
     const metalConnectionsVLayer = this.layers[Layer.MetalConnectionsV];
@@ -120,6 +133,10 @@ export class DesignData {
 
   public getPinCount(): number {
     return this.pinCount;
+  }
+
+  public getPinRowsCount(): number {
+    return this.pinCount / 2;
   }
 
   public getPinPoint(pin: number): [ number, number ] {
@@ -170,14 +187,20 @@ export class DesignData {
     const design = new DesignData(cols, rows, 0);
     for (let i = 0; i < NUM_LAYERS; i++) {
       const layer = design.layers[i];
-      const layerMarker = data.readUInt8(offset++) - data.readUInt8(offset++) - data.readUInt8(offset++);
-      if (layerMarker != 0x09 - 0x59 - 0x01) {
+      if (
+        data.readUInt8(offset++) != 0x09 ||
+        data.readUInt8(offset++) != 0x59 ||
+        data.readUInt8(offset++) != 0x01
+      ) {
         throw new Error("Malformed design data (invalid layer marker)");
       }
       for (let col = 0; col < cols; col++) {
         const column = layer[col];
-        const columnMarker = data.readUInt8(offset++) - data.readUInt8(offset++) - data.readUInt8(offset++);
-        if (columnMarker != 0x09 - 0x37 - 0x01) {
+        if (
+          data.readUInt8(offset++) != 0x09 ||
+          data.readUInt8(offset++) != 0x37 ||
+          data.readUInt8(offset++) != 0x01
+        ) {
           throw new Error("Malformed design data (invalid column marker)");
         }
         for (let row = 0; row < rows; row++) {
