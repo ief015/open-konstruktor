@@ -1,6 +1,6 @@
 export interface SnippetRecord {
   id?: number;
-  categoryId?: number;
+  category: string;
   name: string;
   data: string;
   description?: string;
@@ -8,33 +8,34 @@ export interface SnippetRecord {
   height: number;
 }
 
-export interface SnippetCategoryRecord {
-  id?: number;
-  name: string;
-}
+export type SnippetCategoryRecord = string;
 
 export interface SnippetGroup {
   label: string;
   options: SnippetRecord[];
 };
 
+const CATEGORY_NONE = 'Uncategorized';
+
 const db = indexedDB.open('ok-snippets');
 const snippets = ref<SnippetRecord[]>([]);
-const categories = ref<SnippetCategoryRecord[]>([]);
+const categories = computed<SnippetCategoryRecord[]>(() => {
+  const set = new Set<SnippetCategoryRecord>();
+  for (const snippet of snippets.value) {
+    set.add(snippet.category);
+  }
+  return Array.from(set);
+});
 const groups = computed<SnippetGroup[]>(() => {
-  const categoriesMap = new Map<number|undefined, SnippetGroup>();
-  categoriesMap.set(undefined, {
-    label: 'Uncategorized',
-    options: [],
-  });
+  const categoriesMap = new Map<string, SnippetGroup>();
   for (const category of categories.value) {
-    categoriesMap.set(category.id, {
-      label: category.name,
+    categoriesMap.set(category || CATEGORY_NONE, {
+      label: category || CATEGORY_NONE,
       options: [],
     });
   }
   for (const snippet of snippets.value) {
-    const category = categoriesMap.get(snippet.categoryId);
+    const category = categoriesMap.get(snippet.category || CATEGORY_NONE);
     if (category) {
       category.options.push(snippet);
     }
@@ -56,7 +57,6 @@ const getDB = () => new Promise<IDBDatabase>((resolve, reject) => {
 db.onupgradeneeded = async () => {
   const DB = db.result;
   DB.createObjectStore('snippets', { keyPath: 'id', autoIncrement: true });
-  DB.createObjectStore('categories', { keyPath: 'id' });
 }
 
 const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) => new Promise<T[]>(
@@ -75,15 +75,6 @@ const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) => new 
   }
 );
 
-const fetchCategoriesRecords = async (): Promise<SnippetCategoryRecord[]> => {
-  const db = await getDB();
-  const transaction = db.transaction('categories', 'readonly');
-  const store = transaction.objectStore('categories');
-  const request = store.openCursor();
-  const results = await cursorGetAll<SnippetCategoryRecord>(request);
-  return results;
-}
-
 const fetchSnippetRecords = async (): Promise<SnippetRecord[]> => {
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readonly');
@@ -96,9 +87,7 @@ const fetchSnippetRecords = async (): Promise<SnippetRecord[]> => {
 const reload = async () => {
   loading.value = true;
   try {
-    const categoriesRecords = await fetchCategoriesRecords();
     const snippetsRecords = await fetchSnippetRecords();
-    categories.value = categoriesRecords;
     snippets.value = snippetsRecords;
   } finally {
     loading.value = false;
@@ -137,50 +126,16 @@ const deleteSnippet = async (id: number) => {
   });
 }
 
-const saveCategory = async (category: SnippetCategoryRecord): Promise<SnippetCategoryRecord> => {
-  const db = await getDB();
-  const transaction = db.transaction('categories', 'readwrite');
-  const store = transaction.objectStore('categories');
-  const request = store.put(category);
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => {
-      category.id = request.result as number;
-      categories.value.push(category);
-      resolve(category);
-    };
-    request.onerror = () => reject(request.error);
-  });
-}
-
-const deleteCategory = async (id: number) => {
-  const db = await getDB();
-  const transaction = db.transaction('categories', 'readwrite');
-  const store = transaction.objectStore('categories');
-  const request = store.delete(id);
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => {
-      const index = categories.value.findIndex(category => category.id === id);
-      if (index >= 0) {
-        categories.value.splice(index, 1);
-      }
-      resolve(void 0);
-    };
-    request.onerror = () => reject(request.error);
-  });
-}
-
 reload();
 
 export default function useSavedSnippets() {
   return {
     loading: readonly(loading),
     snippets: readonly(snippets),
-    categories: readonly(categories),
+    categories,
     groups,
     reload,
     saveSnippet,
     deleteSnippet,
-    saveCategory,
-    deleteCategory,
   };
 }

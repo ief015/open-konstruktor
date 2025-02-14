@@ -12,12 +12,13 @@
       <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">Load</button>
       <button class="flex-1" @click="onDelete" :disabled="!selected.length">Delete</button>
     </div>
+    <DialogSnippetsSave v-model="showSaveDialog" @save="onSaveSubmit" />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { SaveSnippetFormData } from "@/components/dialog/snippets/save.vue";
 import type { SnippetRecord } from "@/composables/use-saved-snippets";
-import { DesignData } from "@/serialization";
 import { FieldGraph } from "@/simulation";
 
 const fieldCanvas = ref();
@@ -42,6 +43,8 @@ const coordMouseX = computed(() => {
 const coordMouseY = computed(() => {
   return Math.floor(canvasMouseY.value / TILE_SIZE);
 });
+
+const showSaveDialog = ref(false);
 
 const { groups, snippets, categories, saveSnippet, deleteSnippet } = useSavedSnippets();
 const {
@@ -82,21 +85,26 @@ const onSelect = (opt: SnippetRecord) => {
   loadOption(opt);
 }
 
-const onSave = async () => {
+const onSave = () => {
+  if (!selectionFieldGraph.value)
+    return;
+  showSaveDialog.value = true;
+}
+
+const onSaveSubmit = async (formData: SaveSnippetFormData) => {
   if (!selectionFieldGraph.value)
     return;
   const { columns, rows } = selectionFieldGraph.value.getDimensions();
   const data = selectionFieldGraph.value.toSaveString();
-  const name = prompt("Enter a name for this snippet:");
-  if (name) {
-    console.log('Saving...', columns, rows, FieldGraph.from(data).getDimensions());
-    await saveSnippet({
-      name,
-      data,
-      width: columns,
-      height: rows,
-    });
-  }
+  console.log('Saving...', columns, rows, FieldGraph.from(data).getDimensions());
+  await saveSnippet({
+    name: formData.name,
+    category: formData.category,
+    description: formData.description,
+    data,
+    width: columns,
+    height: rows,
+  });
 }
 
 const onLoad = () => {
