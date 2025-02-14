@@ -92,29 +92,7 @@ export class DesignData {
     this.layers.splice(0, this.layers.length, ...layers);
   }
 
-  private clearPinsArea(): void {
-    const { columns, rows } = this.dimensions;
-    const metalLayer = this.layers[Layer.Metal];
-    const metalConnectionsHLayer = this.layers[Layer.MetalConnectionsH];
-    const metalConnectionsVLayer = this.layers[Layer.MetalConnectionsV];
-    for (let x = 0; x < DEFAULT_PIN_SIZE + 1; x++) {
-      for (let y = 0; y < rows; y++) {
-        metalLayer[x][y] = MetalValue.None;
-        metalConnectionsHLayer[x][y] = ConnectionValue.None;
-        metalConnectionsVLayer[x][y] = ConnectionValue.None;
-      }
-    }
-    for (let x = columns - DEFAULT_PIN_SIZE - 2; x < columns; x++) {
-      for (let y = 0; y < rows; y++) {
-        metalLayer[x][y] = MetalValue.None;
-        metalConnectionsHLayer[x][y] = ConnectionValue.None;
-        metalConnectionsVLayer[x][y] = ConnectionValue.None;
-      }
-    }
-  }
-
   private rebuildPins(): void {
-    this.clearPinsArea();
     const { columns, rows } = this.dimensions;
     const numPinRows = this.getPinRowsCount();
     const metalLayer = this.layers[Layer.Metal];
