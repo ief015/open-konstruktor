@@ -1,6 +1,6 @@
 export interface DesignRecord {
   id?: number;
-  categoryId?: number;
+  category: string;
   name: string;
   data: string;
   description?: string;
@@ -8,33 +8,34 @@ export interface DesignRecord {
   height: number;
 }
 
-export interface DesignCategoryRecord {
-  id?: number;
-  name: string;
-}
+export type DesignCategoryRecord = string;
 
 export interface DesignGroup {
   label: string;
   options: DesignRecord[];
 };
 
+const CATEGORY_NONE = 'Uncategorized';
+
 const db = indexedDB.open('ok-designs');
 const designs = ref<DesignRecord[]>([]);
-const categories = ref<DesignCategoryRecord[]>([]);
+const categories = computed<DesignCategoryRecord[]>(() => {
+  const set = new Set<DesignCategoryRecord>();
+  for (const design of designs.value) {
+    set.add(design.category);
+  }
+  return Array.from(set);
+});
 const groups = computed<DesignGroup[]>(() => {
-  const categoriesMap = new Map<number|undefined, DesignGroup>();
-  categoriesMap.set(undefined, {
-    label: 'Uncategorized',
-    options: [],
-  });
+  const categoriesMap = new Map<DesignCategoryRecord, DesignGroup>();
   for (const category of categories.value) {
-    categoriesMap.set(category.id, {
-      label: category.name,
+    categoriesMap.set(category || CATEGORY_NONE, {
+      label: category || CATEGORY_NONE,
       options: [],
     });
   }
   for (const design of designs.value) {
-    const category = categoriesMap.get(design.categoryId);
+    const category = categoriesMap.get(design.category || CATEGORY_NONE);
     if (category) {
       category.options.push(design);
     }
@@ -75,15 +76,6 @@ const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) => new 
   }
 );
 
-const fetchCategoriesRecords = async (): Promise<DesignCategoryRecord[]> => {
-  const db = await getDB();
-  const transaction = db.transaction('categories', 'readonly');
-  const store = transaction.objectStore('categories');
-  const request = store.openCursor();
-  const results = await cursorGetAll<DesignCategoryRecord>(request);
-  return results;
-}
-
 const fetchDesignRecords = async (): Promise<DesignRecord[]> => {
   const db = await getDB();
   const transaction = db.transaction('designs', 'readonly');
@@ -96,9 +88,7 @@ const fetchDesignRecords = async (): Promise<DesignRecord[]> => {
 const reload = async () => {
   loading.value = true;
   try {
-    const categoriesRecords = await fetchCategoriesRecords();
     const designsRecords = await fetchDesignRecords();
-    categories.value = categoriesRecords;
     designs.value = designsRecords;
   } finally {
     loading.value = false;
@@ -137,38 +127,6 @@ const deleteDesign = async (id: number) => {
   });
 }
 
-const saveCategory = async (category: DesignCategoryRecord): Promise<DesignCategoryRecord> => {
-  const db = await getDB();
-  const transaction = db.transaction('categories', 'readwrite');
-  const store = transaction.objectStore('categories');
-  const request = store.put(category);
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => {
-      category.id = request.result as number;
-      categories.value.push(category);
-      resolve(category);
-    };
-    request.onerror = () => reject(request.error);
-  });
-}
-
-const deleteCategory = async (id: number) => {
-  const db = await getDB();
-  const transaction = db.transaction('categories', 'readwrite');
-  const store = transaction.objectStore('categories');
-  const request = store.delete(id);
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => {
-      const index = categories.value.findIndex(category => category.id === id);
-      if (index >= 0) {
-        categories.value.splice(index, 1);
-      }
-      resolve(void 0);
-    };
-    request.onerror = () => reject(request.error);
-  });
-}
-
 reload();
 
 export default function useSavedDesigns() {
@@ -180,7 +138,5 @@ export default function useSavedDesigns() {
     reload,
     saveDesign,
     deleteDesign,
-    saveCategory,
-    deleteCategory,
   };
 }

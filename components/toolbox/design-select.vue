@@ -12,10 +12,12 @@
       <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">Load</button>
       <button class="flex-1" @click="onDelete" :disabled="!selected.length">Delete</button>
     </div>
+    <DialogSnippetsSave v-model="showSaveDialog" @save="onSaveSubmit" />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { SaveDesignFormData } from "@/components/dialog/designs/save.vue";
 import type { DesignRecord } from "@/composables/use-saved-designs";
 
 const { groups, designs, categories, saveDesign, deleteDesign } = useSavedDesigns();
@@ -29,6 +31,8 @@ const groupsSorted = computed(() => {
   sorted.sort((a, b) => a.label.localeCompare(b.label));
   return sorted;
 });
+
+const showSaveDialog = ref(false);
 
 const loadOption = (opt: DesignRecord) => {
   loadField(opt.data);
@@ -45,18 +49,25 @@ const onSelect = (opt: DesignRecord) => {
   confirmLoad(opt);
 }
 
-const onSave = async () => {
+const onSave = () => {
+  if (!field.value)
+    return;
+  showSaveDialog.value = true;
+}
+
+const onSaveSubmit = async (formData: SaveDesignFormData) => {
+  if (!field.value)
+    return;
   const { columns, rows } = field.value.getDimensions();
   const data = field.value.toSaveString();
-  const name = prompt("Enter a name for this design:");
-  if (name) {
-    await saveDesign({
-      name,
-      data,
-      width: columns,
-      height: rows,
-    });
-  }
+  await saveDesign({
+    name: formData.name,
+    category: formData.category,
+    description: formData.description,
+    data,
+    width: columns,
+    height: rows,
+  });
 }
 
 const onLoad = () => {

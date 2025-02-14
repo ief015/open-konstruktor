@@ -27,7 +27,7 @@ const categories = computed<SnippetCategoryRecord[]>(() => {
   return Array.from(set);
 });
 const groups = computed<SnippetGroup[]>(() => {
-  const categoriesMap = new Map<string, SnippetGroup>();
+  const categoriesMap = new Map<SnippetCategoryRecord, SnippetGroup>();
   for (const category of categories.value) {
     categoriesMap.set(category || CATEGORY_NONE, {
       label: category || CATEGORY_NONE,

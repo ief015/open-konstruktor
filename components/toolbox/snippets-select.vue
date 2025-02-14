@@ -96,7 +96,6 @@ const onSaveSubmit = async (formData: SaveSnippetFormData) => {
     return;
   const { columns, rows } = selectionFieldGraph.value.getDimensions();
   const data = selectionFieldGraph.value.toSaveString();
-  console.log('Saving...', columns, rows, FieldGraph.from(data).getDimensions());
   await saveSnippet({
     name: formData.name,
     category: formData.category,
