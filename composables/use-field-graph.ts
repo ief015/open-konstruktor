@@ -1,4 +1,4 @@
-import { DesignData} from "@/serialization";
+import { CircuitDesignData } from "@/serialization";
 import type { LayerDimensions } from "@/serialization";
 import { FieldGraph } from "@/simulation";
 
@@ -17,14 +17,14 @@ const updateDimensions = () => {
 }
 
 const loadBlank = (columns?: number, rows?: number, pinRows?: number) => {
-  const data = new DesignData(columns, rows, pinRows);
+  const data = new CircuitDesignData(columns, rows, pinRows);
   field.value = new FieldGraph(data);
   updateDesignScore();
   updateDimensions();
 }
 
 const load = (saveString: string) => {
-  field.value = FieldGraph.from(saveString)
+  field.value = FieldGraph.from(saveString, 'circuit');
   updateDesignScore();
   updateDimensions();
 }

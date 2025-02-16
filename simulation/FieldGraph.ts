@@ -6,6 +6,8 @@ import { decodeSync, encodeSync } from '@/serialization';
 import type { GraphLayer, Point } from '@/simulation';
 import { traceLine } from '@/utils/traceLine';
 import { traceRectBorder } from '@/utils/traceRectBorder';
+import CircuitDesignData, { DEFAULT_PIN_SIZE } from '@/serialization/CircuitDesignData';
+import SnippetDesignData from '@/serialization/SnippetDesignData';
 
 export type SiliconType = 'p' | 'n';
 export type DrawType = 'metal' | 'p-silicon' | 'n-silicon' | 'via';
@@ -74,12 +76,17 @@ export default class FieldGraph {
   private minDrawColumn;
   private maxDrawColumn;
 
-  constructor(data: DesignData = new DesignData()) {
+  constructor(data: DesignData = new CircuitDesignData()) {
     this.data = data;
     const { columns } = this.data.getDimensions();
-    const pinColumnWidth = 4;
-    this.minDrawColumn = pinColumnWidth;
-    this.maxDrawColumn = columns - pinColumnWidth - 1;
+    if (this.data instanceof CircuitDesignData) {
+      const pinColumnWidth = DEFAULT_PIN_SIZE + 1;
+      this.minDrawColumn = pinColumnWidth;
+      this.maxDrawColumn = columns - pinColumnWidth - 1;
+    } else {
+      this.minDrawColumn = 0;
+      this.maxDrawColumn = columns - 1;
+    }
   }
 
   public getDimensions(): LayerDimensions {
@@ -91,11 +98,17 @@ export default class FieldGraph {
   }
 
   public getPinCount(): number {
-    return this.data.getPinCount();
+    if (this.data instanceof CircuitDesignData) {
+      return this.data.getPinCount();
+    }
+    return 0;
   }
 
   public getPinPoint(pin: number): Point {
-    return this.data.getPinPoint(pin);
+    if (this.data instanceof CircuitDesignData) {
+      return this.data.getPinPoint(pin);
+    }
+    return [0, 0];
   }
 
   public getData(): Readonly<DesignData> {
@@ -561,7 +574,7 @@ export default class FieldGraph {
     const maxY = Math.min(rows - 1, Math.max(y1, y2));
     const width = (maxX - minX) + 1;
     const height = (maxY - minY) + 1;
-    const copy = new DesignData(width, height, 0);
+    const copy = new DesignData(width, height);
     for (let x = 0; x < width; x++) {
       const ax = x + minX;
       for (let y = 0; y < height; y++) {
@@ -680,7 +693,7 @@ export default class FieldGraph {
 
   public flipHorizontal() {
     const { columns, rows } = this.data.getDimensions();
-    const dest = new DesignData(columns, rows, 0);
+    const dest = new DesignData(columns, rows);
     for (let x = 0; x < columns; x++) {
       const ax = columns - x - 1;
       for (let y = 0; y < rows; y++) {
@@ -701,7 +714,7 @@ export default class FieldGraph {
 
   public flipVertical() {
     const { columns, rows } = this.data.getDimensions();
-    const dest = new DesignData(columns, rows, 0);
+    const dest = new DesignData(columns, rows);
     for (let x = 0; x < columns; x++) {
       const ax = x;
       for (let y = 0; y < rows; y++) {
@@ -722,7 +735,7 @@ export default class FieldGraph {
 
   public rotateCW() {
     const { columns, rows } = this.data.getDimensions();
-    const dest = new DesignData(rows, columns, 0);
+    const dest = new DesignData(rows, columns);
     for (let x = 0; x < columns; x++) {
       for (let y = 0; y < rows; y++) {
         const ax = rows - y - 1;
@@ -743,7 +756,7 @@ export default class FieldGraph {
 
   public rotateCCW() {
     const { columns, rows } = this.data.getDimensions();
-    const dest = new DesignData(rows, columns, 0);
+    const dest = new DesignData(rows, columns);
     for (let x = 0; x < columns; x++) {
       for (let y = 0; y < rows; y++) {
         const ax = y;
@@ -766,11 +779,22 @@ export default class FieldGraph {
     return encodeSync(this.data);
   }
 
-  public static from(saveString: string): FieldGraph;
+  public static from(saveString: string, designType: 'circuit' | 'snippet'): FieldGraph;
   public static from(saveData: DesignData): FieldGraph;
-  public static from(saveData: string|DesignData): FieldGraph {
+  public static from(saveData: string|DesignData, designType?: 'circuit' | 'snippet'): FieldGraph {
     if (typeof saveData === 'string') {
-      saveData = DesignData.from(decodeSync(saveData));
+      const decoded = decodeSync(saveData);
+      switch (designType) {
+        case 'circuit':
+          saveData = CircuitDesignData.from(decoded);
+          break;
+        case 'snippet':
+          saveData = SnippetDesignData.from(decoded);
+          break;
+        default:
+          saveData = DesignData.from(decoded);
+          break;
+      }
     }
     return new FieldGraph(saveData);
   }

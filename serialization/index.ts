@@ -14,6 +14,9 @@ import type {
   LayerColumn,
   LayerDimensions,
 } from "./DesignData";
+import CircuitDesignData from "@/serialization/CircuitDesignData";
+import SnippetDesignData from "@/serialization/SnippetDesignData";
+
 
 export type Base64String = string;
 export {
@@ -23,6 +26,8 @@ export {
   decode,
   decodeSync,
   DesignData,
+  CircuitDesignData,
+  SnippetDesignData,
   Layer,
   SiliconValue,
   MetalValue,
