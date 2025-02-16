@@ -36,6 +36,13 @@ export interface VerificationResultOutput {
   ratio: number;
 }
 
+export interface FrameError {
+  pin: PinNode;
+  frame: number;
+  expected: boolean;
+  actual: boolean;
+}
+
 export interface VerificationResult {
   ratioAvg: number;
   gradePercent: number;
@@ -268,6 +275,52 @@ export class CircuitSimulation {
 
   public getOutputSequences(): Readonly<{ pin: PinNode, sequence: Sequence }[]> {
     return [ ...this.outputSequences.entries() ].map(([ pin, sequence ]) => ({ pin, sequence }));
+  }
+
+  public getFrameErrors(method: DifferenceMethod = 'kohctpyktop'): FrameError[] {
+    const errors: FrameError[] = [];
+    const lastFrame = this.currentFrame - 1;
+    for (const [ pin, expected ] of this.outputSequences) {
+      const actual = this.recording.get(pin);
+      if (actual) {
+        switch (method) {
+          case 'strict': {
+            const actualState = actual.probe(lastFrame);
+            const expectedState = expected.probe(lastFrame);
+            if (actualState !== expectedState) {
+              errors.push({
+                pin,
+                frame: lastFrame,
+                expected: !!expectedState,
+                actual: !!actualState,
+              });
+            }
+            break;
+          }
+          case 'kohctpyktop': {
+            const expectedState = expected.probe(lastFrame);
+            if (
+              expected.probe(lastFrame - 1) == expectedState &&
+              expected.probe(lastFrame - 2) == expectedState &&
+              expected.probe(lastFrame + 2) == expectedState &&
+              expected.probe(lastFrame + 1) == expectedState
+            ) {
+              const actualState = actual.probe(lastFrame);
+              if (actualState != expectedState) {
+                errors.push({
+                  pin,
+                  frame: lastFrame,
+                  expected: !!expectedState,
+                  actual: !!actualState,
+                });
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+    return errors;
   }
 
   public clearRecordings() {
