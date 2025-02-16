@@ -36,6 +36,13 @@ export interface VerificationResultOutput {
   ratio: number;
 }
 
+export interface FrameError {
+  pin: PinNode;
+  frame: number;
+  expected: boolean;
+  actual: boolean;
+}
+
 export interface VerificationResult {
   ratioAvg: number;
   gradePercent: number;
@@ -318,6 +325,60 @@ export class CircuitSimulation {
       gradePercent,
       outputs,
     };
+  }
+
+  /**
+   * Find verification errors for all pins on a specific frame.
+   * @param frame Frame to verify.
+   * @param method Method to use for verification.
+   * @returns Array of errors found, if any.
+   */
+  public findFrameVerificationErrors(frame: number, method: DifferenceMethod = 'kohctpyktop'): FrameError[] {
+    const errors: FrameError[] = [];
+    for (const [ pin, expected ] of this.outputSequences) {
+      const actual = this.recording.get(pin);
+      if (actual) {
+        // TODO: Verification done in CircuitSimulation and Sequence
+        switch (method) {
+          case 'strict': {
+            const actualState = actual.probe(frame);
+            const expectedState = expected.probe(frame);
+            if (actualState !== expectedState) {
+              errors.push({
+                pin,
+                frame,
+                expected: !!expectedState,
+                actual: !!actualState,
+              });
+            }
+            break;
+          }
+          case 'kohctpyktop': {
+            if (frame >= 2 && frame < expected.getLength() - 2) {
+              const expectedState = expected.probe(frame);
+              if (
+                expected.probe(frame - 1) == expectedState &&
+                expected.probe(frame - 2) == expectedState &&
+                expected.probe(frame + 2) == expectedState &&
+                expected.probe(frame + 1) == expectedState
+              ) {
+                const actualState = actual.probe(frame);
+                if (actualState != expectedState) {
+                  errors.push({
+                    pin,
+                    frame,
+                    expected: !!expectedState,
+                    actual: !!actualState,
+                  });
+                }
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+    return errors;
   }
 
   public printHistory(options: PrintRecordingOptions = {}) {
