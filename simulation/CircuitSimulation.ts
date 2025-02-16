@@ -262,6 +262,14 @@ export class CircuitSimulation {
     };
   }
 
+  public getInputSequences(): Readonly<{ pin: PinNode, sequence: Sequence }[]> {
+    return [ ...this.inputSequences.entries() ].map(([ pin, sequence ]) => ({ pin, sequence }));
+  }
+
+  public getOutputSequences(): Readonly<{ pin: PinNode, sequence: Sequence }[]> {
+    return [ ...this.outputSequences.entries() ].map(([ pin, sequence ]) => ({ pin, sequence }));
+  }
+
   public clearRecordings() {
     this.recording.clear();
     this.recordingLength = 0;

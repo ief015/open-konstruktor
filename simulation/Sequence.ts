@@ -14,6 +14,9 @@ export interface DifferenceResult {
   ratio: number;
 }
 
+/**
+ * A sequence is a record of frames with signal edges to represent a digital signal.
+ */
 export default class Sequence implements Iterable<boolean> {
 
   private frames: SequenceFrames = [];
