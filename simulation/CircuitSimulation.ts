@@ -277,52 +277,6 @@ export class CircuitSimulation {
     return [ ...this.outputSequences.entries() ].map(([ pin, sequence ]) => ({ pin, sequence }));
   }
 
-  public getFrameErrors(method: DifferenceMethod = 'kohctpyktop'): FrameError[] {
-    const errors: FrameError[] = [];
-    const lastFrame = this.currentFrame - 1;
-    for (const [ pin, expected ] of this.outputSequences) {
-      const actual = this.recording.get(pin);
-      if (actual) {
-        switch (method) {
-          case 'strict': {
-            const actualState = actual.probe(lastFrame);
-            const expectedState = expected.probe(lastFrame);
-            if (actualState !== expectedState) {
-              errors.push({
-                pin,
-                frame: lastFrame,
-                expected: !!expectedState,
-                actual: !!actualState,
-              });
-            }
-            break;
-          }
-          case 'kohctpyktop': {
-            const expectedState = expected.probe(lastFrame);
-            if (
-              expected.probe(lastFrame - 1) == expectedState &&
-              expected.probe(lastFrame - 2) == expectedState &&
-              expected.probe(lastFrame + 2) == expectedState &&
-              expected.probe(lastFrame + 1) == expectedState
-            ) {
-              const actualState = actual.probe(lastFrame);
-              if (actualState != expectedState) {
-                errors.push({
-                  pin,
-                  frame: lastFrame,
-                  expected: !!expectedState,
-                  actual: !!actualState,
-                });
-              }
-            }
-            break;
-          }
-        }
-      }
-    }
-    return errors;
-  }
-
   public clearRecordings() {
     this.recording.clear();
     this.recordingLength = 0;
@@ -371,6 +325,60 @@ export class CircuitSimulation {
       gradePercent,
       outputs,
     };
+  }
+
+  /**
+   * Find verification errors for all pins on a specific frame.
+   * @param frame Frame to verify.
+   * @param method Method to use for verification.
+   * @returns Array of errors found, if any.
+   */
+  public findFrameVerificationErrors(frame: number, method: DifferenceMethod = 'kohctpyktop'): FrameError[] {
+    const errors: FrameError[] = [];
+    for (const [ pin, expected ] of this.outputSequences) {
+      const actual = this.recording.get(pin);
+      if (actual) {
+        // TODO: Verification done in CircuitSimulation and Sequence
+        switch (method) {
+          case 'strict': {
+            const actualState = actual.probe(frame);
+            const expectedState = expected.probe(frame);
+            if (actualState !== expectedState) {
+              errors.push({
+                pin,
+                frame,
+                expected: !!expectedState,
+                actual: !!actualState,
+              });
+            }
+            break;
+          }
+          case 'kohctpyktop': {
+            if (frame >= 2 && frame < expected.getLength() - 2) {
+              const expectedState = expected.probe(frame);
+              if (
+                expected.probe(frame - 1) == expectedState &&
+                expected.probe(frame - 2) == expectedState &&
+                expected.probe(frame + 2) == expectedState &&
+                expected.probe(frame + 1) == expectedState
+              ) {
+                const actualState = actual.probe(frame);
+                if (actualState != expectedState) {
+                  errors.push({
+                    pin,
+                    frame,
+                    expected: !!expectedState,
+                    actual: !!actualState,
+                  });
+                }
+              }
+            }
+            break;
+          }
+        }
+      }
+    }
+    return errors;
   }
 
   public printHistory(options: PrintRecordingOptions = {}) {

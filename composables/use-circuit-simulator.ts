@@ -170,9 +170,8 @@ const step = (n = 1, bInvokeRenderers = true) => {
       }
     } else {
       if (pauseOnError.value) {
-        const errors = vsim.getFrameErrors();
+        const errors = vsim.findFrameVerificationErrors(vsim.getCurrentFrame() - 1);
         if (errors.length > 0) {
-          console.warn('Pausing simulation due to errors', { errors });
           pause();
           break;
         }
