@@ -18,6 +18,7 @@ const sim = shallowRef<CircuitSimulation>(new CircuitSimulation(network.value));
 const isRunning = ref(false);
 const isPaused = ref(false);
 const loop = ref(false);
+const pauseOnError = ref(false);
 const stepMode = ref<StepMode>('fixed');
 const stepRate = ref(40);
 const currentFrame = ref(0);
@@ -167,6 +168,15 @@ const step = (n = 1, bInvokeRenderers = true) => {
         stop();
         break;
       }
+    } else {
+      if (pauseOnError.value) {
+        const errors = vsim.getFrameErrors();
+        if (errors.length > 0) {
+          console.warn('Pausing simulation due to errors', { errors });
+          pause();
+          break;
+        }
+      }
     }
   }
   currentFrame.value = vsim.getCurrentFrame();
@@ -217,6 +227,7 @@ export default function useCircuitSimulator() {
     isRunning,
     isPaused,
     loop,
+    pauseOnError,
     stepRate,
     stepMode,
     stepsPerSecond,

@@ -69,10 +69,17 @@
     </div>
     <div
       class="flex flex-row items-center text-sm"
-      title="Toggle looping. Verification testing will not completed until disabled."
+      title="Toggle looping. Verification testing will not completed until disabled or stopped."
     >
       <label for="circuit-controls-loop-checkbox">Loop</label>
       <input id="circuit-controls-loop-checkbox" type="checkbox" v-model="loop" />
+    </div>
+    <div
+      class="flex flex-row items-center text-sm"
+      title="Verification testing will pause when an error is detected."
+    >
+      <label for="circuit-controls-error-pause-checkbox">Pause on Error</label>
+      <input id="circuit-controls-error-pause-checkbox" type="checkbox" v-model="pauseOnError" />
     </div>
     <div>
       <select v-model="selectedRate" title="Set the step rate of the simulation.">
@@ -114,7 +121,7 @@
 
 const { field } = useFieldGraph();
 const {
-  isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop,
+  isRunning, isPaused, stepRate, realTimeTargetFrameRate, stepMode, loop, pauseOnError,
   start, stop, pause, resume, step, resetProfiler, updateField,
 } = useCircuitSimulator();
 const customRate = ref(40);
