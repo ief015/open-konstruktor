@@ -173,6 +173,7 @@ const step = (n = 1, bInvokeRenderers = true) => {
         const errors = vsim.findFrameVerificationErrors(vsim.getCurrentFrame() - 1);
         if (errors.length > 0) {
           pause();
+          endReached = true;
           break;
         }
       }
