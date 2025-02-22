@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import { assertEqual, assertPin } from "@/utils/assert";
 import {
+  CircuitDesignData,
   ConnectionValue, DesignData, Layer, MetalValue, decodeSync, encodeSync
 } from "@/serialization";
 import { Network, FieldGraph, CircuitSimulation, Sequence } from "@/simulation";
@@ -206,4 +207,18 @@ test('4-input-and-or-gate-imported', () => {
     }
   });
 
+});
+
+// Check if default DesignData encodes to KOHCTPYKTOP empty string
+test('4-input-and-or-gate with extra data', () => {
+  const target = 'eNrtmrGOgkAUReVdYuI32FHbm/gnW2pha2K78d9NZnVBZN4AsxhxD5MpzJkbkJCTNzzKTblefRWrbVEuxgyCg4MWxuBg8TsGBe1hvCLYvFQbe1dfH+RZJUiQIEGC8w6Gcs7iR6CSOmc+DVzht91nfV5rLEjQ24pu+vyPamoxam42QX9W+FQeNSgUGqNTGilmwl6qhEaouBtQ6P+gn67KduU3IKuMLBQKRZUzkqGeSr/mBjx9XrkiFRUpFIoqP75ulK8s/01mD90hQygUVc6DuptouZWh0htw8WhBoaiyjmf2uO3exYp3sc2laqupr9B69Lgto8ft141KaJY+JhQ6jk7T4/4TVXbPfHrzpPzLTiir/UnQm9R+4l0lFDoJndJIkWP5XR1Pp2pXHfbn6rK4ArkPy6I=';
+  const saveString = 'eNrtmkEOgjAQRWU+G87gFdx7Fu9/EZMKgkCnhQoRfDRdmNcfkJCXKUN9q6/No2ruVX1ZMwguDloYi4PVeywK2sfYIzi8VFt7V/cP8qwSJEiQIMFjB0M5Z/EjUEmzs5wGrvDbutmf1wYLErRdMU+n/6inFqPmZhP0tcKn8qhBodAY3dJIMRNmqRIaoeJuQKH/Qc+uynHltyCrgiwUCkWVB5KhJqXfcAOePq9ckYqKFApFlaevG+Ury3+TmaE7ZAiFospjUHcTLbcyVHoDLh4tKBRV9vHCHrd1Xax4F9tcqrGacoWW0eO2gh63XzcqoVn6mFDoOrpNj/srqpyf5bT1pPzLTihr/EnQj9R+4l0lFLoJ3dJIkeMJ5zrHaQ==';
+  const emptyDesign = CircuitDesignData.from(decodeSync(saveString));
+  const empty = new FieldGraph(emptyDesign);
+  emptyDesign.extraData = { foo: "bar" }
+  const save = empty.toSaveString();
+  assertEqual(save, target);
+
+  const loaded = FieldGraph.from(save, 'circuit');
+  assertEqual(loaded.getData().extraData.foo, "bar");
 });
