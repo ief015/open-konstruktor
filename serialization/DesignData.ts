@@ -18,9 +18,9 @@ export enum Layer {
   SiliconConnectionsV = 6,
   MetalConnectionsH = 7,
   MetalConnectionsV = 8,
-}
 
-const NUM_LAYERS = 9;
+  COUNT // Keep last
+}
 
 export enum SiliconValue {
   None = 0x00,
@@ -48,37 +48,30 @@ export enum ConnectionValue {
   Connected = 0x03,
 }
 
-const DEFAULT_NUM_COLUMNS = 44;
-const DEFAULT_NUM_ROWS = 27;
-const DEFAULT_PIN_SIZE = 3;
-const DEFAULT_PIN_OFFSET_X = 1;
-const DEFAULT_PIN_OFFSET_Y = 2;
-const DEFAULT_PIN_GAP = 1;
-
 export class DesignData {
-  private layers: DesignDataLayer[] = [];
-  private dimensions: LayerDimensions;
-  private pinCount: number;
+  protected layers: DesignDataLayer[] = [];
+  protected dimensions: LayerDimensions;
 
-  constructor(
-    columns: number = DEFAULT_NUM_COLUMNS,
-    rows: number = DEFAULT_NUM_ROWS,
-    numPinRows: number = 6,
-  ) {
-    if (numPinRows > 0) {
-      const minHeight = numPinRows * (DEFAULT_PIN_SIZE + 1) + 3;
-      rows = Math.max(rows, minHeight);
+  public extraData?: any;
+
+  constructor(columns: number, rows: number);
+  constructor(copy: DesignData);
+  constructor(columns: number|DesignData, rows: number = 0) {
+    if (columns instanceof DesignData) {
+      const copy = columns;
+      this.dimensions = structuredClone(copy.dimensions);
+      this.layers = structuredClone(copy.layers);
+      this.extraData = structuredClone(copy.extraData);
+    } else {
+      this.dimensions = { columns, rows };
+      this.rebuildLayers();
     }
-    this.dimensions = { columns, rows };
-    this.pinCount = numPinRows * 2;
-    this.rebuildLayers();
-    this.rebuildPins();
   }
 
-  private rebuildLayers(): void {
+  protected rebuildLayers(): void {
     const { columns, rows } = this.dimensions;
     const layers: DesignDataLayer[] = [];
-    for (let i = 0; i < NUM_LAYERS; i++) {
+    for (let i = 0; i < Layer.COUNT; i++) {
       const layer: DesignDataLayer = [];
       for (let col = 0; col < columns; col++) {
         const column: LayerColumn = [];
@@ -90,33 +83,6 @@ export class DesignData {
       layers.push(layer);
     }
     this.layers.splice(0, this.layers.length, ...layers);
-  }
-
-  private rebuildPins(): void {
-    const { columns, rows } = this.dimensions;
-    const numPinRows = this.getPinRowsCount();
-    const metalLayer = this.layers[Layer.Metal];
-    const metalConnectionsHLayer = this.layers[Layer.MetalConnectionsH];
-    const metalConnectionsVLayer = this.layers[Layer.MetalConnectionsV];
-    for (let pin = 0; pin < numPinRows; pin++) {
-      const row = (pin * DEFAULT_PIN_SIZE) + (pin * DEFAULT_PIN_GAP) + DEFAULT_PIN_OFFSET_Y;
-      for (let x = 0; x < DEFAULT_PIN_SIZE; x++) {
-        for (let y = 0; y < DEFAULT_PIN_SIZE; y++) {
-          const left = DEFAULT_PIN_OFFSET_X;
-          const right = columns - DEFAULT_PIN_OFFSET_X - DEFAULT_PIN_SIZE;
-          metalLayer[left+x][row+y] = MetalValue.Metal;
-          metalLayer[right+x][row+y] = MetalValue.Metal;
-          if (x < DEFAULT_PIN_SIZE - 1) {
-            metalConnectionsHLayer[left+x][row+y] = ConnectionValue.Connected;
-            metalConnectionsHLayer[right+x][row+y] = ConnectionValue.Connected;
-          }
-          if (y < DEFAULT_PIN_SIZE - 1) {
-            metalConnectionsVLayer[left+x][row+y] = ConnectionValue.Connected;
-            metalConnectionsVLayer[right+x][row+y] = ConnectionValue.Connected;
-          }
-        }
-      }
-    }
   }
 
   public getLayer(layer: Layer|number): DesignDataLayer {
@@ -131,24 +97,6 @@ export class DesignData {
     return this.layers;
   }
 
-  public getPinCount(): number {
-    return this.pinCount;
-  }
-
-  public getPinRowsCount(): number {
-    return this.pinCount / 2;
-  }
-
-  public getPinPoint(pin: number): [ col: number, row: number ] {
-    const { columns } = this.dimensions;
-    const pinRow = Math.floor(pin / 2);
-    const row = (pinRow * DEFAULT_PIN_SIZE) + (pinRow * DEFAULT_PIN_GAP) + DEFAULT_PIN_OFFSET_Y;
-    const left = DEFAULT_PIN_OFFSET_X;
-    const right = columns - DEFAULT_PIN_OFFSET_X - DEFAULT_PIN_SIZE;
-    const col = pin % 2 == 0 ? left : right;
-    return [ col, row ];
-  }
-
   public get(layer: Layer|number, col: number, row: number): number {
     return this.layers[layer][col]?.[row];
   }
@@ -161,13 +109,6 @@ export class DesignData {
     this.layers[layer][col][row] = value;
   }
 
-  public isKOHCTPYKTOPCompatible(): boolean {
-    return this.layers.length == NUM_LAYERS
-      && this.dimensions.columns == DEFAULT_NUM_COLUMNS
-      && this.dimensions.rows == DEFAULT_NUM_ROWS
-      && this.pinCount === 12;
-  }
-
   public getDesignScore(): number {
     let score = 0;
     for (let x = 0; x < this.dimensions.columns; x++) {
@@ -176,16 +117,15 @@ export class DesignData {
         this.layers[Layer.Silicon][x][y] !== SiliconValue.None && score++;
       }
     }
-    const pinScore = DEFAULT_PIN_SIZE * DEFAULT_PIN_SIZE * this.pinCount;
-    return score - pinScore;
+    return score;
   }
 
   public static from(data: Buffer): DesignData {
     const cols = data.readUInt8(1);
     const rows = data.readUInt8(3);
     let offset = 4;
-    const design = new DesignData(cols, rows, 0);
-    for (let i = 0; i < NUM_LAYERS; i++) {
+    const design = new DesignData(cols, rows);
+    for (let i = 0; i < Layer.COUNT; i++) {
       const layer = design.layers[i];
       if (
         data.readUInt8(offset++) != 0x09 ||
@@ -220,16 +160,16 @@ export class DesignData {
         }
       }
     }
-    if (!design.isKOHCTPYKTOPCompatible()) {
-      let pinRows = 0;
-      for (let pin = 0; ; pin+=2) {
-        const loc = design.getPinPoint(pin);
-        design.layers[Layer.Metal][loc[0]][loc[1]] === MetalValue.Metal && pinRows++;
-        if (loc[1] >= rows - 1) {
-          break;
-        }
+    // Parse extra data from toBuffer() if present
+    if (offset < data.length) {
+      if (data[offset++] == 0x06) {
+        const nulIdx = data.indexOf(0x00, offset);
+        const extraData = data.subarray(offset, nulIdx);
+        design.extraData = JSON.parse(extraData.toString());
+        offset += extraData.length + 1;
+      } else {
+        throw new Error("Malformed design data (invalid extra data marker)");
       }
-      design.pinCount = pinRows * 2;
     }
     return design;
   }
@@ -241,7 +181,9 @@ export class DesignData {
     const szLayerMarkers = 3 * numLayers;
     const szLayer = (numLayers - 1) * columns * (rows + 3);
     const szLayerSilicon = columns * (rows * 2 + 3);
-    const buf = Buffer.alloc(szDimensions + szLayerMarkers + szLayer + szLayerSilicon);
+    const extraDataBytes = this.extraData ? new TextEncoder().encode(JSON.stringify(this.extraData)) : undefined;
+    const szExtraData = extraDataBytes ? (extraDataBytes.length + 2) : 0;
+    const buf = Buffer.alloc(szDimensions + szLayerMarkers + szLayer + szLayerSilicon + szExtraData);
     let offset = 0;
     buf[offset++] = 0x04;
     buf[offset++] = columns;
@@ -265,6 +207,13 @@ export class DesignData {
           buf[offset++] = row;
         }
       }
+    }
+    // Append extra data string if given - this does not affect loading in kohctpyktop
+    if (extraDataBytes) {
+      buf[offset++] = 0x06;
+      buf.set(extraDataBytes, offset);
+      offset += extraDataBytes.length;
+      buf[offset++] = 0x00; // Null terminator
     }
     return buf;
   }

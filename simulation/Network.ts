@@ -221,7 +221,7 @@ export default class Network {
   public static from(graph: FieldGraph): Network;
   public static from(graph: string|FieldGraph): Network {
     if (typeof graph === 'string') {
-      return Network.from(FieldGraph.from(graph));
+      graph = FieldGraph.from(graph, 'circuit');
     }
     const network = new Network([]);
     const pins = graph.getPinCount();

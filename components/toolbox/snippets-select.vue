@@ -65,7 +65,7 @@ const groupsSorted = computed(() => {
 });
 
 const loadOption = async (opt: SnippetRecord) => {
-  const field = FieldGraph.from(opt.data);
+  const field = FieldGraph.from(opt.data, 'snippet');
   const { columns, rows } = field.getDimensions();
   selectionFieldGraph.value = field;
   startSelection.value = [ 0, 0 ];
