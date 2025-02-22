@@ -52,13 +52,16 @@ export class DesignData {
   protected layers: DesignDataLayer[] = [];
   protected dimensions: LayerDimensions;
 
+  public extraData?: any;
+
   constructor(columns: number, rows: number);
   constructor(copy: DesignData);
   constructor(columns: number|DesignData, rows: number = 0) {
     if (columns instanceof DesignData) {
       const copy = columns;
-      this.dimensions = { ...copy.dimensions };
-      this.layers = copy.layers.map(layer => layer.map(column => [...column]));
+      this.dimensions = structuredClone(copy.dimensions);
+      this.layers = structuredClone(copy.layers);
+      this.extraData = structuredClone(copy.extraData);
     } else {
       this.dimensions = { columns, rows };
       this.rebuildLayers();
@@ -157,6 +160,17 @@ export class DesignData {
         }
       }
     }
+    // Parse extra data from toBuffer() if present
+    if (offset < data.length) {
+      if (data[offset++] == 0x06) {
+        const nulIdx = data.indexOf(0x00, offset);
+        const extraData = data.subarray(offset, nulIdx);
+        design.extraData = JSON.parse(extraData.toString());
+        offset += extraData.length + 1;
+      } else {
+        throw new Error("Malformed design data (invalid extra data marker)");
+      }
+    }
     return design;
   }
 
@@ -167,7 +181,9 @@ export class DesignData {
     const szLayerMarkers = 3 * numLayers;
     const szLayer = (numLayers - 1) * columns * (rows + 3);
     const szLayerSilicon = columns * (rows * 2 + 3);
-    const buf = Buffer.alloc(szDimensions + szLayerMarkers + szLayer + szLayerSilicon);
+    const extraDataBytes = this.extraData ? new TextEncoder().encode(JSON.stringify(this.extraData)) : undefined;
+    const szExtraData = extraDataBytes ? (extraDataBytes.length + 2) : 0;
+    const buf = Buffer.alloc(szDimensions + szLayerMarkers + szLayer + szLayerSilicon + szExtraData);
     let offset = 0;
     buf[offset++] = 0x04;
     buf[offset++] = columns;
@@ -191,6 +207,13 @@ export class DesignData {
           buf[offset++] = row;
         }
       }
+    }
+    // Append extra data string if given - this does not affect loading in kohctpyktop
+    if (extraDataBytes) {
+      buf[offset++] = 0x06;
+      buf.set(extraDataBytes, offset);
+      offset += extraDataBytes.length;
+      buf[offset++] = 0x00; // Null terminator
     }
     return buf;
   }
