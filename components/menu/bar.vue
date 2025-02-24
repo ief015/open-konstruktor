@@ -123,6 +123,8 @@ const items = [
             name: '21 - 30',
             menu: [
               { id: 'level:DUAL 2-INPUT CLOCKED AND GATE', name: "21 DUAL 2-INPUT CLOCKED AND GATE" },
+              { id: 'level:4-BIT PARITY CHECKER', name: "22 4-BIT PARITY CHECKER" },
+              { id: 'level:ONE-HOT DETECTOR', name: "23 ONE-HOT DETECTOR" },
               { id: 'level:OM1SRAM1 SRAM CELL', name: "25 OM1SRAM1 SRAM CELL" },
             ],
           },

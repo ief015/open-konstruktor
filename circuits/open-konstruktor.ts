@@ -75,8 +75,8 @@ type LevelNames =
   | '' // TODO
 
   // 31-40
-  | '' // TODO
-  | '' // TODO
+  | '4-BIT PARITY CHECKER' // TODO
+  | 'ONE-HOT DETECTOR' // TODO
   | '' // TODO
   | '' // TODO
   | '' // TODO
@@ -383,6 +383,95 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
       );
       sim.setOutputSequence(pinX, seqX);
       sim.setOutputSequence(pinY, seqY);
+      return sim;
+    },
+  },
+
+  '4-BIT PARITY CHECKER': {
+    setup: (network) => {
+      const [
+        pinVCC0, pinVCC1,
+        pinD0, pinOP,
+        pinD1, pinNC0,
+        pinD2, pinNC1,
+        pinD3, pinNC2,
+        pinVCC2, pinVCC3,
+      ] = network.getPinNodes();
+      pinD0.label = 'D0';
+      pinD1.label = 'D1';
+      pinD2.label = 'D2';
+      pinD3.label = 'D3';
+      pinOP.label = 'OP';
+      assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+      const sim = new CircuitSimulation(network, 280);
+      const seqD0 = new Sequence()
+        .repeatTogglePoints(10, 4, 30, [ 0, 10, 40 ]);
+      const seqD1 = new Sequence()
+        .repeatTogglePoints(20, 4, 20, [ 0, 20, 40 ]);
+      const seqD2 = new Sequence()
+        .repeatTogglePoints(10, 4, 30, [ 0, 20, 40 ]);
+      const seqD3 = new Sequence()
+        .repeatTogglePoints(20, 4, 30, [ 0, 20, 30 ]);
+      sim.setInputSequence(pinD0, seqD0);
+      sim.setInputSequence(pinD1, seqD1);
+      sim.setInputSequence(pinD2, seqD2);
+      sim.setInputSequence(pinD3, seqD3);
+      const [ seqOP ] = createSequencesFromInputs(
+        [ seqD0, seqD1, seqD2, seqD3 ],
+        ({ inputs: [ a0, a1, a2, a3 ] }) => {
+          const parity = (Number(a0) + Number(a1) + Number(a2) + Number(a3)) % 2 === 1;
+          return [ parity ];
+        },
+      );
+      sim.setOutputSequence(pinOP, seqOP);
+      return sim;
+    },
+  },
+
+  'ONE-HOT DETECTOR': {
+    setup: (network) => {
+      const [
+        pinVCC0, pinVCC1,
+        pinD0, pinH1,
+        pinD1, pinNC0,
+        pinD2, pinNC1,
+        pinD3, pinNC2,
+        pinVCC2, pinVCC3,
+      ] = network.getPinNodes();
+      pinD0.label = 'D0';
+      pinD1.label = 'D1';
+      pinD2.label = 'D2';
+      pinD3.label = 'D3';
+      pinH1.label = 'H1';
+      pinNC0.label = 'NC0';
+      pinNC1.label = 'NC1';
+      pinNC2.label = 'NC2';
+      assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
+      const sim = new CircuitSimulation(network, 280);
+      const seqD0 = new Sequence()
+        .repeatTogglePoints(10, 4, 30, [ 0, 10, 40 ]);
+      const seqD1 = new Sequence()
+        .repeatTogglePoints(20, 4, 20, [ 0, 30, 40 ]);
+      const seqD2 = new Sequence()
+        .repeatTogglePoints(10, 3, 30, [ 0, 20, 50 ])
+        .setFrame(270, false);
+      const seqD3 = new Sequence()
+        .repeatTogglePoints(20, 4, 30, [ 0, 20, 30 ]);
+      sim.setInputSequence(pinD0, seqD0);
+      sim.setInputSequence(pinD1, seqD1);
+      sim.setInputSequence(pinD2, seqD2);
+      sim.setInputSequence(pinD3, seqD3);
+      const [ seqH1, seqH2, seqH3, seqH4 ] = createSequencesFromInputs(
+        [ seqD0, seqD1, seqD2, seqD3 ],
+        ({ inputs }) => {
+          const n = inputs.filter(Boolean).length;
+          return [ n === 1, n === 2, n === 3, n === 4 ];
+        },
+      );
+      sim.setOutputSequence(pinH1, seqH1);
+      // sim.setOutputSequence(pinH2, seqH2);
+      // sim.setOutputSequence(pinH3, seqH3);
+      // sim.setOutputSequence(pinH4, seqH4);
       return sim;
     },
   },
