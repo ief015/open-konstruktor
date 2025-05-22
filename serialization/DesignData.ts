@@ -52,7 +52,11 @@ export class DesignData {
   protected layers: DesignDataLayer[] = [];
   protected dimensions: LayerDimensions;
 
-  public extraData?: any;
+  /**
+   * Additional data to append to the design when serialized.
+   * Data must be serializable to JSON.
+   */
+  public extraData?: object | string | number | boolean | null;
 
   constructor(columns: number, rows: number);
   constructor(copy: DesignData);
