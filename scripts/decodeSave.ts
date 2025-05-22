@@ -1,4 +1,5 @@
 import { decode } from "@/serialization";
+import { writeFile } from "fs/promises";
 import * as readLine from 'readline/promises';
 
 const readline = readLine.createInterface({
@@ -41,7 +42,8 @@ async function main() {
   }
 
   console.log('Decoding...');
-  await decode(saveData, filePath);
+  const buf = await decode(saveData);
+  await writeFile(filePath, new TextDecoder().decode(buf));
   console.log(`Saved to ${filePath}`);
 }
 
