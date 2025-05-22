@@ -67,7 +67,7 @@ On the right of the screen is the <u><b>toolbox</b></u>, which contains all the 
 draw on the board to build your circuit.<br/>
 <br/>
 The first one we'll look at is the <u><b>metal</b></u> tool. Metal is a basic conductor, and is the
-only material that can connect to the pins of the circuit:<br/>
+<u>only</u> material that can connect to the pins of the circuit:<br/>
 <br/>
 <img src="/tutorial/01/pins.png" /><br/>
           `,
@@ -146,12 +146,11 @@ Click "Start Next Level" to continue.
       pages: [
         {
           contentHtml: `
-<u><b>Metal</b></u> and <u><b>silicon</b></u> are the two primary materials used to build your circuits.<br/>
-<br/>
-Metal and silicon are placed on different layers of the chip, which allows current to flow across
-them. Place <u><b>vias</b></u> on silicon to make connections between the two layers.<br/>
-<br/>
-<img src="/tutorial/02/metal-over.png" />
+<u><b>Metal</b></u> and <u><b>silicon</b></u> are the two primary materials used to build your
+circuits. Metal and silicon are placed on different layers of the chip, which allows current to
+flow across them:<br/>
+<img src="/tutorial/02/metal-over.png" /><br/>
+Place <u><b>vias</b></u> on silicon to make connections between the two layers:<br/>
 <img src="/tutorial/02/metal-connected.png" />
 <img src="/tutorial/02/metal-connected-power.png" />
           `,
@@ -266,7 +265,7 @@ Build a NOT gate to invert the input signal.
 You may notice that the output signal is not an exact inversion of the input signal, but
 is slightly delayed.<br/>
 <br/>
-This is due to <u><b>propagation delay</b></u>, which is the time it takes for
+This is <u><b>propagation delay</b></u>, which is introduced by the time it takes for
 the gate to transition between opened and closed. This is expected, and the verification test will
 succeed if the output signal matches within a short tolerance. Progagation delay will be explored
 further in a later tutorial level.<br/>
@@ -413,12 +412,11 @@ continue.
       pages: [
         {
           contentHtml: `
-<u><b>Propegation delay</b></u> is the time it takes for a gate to transition between its opened and
-closed states.<br/>
+<u><b>Propegation delay</b></u> is caused by the time it takes for a gate to transition between its
+opened and closed states.<br/>
 <br/>
-For many of the earlier levels outside of this tutorial, propagation delay is usually not a
-significant concern. Although it is important to understand as it can affect the behavior of your
-circuits.
+For most early levels and simple circuits, propagation delay is usually not a significant concern.
+Although it is important to understand as it does affect the behavior of your circuits.
           `,
         },
         {

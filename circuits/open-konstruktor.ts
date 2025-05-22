@@ -433,9 +433,9 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
       const [
         pinVCC0, pinVCC1,
         pinD0, pinH1,
-        pinD1, pinNC0,
-        pinD2, pinNC1,
-        pinD3, pinNC2,
+        pinD1, pinH2,
+        pinD2, pinH3,
+        pinD3, pinH4,
         pinVCC2, pinVCC3,
       ] = network.getPinNodes();
       pinD0.label = 'D0';
@@ -443,9 +443,9 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
       pinD2.label = 'D2';
       pinD3.label = 'D3';
       pinH1.label = 'H1';
-      pinNC0.label = 'NC0';
-      pinNC1.label = 'NC1';
-      pinNC2.label = 'NC2';
+      pinH2.label = 'NC0';
+      pinH3.label = 'NC1';
+      pinH4.label = 'NC2';
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       const sim = new CircuitSimulation(network, 280);
       const seqD0 = new Sequence()
@@ -469,9 +469,9 @@ const openkonstruktor: Record<LevelNames, CircuitSimulationFactory> = {
         },
       );
       sim.setOutputSequence(pinH1, seqH1);
-      // sim.setOutputSequence(pinH2, seqH2);
-      // sim.setOutputSequence(pinH3, seqH3);
-      // sim.setOutputSequence(pinH4, seqH4);
+      //sim.setOutputSequence(pinH2, seqH2);
+      //sim.setOutputSequence(pinH3, seqH3);
+      //sim.setOutputSequence(pinH4, seqH4);
       return sim;
     },
   },
