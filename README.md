@@ -4,7 +4,7 @@ and expanding on it.
 
 [https://openkonstruktor.natecousins.com/](https://openkonstruktor.natecousins.com/)
 
-Working demo - some features may not be fully implemented.
+Working demo - some features may not be fully implemented, expect some bugs
 
 ## Setup
 
