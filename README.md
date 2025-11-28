@@ -3,6 +3,7 @@ An open implementation for simulating the circuit logic of KOHCTPYKTOP: Engineer
 and expanding on it.
 
 [https://openkonstruktor.natecousins.com/](https://openkonstruktor.natecousins.com/)
+Working demo - some features may not be fully implemented.
 
 ## Setup
 
