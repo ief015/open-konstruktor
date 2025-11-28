@@ -2,6 +2,8 @@
 An open implementation for simulating the circuit logic of KOHCTPYKTOP: Engineer of the People,
 and expanding on it.
 
+[https://openkonstruktor.natecousins.com/](https://openkonstruktor.natecousins.com/)
+
 ## Setup
 
 Install the dependencies:
