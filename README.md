@@ -4,7 +4,41 @@ and expanding on it.
 
 [https://openkonstruktor.natecousins.com/](https://openkonstruktor.natecousins.com/)
 
-Working demo - some features may not be fully implemented, expect some bugs
+*Working demo - some features may not be fully implemented, should be mostly stable but expect some bugs*
+
+![App demo of Open-Konstructor](https://github.com/ief015/open-konstruktor/blob/main/app.png)
+
+## Features
+
+✅️ Realtime performance - simulate millions of Hz!  
+✅️ Import/export designs with KOHCTPYKTOP compatibility  
+✅️ Improved controls such as selection rotating and flipping  
+✅️ Design debugging tools: Pausing, stepping, looping  
+✅️ Original KOHCTPYKTOP level pack  
+✅️ New tutorial levels  
+
+## Work in progress
+
+⚠️ *Open-Konstructor is not abandoned, just on hiatus! I do plan on returning to this project to continue working on planned features in the nearish future.*
+
+The following features are planned:
+
+### Milestone 2
+🚧️ Saving/loading designs and snippets to files  
+🚧️ Debugging "Pause-on-error"  
+
+### Milestone 3
+
+⬜️ UI Overhaul: support tabbed workspaces  
+⬜️ Editable scope timings (Prerequisite for custom levels)  
+⬜️ Custom levels and level packs  
+⬜️ Graphical themes  
+
+### Milestone 4
+
+⬜️ Multi-circuit designs for simulating entire devices  
+⬜️ Support multi-circuit levels  
+⬜️ Open-Konstructor level pack  
 
 ## Setup
 
