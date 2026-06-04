@@ -1,4 +1,4 @@
-import { CircuitSimulation, Network } from "@/simulation";
+import { CircuitSimulation, Network } from '@/simulation';
 
 export interface LevelInfoPage {
   contentHtml: string;
@@ -9,7 +9,7 @@ export interface LevelInfo {
   pages: LevelInfoPage[];
 }
 
-export interface CircuitSimulationFactory {
+export interface CircuitSimulationFactoryEntry {
   setup: (network: Network) => CircuitSimulation;
   width?: number;
   height?: number;
@@ -19,3 +19,7 @@ export interface CircuitSimulationFactory {
   infoCompleted?: LevelInfo;
   nextLevelID?: string;
 }
+
+export type CircuitSimulationFactory = CircuitSimulationFactoryEntry & {
+  key: string;
+};

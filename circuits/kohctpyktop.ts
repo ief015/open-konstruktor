@@ -1,6 +1,6 @@
-import type { CircuitSimulationFactory } from "@/circuits";
-import { PinNode, CircuitSimulation, Sequence } from "@/simulation";
-import createSequencesFromInputs from "@/utils/createSequencesFromInputs";
+import type { CircuitSimulationFactoryEntry } from '@/circuits';
+import { PinNode, CircuitSimulation, Sequence } from '@/simulation';
+import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
 
 /*
 
@@ -30,10 +30,10 @@ const assignVCC = (...pins: PinNode[]) => {
     pin.label = 'VCC';
     pin.active = true;
   });
-}
+};
 
 type LevelNames =
-    '01 KT411I QUAD INVERTER GATE'
+  | '01 KT411I QUAD INVERTER GATE'
   | '02 KT221A DUAL 2-INPUT AND GATE'
   | '03 KT141AO 4-INPUT AND-OR GATE'
   | '04 KO229 POWER ON RESET GENERATOR'
@@ -53,8 +53,7 @@ type LevelNames =
   | '18 X902 GRENADE LAUNCHER AMMO COUNTER'
   | '19 X903 GATLING CANNON FIRE CONTROLLER';
 
-const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
-
+const kohctpyktop: Record<LevelNames, CircuitSimulationFactoryEntry> = {
   '01 KT411I QUAD INVERTER GATE': {
     setup: (network) => {
       const pins = network.getPinNodes();
@@ -62,12 +61,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinA0, pinY0,
-        pinA1, pinY1,
-        pinA2, pinY2,
-        pinA3, pinY3,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinA0,
+        pinY0,
+        pinA1,
+        pinY1,
+        pinA2,
+        pinY2,
+        pinA3,
+        pinY3,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       pinA0.label = 'A0';
@@ -79,18 +84,15 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       pinA3.label = 'A3';
       pinY3.label = 'Y3';
       const sim = new CircuitSimulation(network, 280);
-      const seqA0 = new Sequence()
-        .addOscillation(0, 14, 10, 10);
-      const seqA1 = new Sequence()
-        .addOscillation(0, 9, 10, 20);
-      const seqA2 = new Sequence()
-        .addOscillation(0, 7, 10, 30);
+      const seqA0 = new Sequence().addOscillation(0, 14, 10, 10);
+      const seqA1 = new Sequence().addOscillation(0, 9, 10, 20);
+      const seqA2 = new Sequence().addOscillation(0, 7, 10, 30);
       const seqA3 = new Sequence()
-        .repeatTogglePoints(0, 5, 10, [ 0, 10, 20, 40 ])
+        .repeatTogglePoints(0, 5, 10, [0, 10, 20, 40])
         .addPulse(250, 20);
-      const [ seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
-        [ seqA0, seqA1, seqA2, seqA3 ],
-        ({ inputs }) => inputs.map(s => !s),
+      const [seqY0, seqY1, seqY2, seqY3] = createSequencesFromInputs(
+        [seqA0, seqA1, seqA2, seqA3],
+        ({ inputs }) => inputs.map((s) => !s),
         280,
       );
       sim.setInputSequence(pinA0, seqA0);
@@ -102,7 +104,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinY2, seqY2);
       sim.setOutputSequence(pinY3, seqY3);
       return sim;
-    }
+    },
   },
 
   '02 KT221A DUAL 2-INPUT AND GATE': {
@@ -112,12 +114,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinA0, pinNC0,
-        pinB0, pinA1,
-        pinY0, pinB1,
-        pinNC1, pinY1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinA0,
+        pinNC0,
+        pinB0,
+        pinA1,
+        pinY0,
+        pinB1,
+        pinNC1,
+        pinY1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinA0.label = 'A0';
       pinA1.label = 'A1';
@@ -129,37 +137,34 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       const seqA0 = new Sequence();
       for (let i = 0; i < 13; i++) {
-        seqA0.addPulse(i*20 + 10, 10);
+        seqA0.addPulse(i * 20 + 10, 10);
       }
       const seqB0 = new Sequence();
       for (let i = 0; i < 6; i++) {
-        seqB0.addPulse(i*40 + 20, 20);
+        seqB0.addPulse(i * 40 + 20, 20);
       }
       seqB0.addPulse(260, 10);
       const seqA1 = new Sequence();
       for (let i = 0; i < 9; i++) {
-        seqA1.addPulse(i*30 + 10, 20);
+        seqA1.addPulse(i * 30 + 10, 20);
       }
       const seqB1 = new Sequence();
       for (let i = 0; i < 5; i++) {
-        seqB1.addPulse(i*50 + 20, 10);
+        seqB1.addPulse(i * 50 + 20, 10);
       }
       sim.setInputSequence(pinA0, seqA0);
       sim.setInputSequence(pinB0, seqB0);
       sim.setInputSequence(pinA1, seqA1);
       sim.setInputSequence(pinB1, seqB1);
-      const [ seqY0, seqY1 ] = createSequencesFromInputs(
-        [ seqA0, seqB0, seqA1, seqB1 ],
-        ({ inputs: [ A0, B0, A1, B1 ] }) => [
-          A0 && B0,
-          A1 && B1,
-        ],
+      const [seqY0, seqY1] = createSequencesFromInputs(
+        [seqA0, seqB0, seqA1, seqB1],
+        ({ inputs: [A0, B0, A1, B1] }) => [A0 && B0, A1 && B1],
         280,
       );
       sim.setOutputSequence(pinY0, seqY0);
       sim.setOutputSequence(pinY1, seqY1);
       return sim;
-    }
+    },
   },
 
   '03 KT141AO 4-INPUT AND-OR GATE': {
@@ -169,12 +174,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinA, pinNC0,
-        pinB, pinX,
-        pinC, pinY,
-        pinD, pinNC1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinA,
+        pinNC0,
+        pinB,
+        pinX,
+        pinC,
+        pinY,
+        pinD,
+        pinNC1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinA.label = 'A';
       pinB.label = 'B';
@@ -187,7 +198,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // A
       const seqA = new Sequence();
       for (let i = 0; i < 10; i++) {
-        seqA.addPulse(i*20 + 10, 10);
+        seqA.addPulse(i * 20 + 10, 10);
       }
       seqA.addPulse(210, 30);
       seqA.addPulse(250, 20);
@@ -219,18 +230,15 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqD.addPulse(250, 20);
       sim.setInputSequence(pinD, seqD);
       // X, Y
-      const [ seqX, seqY ] = createSequencesFromInputs(
-        [ seqA, seqB, seqC, seqD ],
-        ({ inputs: [ A, B, C, D ] }) => [
-          A && B && C && D,
-          A || B || C || D,
-        ],
+      const [seqX, seqY] = createSequencesFromInputs(
+        [seqA, seqB, seqC, seqD],
+        ({ inputs: [A, B, C, D] }) => [A && B && C && D, A || B || C || D],
         280,
       );
       sim.setOutputSequence(pinX, seqX);
       sim.setOutputSequence(pinY, seqY);
       return sim;
-    }
+    },
   },
 
   '04 KO229 POWER ON RESET GENERATOR': {
@@ -240,12 +248,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinNC0, pinNC1,
-        pinNC2, pinRST,
-        pinNC4, pinRRST,
-        pinNC6, pinNC7,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinNC0,
+        pinNC1,
+        pinNC2,
+        pinRST,
+        pinNC4,
+        pinRRST,
+        pinNC6,
+        pinNC7,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinRST.label = 'RST';
       pinRRST.label = '/RST';
@@ -260,7 +274,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqRRST.setFrame(10, true);
       sim.setOutputSequence(pinRRST, seqRRST);
       return sim;
-    }
+    },
   },
 
   '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR': {
@@ -270,12 +284,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinEN0, pinEN1,
-        pinNC2, pinNC3,
-        pinNC4, pinNC5,
-        pinOSC0, pinOSC1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinEN0,
+        pinEN1,
+        pinNC2,
+        pinNC3,
+        pinNC4,
+        pinNC5,
+        pinOSC0,
+        pinOSC1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinEN0.label = 'EN0';
       pinEN1.label = 'EN1';
@@ -295,9 +315,9 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqEN1.addPulse(200, 50);
       sim.setInputSequence(pinEN1, seqEN1);
       // OSC0, OSC1
-      const [ seqOSC0, seqOSC1 ] = createSequencesFromInputs(
-        [ seqEN0, seqEN1 ],
-        ({ inputs: [ EN0, EN1 ], frame }) => [
+      const [seqOSC0, seqOSC1] = createSequencesFromInputs(
+        [seqEN0, seqEN1],
+        ({ inputs: [EN0, EN1], frame }) => [
           EN0 && Math.floor(frame / 10) % 2 === 0,
           EN1 && Math.floor(frame / 10) % 2 === 0,
         ],
@@ -306,7 +326,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinOSC0, seqOSC0);
       sim.setOutputSequence(pinOSC1, seqOSC1);
       return sim;
-    }
+    },
   },
 
   '06 KL2S1 DUAL SET-RESET LATCH': {
@@ -316,12 +336,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinS0, pinS1,
-        pinR0, pinR1,
-        pinNC4, pinNC5,
-        pinQ0, pinQ1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinS0,
+        pinS1,
+        pinR0,
+        pinR1,
+        pinNC4,
+        pinNC5,
+        pinQ0,
+        pinQ1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinS0.label = 'S0';
       pinS1.label = 'S1';
@@ -358,18 +384,14 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqR1.addPulse(260, 10);
       sim.setInputSequence(pinR1, seqR1);
       // Q0, Q1
-      const [ seqQ0, seqQ1 ] = createSequencesFromInputs(
-        [ seqS0, seqR0, seqS1, seqR1 ],
-        ({ inputs: [ S0, R0, S1, R1 ], state }) => {
-          if (S0)
-            state.q0 = true;
-          if (R0)
-            state.q0 = false;
-          if (S1)
-            state.q1 = true;
-          if (R1)
-            state.q1 = false;
-          return [ state.q0, state.q1 ];
+      const [seqQ0, seqQ1] = createSequencesFromInputs(
+        [seqS0, seqR0, seqS1, seqR1],
+        ({ inputs: [S0, R0, S1, R1], state }) => {
+          if (S0) state.q0 = true;
+          if (R0) state.q0 = false;
+          if (S1) state.q1 = true;
+          if (R1) state.q1 = false;
+          return [state.q0, state.q1];
         },
         {
           q0: false,
@@ -380,7 +402,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinQ0, seqQ0);
       sim.setOutputSequence(pinQ1, seqQ1);
       return sim;
-    }
+    },
   },
 
   '07 KL2T1 DUAL TOGGLE LATCH': {
@@ -390,12 +412,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinT0, pinT1,
-        pinNC2, pinNC3,
-        pinNC4, pinNC5,
-        pinQ0, pinQ1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinT0,
+        pinT1,
+        pinNC2,
+        pinNC3,
+        pinNC4,
+        pinNC5,
+        pinQ0,
+        pinQ1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinT0.label = 'T0';
       pinT1.label = 'T1';
@@ -424,15 +452,13 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqT1.addPulse(260, 5);
       sim.setInputSequence(pinT1, seqT1);
       // Q0, Q1
-      const [ seqQ0, seqQ1 ] = createSequencesFromInputs(
-        [ seqT0, seqT1 ],
-        ({ inputs: [ T0, T1 ], edges: [ dT0, dT1 ], state }) => {
+      const [seqQ0, seqQ1] = createSequencesFromInputs(
+        [seqT0, seqT1],
+        ({ inputs: [T0, T1], edges: [dT0, dT1], state }) => {
           // Rising edge triggered
-          if (dT0 > 0)
-            state.q0 = !state.q0;
-          if (dT1 > 0)
-            state.q1 = !state.q1;
-          return [ state.q0, state.q1 ];
+          if (dT0 > 0) state.q0 = !state.q0;
+          if (dT1 > 0) state.q1 = !state.q1;
+          return [state.q0, state.q1];
         },
         {
           q0: false,
@@ -443,7 +469,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinQ0, seqQ0);
       sim.setOutputSequence(pinQ1, seqQ1);
       return sim;
-    }
+    },
   },
 
   '08 KO224X DUAL FREQUENCY OSCILLATOR': {
@@ -453,12 +479,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinS0, pinS1,
-        pinNC2, pinNC3,
-        pinNC4, pinNC5,
-        pinOSC0, pinOSC1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinS0,
+        pinS1,
+        pinNC2,
+        pinNC3,
+        pinNC4,
+        pinNC5,
+        pinOSC0,
+        pinOSC1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinS0.label = 'S0';
       pinS1.label = 'S1';
@@ -478,19 +510,19 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqS1.addPulseRange(200, 240);
       sim.setInputSequence(pinS1, seqS1);
       // OSC0, OSC1
-      
-      const [ seqOSC0, seqOSC1 ] = createSequencesFromInputs(
-        [ seqS0, seqS1 ],
-        ({ inputs: [ S0, S1 ], frame }) => [
+
+      const [seqOSC0, seqOSC1] = createSequencesFromInputs(
+        [seqS0, seqS1],
+        ({ inputs: [S0, S1], frame }) => [
           Math.floor(frame / (S0 ? 5 : 10)) % 2 === 0,
           Math.floor(frame / (S1 ? 5 : 10)) % 2 === 0,
         ],
-        280
+        280,
       );
       sim.setOutputSequence(pinOSC0, seqOSC0);
       sim.setOutputSequence(pinOSC1, seqOSC1);
       return sim;
-    }
+    },
   },
 
   '09 KD124 2-TO-4 LINE DECODER': {
@@ -500,12 +532,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinNC0, pinY0,
-        pinA, pinY1,
-        pinB, pinY2,
-        pinNC6, pinY3,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinNC0,
+        pinY0,
+        pinA,
+        pinY1,
+        pinB,
+        pinY2,
+        pinNC6,
+        pinY3,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinY0.label = 'Y0';
       pinA.label = 'A';
@@ -529,14 +567,9 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         .addPulse(260, 10);
       sim.setInputSequence(pinB, seqB);
       // Y0, Y1, Y2, Y3
-      const [ seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
-        [ seqA, seqB ],
-        ({ inputs: [ A, B ] }) => [
-          !A && !B,
-           A && !B,
-          !A &&  B,
-           A &&  B,
-        ],
+      const [seqY0, seqY1, seqY2, seqY3] = createSequencesFromInputs(
+        [seqA, seqB],
+        ({ inputs: [A, B] }) => [!A && !B, A && !B, !A && B, A && B],
         280,
       );
       sim.setOutputSequence(pinY0, seqY0);
@@ -544,7 +577,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinY2, seqY2);
       sim.setOutputSequence(pinY3, seqY3);
       return sim;
-    }
+    },
   },
 
   '10 KA180 2-BIT ADDER WITH CARRY': {
@@ -554,12 +587,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinA0, pinS0,
-        pinA1, pinS1,
-        pinB0, pinNC5,
-        pinB1, pinC,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinA0,
+        pinS0,
+        pinA1,
+        pinS1,
+        pinB0,
+        pinNC5,
+        pinB1,
+        pinC,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinA0.label = 'A0';
       pinS0.label = 'S0';
@@ -595,18 +634,14 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqB1.addPulse(250, 20);
       sim.setInputSequence(pinB1, seqB1);
       // S0, S1, C
-      const [ seqS0, seqS1, seqC ] = createSequencesFromInputs(
-        [ seqA0, seqA1, seqB0, seqB1 ],
-        ({ inputs: [ A0, A1, B0, B1 ] }) => {
+      const [seqS0, seqS1, seqC] = createSequencesFromInputs(
+        [seqA0, seqA1, seqB0, seqB1],
+        ({ inputs: [A0, A1, B0, B1] }) => {
           const a = (A0 ? 1 : 0) + (A1 ? 2 : 0);
           const b = (B0 ? 1 : 0) + (B1 ? 2 : 0);
           const sum = (a + b) % 4;
-          const carry = (a + b) >= 4;
-          return [
-            sum % 2 === 1,
-            sum >= 2,
-            carry,
-          ];
+          const carry = a + b >= 4;
+          return [sum % 2 === 1, sum >= 2, carry];
         },
         280,
       );
@@ -614,7 +649,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinS1, seqS1);
       sim.setOutputSequence(pinC, seqC);
       return sim;
-    }
+    },
   },
 
   '11 KC82F DIVIDE-BY-FOUR COUNTER': {
@@ -624,12 +659,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinNC0, pinNC1,
-        pinIN, pinOUT,
-        pinNC4, pinNC5,
-        pinNC6, pinNC7,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinNC0,
+        pinNC1,
+        pinIN,
+        pinOUT,
+        pinNC4,
+        pinNC5,
+        pinNC6,
+        pinNC7,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinIN.label = 'IN';
       pinOUT.label = 'OUT';
@@ -644,14 +685,14 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqIN.addPulse(250, 5);
       sim.setInputSequence(pinIN, seqIN);
       // OUT
-      const [ seqOUT ] = createSequencesFromInputs(
-        [ seqIN ],
-        ({ inputs: [ IN ], state }) => {
+      const [seqOUT] = createSequencesFromInputs(
+        [seqIN],
+        ({ inputs: [IN], state }) => {
           if (IN && !state.lastIN) {
             state.counter++;
           }
           state.lastIN = IN;
-          return [ ((state.counter % 4) + 4) % 4 < 2 ];
+          return [((state.counter % 4) + 4) % 4 < 2];
         },
         {
           lastIN: false,
@@ -661,7 +702,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       );
       sim.setOutputSequence(pinOUT, seqOUT);
       return sim;
-    }
+    },
   },
 
   '12 KM141P 4-TO-1 MULTIPLEXER': {
@@ -671,12 +712,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinA, pinZ,
-        pinB, pinNC3,
-        pinC, pinS0,
-        pinD, pinS1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinA,
+        pinZ,
+        pinB,
+        pinNC3,
+        pinC,
+        pinS0,
+        pinD,
+        pinS1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinA.label = 'A';
       pinZ.label = 'Z';
@@ -729,23 +776,28 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqS1.addPulse(260, 10);
       sim.setInputSequence(pinS1, seqS1);
       // Z
-      const [ seqZ ] = createSequencesFromInputs(
-        [ seqA, seqB, seqC, seqD, seqS0, seqS1 ],
-        ({ inputs: [ A, B, C, D, S0, S1 ] }) => {
+      const [seqZ] = createSequencesFromInputs(
+        [seqA, seqB, seqC, seqD, seqS0, seqS1],
+        ({ inputs: [A, B, C, D, S0, S1] }) => {
           const s = (S0 ? 1 : 0) + (S1 ? 2 : 0);
           switch (s) {
-            default: return [ false ];
-            case 0: return [ A ];
-            case 1: return [ B ];
-            case 2: return [ C ];
-            case 3: return [ D ];
+            default:
+              return [false];
+            case 0:
+              return [A];
+            case 1:
+              return [B];
+            case 2:
+              return [C];
+            case 3:
+              return [D];
           }
         },
         280,
       );
       sim.setOutputSequence(pinZ, seqZ);
       return sim;
-    }
+    },
   },
 
   '13 KC84C 4-BIT COUNTER WITH CLEAR': {
@@ -755,12 +807,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinNC0, pinY0,
-        pinCLR, pinY1,
-        pinINC, pinY2,
-        pinNC6, pinY3,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinNC0,
+        pinY0,
+        pinCLR,
+        pinY1,
+        pinINC,
+        pinY2,
+        pinNC6,
+        pinY3,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinY0.label = 'Y0';
       pinCLR.label = 'CLR';
@@ -782,9 +840,9 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         .addOscillation(210, 3, 5, 5);
       sim.setInputSequence(pinINC, seqINC);
       // Y0, Y1, Y2, Y3
-      const [ seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
-        [ seqCLR, seqINC ],
-        ({ inputs: [ CLR, INC ], edges: [ dCLR, dINC ], state }) => {
+      const [seqY0, seqY1, seqY2, seqY3] = createSequencesFromInputs(
+        [seqCLR, seqINC],
+        ({ inputs: [CLR, INC], edges: [dCLR, dINC], state }) => {
           if (dINC > 0) {
             state.counter++;
           }
@@ -792,10 +850,10 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
             state.counter = 0;
           }
           return [
-            (state.counter % 2) >= 1,
-            (state.counter % 4) >= 2,
-            (state.counter % 8) >= 4,
-            (state.counter % 16) >= 8,
+            state.counter % 2 >= 1,
+            state.counter % 4 >= 2,
+            state.counter % 8 >= 4,
+            state.counter % 16 >= 8,
           ];
         },
         {
@@ -808,7 +866,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinY2, seqY2);
       sim.setOutputSequence(pinY3, seqY3);
       return sim;
-    }
+    },
   },
 
   '14 KC74S 4-BIT SHIFT REGISTER S-TO-P': {
@@ -818,12 +876,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinNC0, pinQ0,
-        pinD, pinQ1,
-        pinCLK, pinQ2,
-        pinNC6, pinQ3,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinNC0,
+        pinQ0,
+        pinD,
+        pinQ1,
+        pinCLK,
+        pinQ2,
+        pinNC6,
+        pinQ3,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinQ0.label = 'Q0';
       pinD.label = 'D';
@@ -835,7 +899,24 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       // D
       const seqD = new Sequence();
-      seqD.addTogglePoints(20, 40, 50, 60, 80, 90, 110, 140, 160, 170, 180, 210, 220, 230, 250, 270);
+      seqD.addTogglePoints(
+        20,
+        40,
+        50,
+        60,
+        80,
+        90,
+        110,
+        140,
+        160,
+        170,
+        180,
+        210,
+        220,
+        230,
+        250,
+        270,
+      );
       sim.setInputSequence(pinD, seqD);
       // CLK
       const seqCLK = new Sequence();
@@ -843,16 +924,16 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqCLK.addOscillation(210, 3, 5, 5);
       sim.setInputSequence(pinCLK, seqCLK);
       // Q0, Q1, Q2, Q3
-      const [ seqQ0, seqQ1, seqQ2, seqQ3 ] = createSequencesFromInputs(
-        [ seqD, seqCLK ],
-        ({ inputs: [ D, CLK ], edges: [ dD, dCLK ], state }) => {
+      const [seqQ0, seqQ1, seqQ2, seqQ3] = createSequencesFromInputs(
+        [seqD, seqCLK],
+        ({ inputs: [D, CLK], edges: [dD, dCLK], state }) => {
           if (dCLK > 0) {
             state.q3 = state.q2;
             state.q2 = state.q1;
             state.q1 = state.q0;
             state.q0 = D;
           }
-          return [ state.q0, state.q1, state.q2, state.q3 ];
+          return [state.q0, state.q1, state.q2, state.q3];
         },
         {
           q0: false,
@@ -867,7 +948,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinQ2, seqQ2);
       sim.setOutputSequence(pinQ3, seqQ3);
       return sim;
-    }
+    },
   },
 
   '15 KR8S1 8-BIT ADDRESSABLE SRAM': {
@@ -877,12 +958,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinA0, pinRW,
-        pinA1, pinCLK,
-        pinA2, pinDin,
-        pinNC0, pinDout,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinA0,
+        pinRW,
+        pinA1,
+        pinCLK,
+        pinA2,
+        pinDin,
+        pinNC0,
+        pinDout,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinA0.label = 'A0';
       pinRW.label = 'R/W';
@@ -900,7 +987,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqA0.addPulse(80, 20);
       seqA0.addPulse(110, 10);
       for (let i = 0; i < 7; i++) {
-        seqA0.addPulse(i*20 + 140, 10);
+        seqA0.addPulse(i * 20 + 140, 10);
       }
       sim.setInputSequence(pinA0, seqA0);
       // A1
@@ -929,7 +1016,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       // CLK
       const seqCLK = new Sequence();
       for (let i = 0; i < 11; i++) {
-        seqCLK.addPulse(i*10 + 10, 5);
+        seqCLK.addPulse(i * 10 + 10, 5);
       }
       seqCLK.addPulse(130, 100);
       seqCLK.addPulse(240, 5);
@@ -944,14 +1031,14 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqDin.addPulse(140, 10);
       sim.setInputSequence(pinDin, seqDin);
       // Dout
-      const [ seqDout ] = createSequencesFromInputs(
-        [ seqA0, seqA1, seqA2, seqRW, seqCLK, seqDin ],
-        ({ inputs: [ A0, A1, A2, RW, CLK, Din ], state }) => {
+      const [seqDout] = createSequencesFromInputs(
+        [seqA0, seqA1, seqA2, seqRW, seqCLK, seqDin],
+        ({ inputs: [A0, A1, A2, RW, CLK, Din], state }) => {
           const addr = (A0 ? 1 : 0) + (A1 ? 2 : 0) + (A2 ? 4 : 0);
           if (CLK && RW) {
             state.memory[addr] = Din;
           }
-          return [ CLK && !RW ? state.memory[addr] : false ];
+          return [CLK && !RW ? state.memory[addr] : false];
         },
         {
           memory: new Array<boolean>(8).fill(false),
@@ -960,7 +1047,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       );
       sim.setOutputSequence(pinDout, seqDout);
       return sim;
-    }
+    },
   },
 
   '16 KA181 2-BIT LOGICAL FUNCTION UNIT': {
@@ -970,12 +1057,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinA0, pinF0,
-        pinA1, pinF1,
-        pinB0, pinC0,
-        pinB1, pinC1,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinA0,
+        pinF0,
+        pinA1,
+        pinF1,
+        pinB0,
+        pinC0,
+        pinB1,
+        pinC1,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinA0.label = 'A0';
       pinF0.label = 'F0';
@@ -989,7 +1082,23 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
       // A0
       const seqA0 = new Sequence();
-      seqA0.addTogglePoints(10, 20, 50, 70, 80, 90, 120, 140, 150, 160, 190, 210, 220, 230, 260);
+      seqA0.addTogglePoints(
+        10,
+        20,
+        50,
+        70,
+        80,
+        90,
+        120,
+        140,
+        150,
+        160,
+        190,
+        210,
+        220,
+        230,
+        260,
+      );
       sim.setInputSequence(pinA0, seqA0);
       // A1
       const seqA1 = new Sequence();
@@ -1017,16 +1126,21 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqF1.setFrame(140, true);
       sim.setInputSequence(pinF1, seqF1);
       // C0, C1
-      const [ seqC0, seqC1 ] = createSequencesFromInputs(
-        [ seqA0, seqA1, seqB0, seqB1, seqF0, seqF1 ],
-        ({ inputs: [ A0, A1, B0, B1, F0, F1 ] }) => {
+      const [seqC0, seqC1] = createSequencesFromInputs(
+        [seqA0, seqA1, seqB0, seqB1, seqF0, seqF1],
+        ({ inputs: [A0, A1, B0, B1, F0, F1] }) => {
           const f = (F0 ? 1 : 0) + (F1 ? 2 : 0);
           switch (f) {
-            default: return [ false, false ];
-            case 0: return [ A0 && B0, A1 && B1 ];
-            case 1: return [ A0 || B0, A1 || B1 ];
-            case 2: return [ A0 !== B0, A1 !== B1 ];
-            case 3: return [ !A0, !A1 ];
+            default:
+              return [false, false];
+            case 0:
+              return [A0 && B0, A1 && B1];
+            case 1:
+              return [A0 || B0, A1 || B1];
+            case 2:
+              return [A0 !== B0, A1 !== B1];
+            case 3:
+              return [!A0, !A1];
           }
         },
         280,
@@ -1034,7 +1148,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinC0, seqC0);
       sim.setOutputSequence(pinC1, seqC1);
       return sim;
-    }
+    },
   },
 
   '17 X901 RADIO MESSAGE STREAM DECODER': {
@@ -1044,12 +1158,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinK0, pinOUT0,
-        pinK1, pinOUT1,
-        pinK2, pinOUT2,
-        pinIN, pinCLK,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinK0,
+        pinOUT0,
+        pinK1,
+        pinOUT1,
+        pinK2,
+        pinOUT2,
+        pinIN,
+        pinCLK,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinK0.label = 'K0';
       pinOUT0.label = 'OUT0';
@@ -1084,19 +1204,19 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqCLK.addPulse(210, 5);
       sim.setInputSequence(pinCLK, seqCLK);
       // OUT0, OUT1, OUT2
-      const [ seqOUT0, seqOUT1, seqOUT2 ] = createSequencesFromInputs(
+      const [seqOUT0, seqOUT1, seqOUT2] = createSequencesFromInputs(
         [seqK0, seqK1, seqK2, seqIN, seqCLK],
-        ({ inputs: [ K0, K1, K2, IN, CLK ], edges: [ dK0, dK1, dK2, dIN, dCLK ], state }) => {
+        ({
+          inputs: [K0, K1, K2, IN, CLK],
+          edges: [dK0, dK1, dK2, dIN, dCLK],
+          state,
+        }) => {
           if (dCLK > 0) {
             state.q2 = state.q1;
             state.q1 = state.q0;
             state.q0 = IN;
           }
-          return [
-            state.q0 !== K0,
-            state.q1 !== K1,
-            state.q2 !== K2,
-          ];
+          return [state.q0 !== K0, state.q1 !== K1, state.q2 !== K2];
         },
         {
           q0: false,
@@ -1109,7 +1229,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinOUT1, seqOUT1);
       sim.setOutputSequence(pinOUT2, seqOUT2);
       return sim;
-    }
+    },
   },
 
   '18 X902 GRENADE LAUNCHER AMMO COUNTER': {
@@ -1119,12 +1239,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinNC0, pinY0,
-        pinRST, pinY1,
-        pinDEC, pinY2,
-        pinLOW, pinY3,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinNC0,
+        pinY0,
+        pinRST,
+        pinY1,
+        pinDEC,
+        pinY2,
+        pinLOW,
+        pinY3,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinY0.label = 'Y0';
       pinRST.label = 'RST';
@@ -1146,9 +1272,9 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqDEC.addOscillation(230, 3, 5, 5);
       sim.setInputSequence(pinDEC, seqDEC);
       // LOW, Y0, Y1, Y2, Y3
-      const [ seqLOW, seqY0, seqY1, seqY2, seqY3 ] = createSequencesFromInputs(
-        [ seqRST, seqDEC ],
-        ({ inputs: [ RST, DEC ], edges: [ dRST, dDEC ], state }) => {
+      const [seqLOW, seqY0, seqY1, seqY2, seqY3] = createSequencesFromInputs(
+        [seqRST, seqDEC],
+        ({ inputs: [RST, DEC], edges: [dRST, dDEC], state }) => {
           if (dDEC > 0) {
             state.count--;
           }
@@ -1157,10 +1283,10 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
           }
           return [
             state.count <= 3,
-            (state.count % 2) >= 1,
-            (state.count % 4) >= 2,
-            (state.count % 8) >= 4,
-            (state.count % 16) >= 8,
+            state.count % 2 >= 1,
+            state.count % 4 >= 2,
+            state.count % 8 >= 4,
+            state.count % 16 >= 8,
           ];
         },
         {
@@ -1174,7 +1300,7 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinY2, seqY2);
       sim.setOutputSequence(pinY3, seqY3);
       return sim;
-    }
+    },
   },
 
   '19 X903 GATLING CANNON FIRE CONTROLLER': {
@@ -1184,12 +1310,18 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
         throw new Error(`Pin count must be 12, got ${pins.length}`);
       }
       const [
-        pinVCC0, pinVCC1,
-        pinNC0, pinA,
-        pinFIRE, pinAN,
-        pinLOCK, pinB,
-        pinTRIG, pinBN,
-        pinVCC2, pinVCC3,
+        pinVCC0,
+        pinVCC1,
+        pinNC0,
+        pinA,
+        pinFIRE,
+        pinAN,
+        pinLOCK,
+        pinB,
+        pinTRIG,
+        pinBN,
+        pinVCC2,
+        pinVCC3,
       ] = pins;
       pinA.label = 'A+';
       pinFIRE.label = 'FIRE';
@@ -1209,9 +1341,9 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       seqLOCK.addTogglePoints(150, 180, 210, 230);
       sim.setInputSequence(pinLOCK, seqLOCK);
       // TRIG, A+, A-, B+, B-
-      const [ seqTRIG, seqA, seqAN, seqB, seqBN ] = createSequencesFromInputs(
-        [ seqFIRE, seqLOCK ],
-        ({ inputs: [ FIRE, LOCK ], state, frame }) => {
+      const [seqTRIG, seqA, seqAN, seqB, seqBN] = createSequencesFromInputs(
+        [seqFIRE, seqLOCK],
+        ({ inputs: [FIRE, LOCK], state, frame }) => {
           if (FIRE && !LOCK) {
             state.counter++;
           }
@@ -1219,7 +1351,10 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
           const b = (((state.counter - 10) % 40) + 40) % 40 < 20;
           return [
             FIRE && !LOCK && Math.floor((frame - 2) / 5) % 2 === 0,
-            !a, a, !b, b,
+            !a,
+            a,
+            !b,
+            b,
           ];
         },
         {
@@ -1233,9 +1368,8 @@ const kohctpyktop: Record<LevelNames, CircuitSimulationFactory> = {
       sim.setOutputSequence(pinB, seqB);
       sim.setOutputSequence(pinBN, seqBN);
       return sim;
-    }
+    },
   },
-
-}
+};
 
 export { kohctpyktop };

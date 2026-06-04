@@ -1,37 +1,32 @@
-import { CircuitSimulationFactory } from "@/circuits";
-import { PinNode, CircuitSimulation, Sequence } from "@/simulation";
-import createSequencesFromInputs from "@/utils/createSequencesFromInputs";
+import type { CircuitSimulationFactoryEntry } from '@/circuits';
+import { PinNode, CircuitSimulation, Sequence } from '@/simulation';
+import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
 
 const assignVCC = (...pins: PinNode[]) => {
   pins.forEach((pin) => {
     pin.label = 'VCC';
     pin.active = true;
   });
-}
+};
 
 type LevelNames =
-    '01 Introduction'
+  | '01 Introduction'
   | '02 Metal, Silicon and Vias'
   | '03 PNP Gates'
   | '04 NPN Gates'
   | '05 Propagation Delay';
 
-const tutorial: Record<LevelNames, CircuitSimulationFactory> = {
-
-
+const tutorial: Record<LevelNames, CircuitSimulationFactoryEntry> = {
   '01 Introduction': {
     pinRows: 1,
     width: 14,
     height: 7,
     setup: (network) => {
-      const [
-        pinIn, pinOut,
-      ] = network.getPinNodes();
+      const [pinIn, pinOut] = network.getPinNodes();
       pinIn.label = 'In';
       pinOut.label = 'Out';
       const sim = new CircuitSimulation(network, 280);
-       const seq = new Sequence()
-         .addOscillation(10, 3, 50, 50);
+      const seq = new Sequence().addOscillation(10, 3, 50, 50);
       sim.setInputSequence(pinIn, seq);
       sim.setOutputSequence(pinOut, seq.slice(0));
       return sim;
@@ -116,25 +111,19 @@ Click "Start Next Level" to continue.
     nextLevelID: '02 Metal, Silicon and Vias',
   },
 
-
   '02 Metal, Silicon and Vias': {
     pinRows: 2,
     width: 22,
     height: 11,
     setup: (network) => {
-      const [
-        pinInA, pinOutB,
-        pinInB, pinOutA,
-      ] = network.getPinNodes();
+      const [pinInA, pinOutB, pinInB, pinOutA] = network.getPinNodes();
       pinInA.label = 'In A';
       pinOutB.label = 'Out B';
       pinInB.label = 'In B';
       pinOutA.label = 'Out A';
       const sim = new CircuitSimulation(network, 280);
-      const seqA = new Sequence()
-        .addOscillation(10, 7, 20, 20);
-      const seqB = new Sequence()
-        .addOscillation(20, 5, 30, 20);
+      const seqA = new Sequence().addOscillation(10, 7, 20, 20);
+      const seqB = new Sequence().addOscillation(20, 5, 30, 20);
       sim.setInputSequence(pinInA, seqA);
       sim.setInputSequence(pinInB, seqB);
       sim.setOutputSequence(pinOutB, seqB);
@@ -187,30 +176,27 @@ Click "Start Next Level" to continue.
     nextLevelID: '03 PNP Gates',
   },
 
-
   '03 PNP Gates': {
     pinRows: 2,
     width: 22,
     height: 11,
     setup: (network) => {
-      const [
-        pinA, pinVCC,
-        pinNC, pinNA,
-      ] = network.getPinNodes();
+      const [pinA, pinVCC, pinNC, pinNA] = network.getPinNodes();
       assignVCC(pinVCC);
       pinA.label = 'A';
       pinNA.label = '/A';
       const sim = new CircuitSimulation(network, 280);
-      const seqA = new Sequence()
-        .repeatTogglePoints(10, 4, 30, [ 0, 10, 20, 40 ]);
-      sim.setInputSequence(pinA, seqA);
-      const [ seqNA ] = createSequencesFromInputs(
-        [ seqA ],
-        ({ inputs }) => {
-          const [ a ] = inputs;
-          return [ !a ];
-        },
+      const seqA = new Sequence().repeatTogglePoints(
+        10,
+        4,
+        30,
+        [0, 10, 20, 40],
       );
+      sim.setInputSequence(pinA, seqA);
+      const [seqNA] = createSequencesFromInputs([seqA], ({ inputs }) => {
+        const [a] = inputs;
+        return [!a];
+      });
       sim.setOutputSequence(pinNA, seqNA);
       return sim;
     },
@@ -279,16 +265,12 @@ In the next level, you will be introduced to the counterpart of the PNP gate: th
     nextLevelID: '04 NPN Gates',
   },
 
-
   '04 NPN Gates': {
     pinRows: 2,
     width: 22,
     height: 11,
     setup: (network) => {
-      const [
-        pinA, pinVCC,
-        pinB, pinY,
-      ] = network.getPinNodes();
+      const [pinA, pinVCC, pinB, pinY] = network.getPinNodes();
       assignVCC(pinVCC);
       pinA.label = 'A';
       pinB.label = 'B';
@@ -302,13 +284,10 @@ In the next level, you will be introduced to the counterpart of the PNP gate: th
         .addPulse(220, 50);
       sim.setInputSequence(pinA, seqA);
       sim.setInputSequence(pinB, seqB);
-      const [ seqY ] = createSequencesFromInputs(
-        [ seqA, seqB ],
-        ({ inputs }) => {
-          const [ a, b ] = inputs;
-          return [ a && b ];
-        },
-      );
+      const [seqY] = createSequencesFromInputs([seqA, seqB], ({ inputs }) => {
+        const [a, b] = inputs;
+        return [a && b];
+      });
       sim.setOutputSequence(pinY, seqY);
       return sim;
     },
@@ -373,36 +352,41 @@ continue.
     nextLevelID: '05 Propagation Delay',
   },
 
-
   '05 Propagation Delay': {
     pinRows: 1,
     width: 36,
     height: 7,
     setup: (network) => {
-      const [
-        pinIn, pinDelay,
-      ] = network.getPinNodes();
+      const [pinIn, pinDelay] = network.getPinNodes();
       pinIn.label = 'In';
       pinDelay.label = 'Delay';
       const sim = new CircuitSimulation(network, 280);
-      const seqIn = new Sequence()
-        .addTogglePoints(10, 40, 60, 120, 150, 160, 200, 250);
+      const seqIn = new Sequence().addTogglePoints(
+        10,
+        40,
+        60,
+        120,
+        150,
+        160,
+        200,
+        250,
+      );
       sim.setInputSequence(pinIn, seqIn);
       const delay = 10;
-      const [ seqDelay ] = createSequencesFromInputs(
-        [ seqIn ],
+      const [seqDelay] = createSequencesFromInputs(
+        [seqIn],
         ({ inputs, state }) => {
-          const [ a ] = inputs;
+          const [a] = inputs;
           if (a) {
             state.counter++;
           } else {
             state.counter = 0;
           }
-          return [ state.counter > delay ];
+          return [state.counter > delay];
         },
         {
           counter: 0,
-        }
+        },
       );
       sim.setOutputSequence(pinDelay, seqDelay);
       return sim;
@@ -480,8 +464,6 @@ these levels are a good place to start.
       ],
     },
   },
-
-
 };
 
 export { tutorial };
