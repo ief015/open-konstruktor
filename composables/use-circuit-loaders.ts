@@ -7,13 +7,6 @@ import { openkonstruktor } from '@/circuits/open-konstruktor';
 import { kohctpyktop } from '@/circuits/kohctpyktop';
 import { debugLevels } from '@/circuits/debug-levels';
 
-const loaders: CircuitSimulationFactories[] = [
-  tutorial,
-  kohctpyktop,
-  openkonstruktor,
-  debugLevels,
-];
-
 const findLoaderById = (
   loaders: CircuitSimulationFactories[],
   id: string,
@@ -35,6 +28,13 @@ const findLoaderById = (
 };
 
 export default function useCircuitLoaders() {
+  const cfg = useRuntimeConfig();
+  const loaders: CircuitSimulationFactories[] = [
+    tutorial,
+    kohctpyktop,
+    openkonstruktor,
+    ...(cfg.public.dev ? [debugLevels] : []),
+  ];
   return {
     loaders: loaders as Readonly<typeof loaders>,
     getLoader(id: string) {
