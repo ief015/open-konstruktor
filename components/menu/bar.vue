@@ -50,9 +50,10 @@
 
 <script setup lang="ts">
 // @ts-ignore
-import { DockMenu } from "@/external/vue-dock-menu/vue-dock-menu.es";
-import "@/external/vue-dock-menu/assets/output-9689c4bb.css";
-import type { CircuitSimulationFactory } from "@/circuits";
+import { DockMenu } from '@/external/vue-dock-menu/vue-dock-menu.es';
+import '@/external/vue-dock-menu/assets/output-9689c4bb.css';
+import type { CircuitSimulationFactory } from '@/circuits';
+import type { CircuitDesignData } from '@/serialization';
 
 const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim } = useCircuitSimulator();
@@ -303,7 +304,10 @@ const items = [
 ];
 
 const onClear = () => {
-  loadBlank(); // FIXME: this will load default canvas size
+  const data = field.value.getData() as CircuitDesignData;
+  const { columns, rows } = data.getDimensions();
+  const pinRows = data.getPinRowsCount();
+  loadBlank(columns, rows, pinRows);
   loadSim(field.value);
 }
 
