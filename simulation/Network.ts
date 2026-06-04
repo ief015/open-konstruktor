@@ -1,15 +1,18 @@
-import FieldGraph from "@/simulation/FieldGraph";
-import type { QueryResult } from "@/simulation/FieldGraph";
-import { GateNode, PathNode, PinNode } from "@/simulation";
-import type { NetworkNode, Point } from "@/simulation";
-
+import FieldGraph from '@/simulation/FieldGraph';
+import type { QueryResult } from '@/simulation/FieldGraph';
+import { GateNode, PathNode, PinNode } from '@/simulation';
+import type { NetworkNode, Point } from '@/simulation';
 
 type FoundGate = {
   query: QueryResult;
   point: Point;
-}
+};
 
-export type GraphLayer = 'metal'|'silicon';
+export type GraphLayer = 'metal' | 'silicon';
+
+export function getGraphKey(point: Point, layer: GraphLayer): string {
+  return `${point[0]},${point[1]}:${layer === 'metal' ? 'm' : 's'}`;
+}
 
 export default class Network {
   private paths: PathNode[] = [];
@@ -24,9 +27,9 @@ export default class Network {
     if (!nodes) {
       return;
     }
-    this.paths = nodes.filter(n => n instanceof PathNode) as PathNode[];
-    this.gates = nodes.filter(n => n instanceof GateNode) as GateNode[];
-    this.pins = nodes.filter(n => n instanceof PinNode) as PinNode[];
+    this.paths = nodes.filter((n) => n instanceof PathNode) as PathNode[];
+    this.gates = nodes.filter((n) => n instanceof GateNode) as GateNode[];
+    this.pins = nodes.filter((n) => n instanceof PinNode) as PinNode[];
   }
 
   public getPinNodes(): readonly PinNode[] {
@@ -51,11 +54,10 @@ export default class Network {
   }
 
   public step() {
-
     // Check for gates that should be toggled.
     // This is done outside gated path propagation to introduce propagation delay.
     for (const gate of this.gates) {
-      gate.active = gate.switchingPaths.some(p => p.state);
+      gate.active = gate.switchingPaths.some((p) => p.state);
     }
 
     // Reset state of all paths and pins
@@ -75,7 +77,7 @@ export default class Network {
         // TODO: Gates that have already passed current could be skipped for performance?
         // Needs investigation after more unit tests are written.
         const open = isNPN ? active : !active;
-        if (open && gatedPaths.some(p => p.state)) {
+        if (open && gatedPaths.some((p) => p.state)) {
           for (const path of gatedPaths) {
             if (!path.state) {
               path.state = true;
@@ -90,12 +92,8 @@ export default class Network {
     }
   }
 
-  private getGraphKey(point: Point, layer: GraphLayer): string {
-    return point.join(',') + ':' + (layer === 'metal' ? 'm' : 's');
-  }
-
   private setGraphNode(point: Point, layer: GraphLayer, node: NetworkNode) {
-    const key = this.getGraphKey(point, layer);
+    const key = getGraphKey(point, layer);
     const nodes = this.graph.get(key);
     if (nodes) {
       nodes.push(node);
@@ -106,7 +104,7 @@ export default class Network {
 
   public getNodesAt(point: Point, layer?: GraphLayer): NetworkNode[] {
     if (layer) {
-      const key = this.getGraphKey(point, layer);
+      const key = getGraphKey(point, layer);
       const nodes = this.graph.get(key);
       return nodes ?? [];
     } else {
@@ -128,7 +126,7 @@ export default class Network {
     point: Point,
     layer: GraphLayer,
     node: PathNode,
-  ): FoundGate[]|undefined {
+  ): FoundGate[] | undefined {
     const nodesAtPoint = this.getNodesAt(point, layer);
     if (nodesAtPoint.length > 0) {
       return;
@@ -138,29 +136,41 @@ export default class Network {
     if (layer === 'metal' && query.metal) {
       this.setGraphNode(point, 'metal', node);
       for (const adjMetal of query.metalConnections) {
-        foundGates.push(...(this.buildPath(fieldGraph, adjMetal.point, 'metal', node) ?? []));
+        foundGates.push(
+          ...(this.buildPath(fieldGraph, adjMetal.point, 'metal', node) ?? []),
+        );
       }
       if (query.via) {
-        foundGates.push(...(this.buildPath(fieldGraph, point, 'silicon', node) ?? []));
+        foundGates.push(
+          ...(this.buildPath(fieldGraph, point, 'silicon', node) ?? []),
+        );
       }
     } else if (layer === 'silicon' && query.silicon) {
       if (query.gate) {
-        return [ { query, point } ];
+        return [{ query, point }];
       }
       this.setGraphNode(point, 'silicon', node);
       for (const adjSilicon of query.siliconConnections) {
-        foundGates.push(...(this.buildPath(fieldGraph, adjSilicon.point, 'silicon', node) ?? []));
+        foundGates.push(
+          ...(this.buildPath(fieldGraph, adjSilicon.point, 'silicon', node) ??
+            []),
+        );
       }
       if (query.via) {
-        foundGates.push(...(this.buildPath(fieldGraph, point, 'metal', node) ?? []));
+        foundGates.push(
+          ...(this.buildPath(fieldGraph, point, 'metal', node) ?? []),
+        );
       }
     }
     return foundGates;
   }
 
-  private buildGate(fieldGraph: FieldGraph, foundGate: FoundGate): {
-    newGate?: GateNode
-    foundGates: FoundGate[]
+  private buildGate(
+    fieldGraph: FieldGraph,
+    foundGate: FoundGate,
+  ): {
+    newGate?: GateNode;
+    foundGates: FoundGate[];
   } {
     const { query, point } = foundGate;
     const nodesAtPoint = this.getNodesAt(point, 'silicon');
@@ -180,7 +190,10 @@ export default class Network {
           const path = new PathNode();
           this.paths.push(path);
           gate.gatedPaths.push(path);
-          const { foundGates: more, newGate } = this.buildGate(fieldGraph, { query: adjQuery, point: adjSilicon.point });
+          const { foundGates: more, newGate } = this.buildGate(fieldGraph, {
+            query: adjQuery,
+            point: adjSilicon.point,
+          });
           if (!newGate) {
             throw new Error('Failed to build gate');
           }
@@ -201,7 +214,12 @@ export default class Network {
           }
         } else {
           const path = new PathNode();
-          const more = this.buildPath(fieldGraph, adjSilicon.point, 'silicon', path);
+          const more = this.buildPath(
+            fieldGraph,
+            adjSilicon.point,
+            'silicon',
+            path,
+          );
           if (more) {
             this.paths.push(path);
             foundGates.push(...more);
@@ -219,7 +237,7 @@ export default class Network {
 
   public static from(saveString: string): Network;
   public static from(graph: FieldGraph): Network;
-  public static from(graph: string|FieldGraph): Network {
+  public static from(graph: string | FieldGraph): Network {
     if (typeof graph === 'string') {
       graph = FieldGraph.from(graph, 'circuit');
     }
@@ -241,7 +259,9 @@ export default class Network {
       } else {
         const path = new PathNode();
         const pin = new PinNode(path);
-        gates.push(...(network.buildPath(graph, pinPoint, 'metal', path) ?? []));
+        gates.push(
+          ...(network.buildPath(graph, pinPoint, 'metal', path) ?? []),
+        );
         network.paths.push(path);
         network.pins.push(pin);
       }
@@ -253,5 +273,4 @@ export default class Network {
     }
     return network;
   }
-
 }
