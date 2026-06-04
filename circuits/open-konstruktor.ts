@@ -17,24 +17,6 @@ const generateRandomSequence = (
   return seq.slice(0, length);
 };
 
-/*
-type LevelNames =
-    '01 DUAL INVERTER GATE'
-  | '02 2-INPUT AND GATE'
-  | '03 2-INPUT NAND GATE'
-  | '04 1-TO-2 DECODER'
-  | '05 4-INPUT AND/NAND GATE'
-  | '06 4-INPUT OR/NOR GATE'
-
-  | '20 2-INPUT CLOCKED AND GATE'
-  | '21 OM1S1 SRAM CELL'
-
-  | '30 OC2C1 DUAL FULL COMPARATOR'
-  | '31 OL2J1 DUAL J-K FLIP-FLOP'
-
-  | '40 OD7S1 7-SEGMENT DISPLAY'
-*/
-
 type LevelNames =
   // 01-10 GATES
   | 'DUAL INVERTER GATE'
