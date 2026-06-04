@@ -10,21 +10,12 @@
         </div>
       </div>
     </template>
-    <template #bottom>
-      <div class="h-[1.5em] top-border"></div>
-    </template>
     <template #left>
       <div class="w-[10em] h-full right-border flex flex-col">
         <div class="text-xs font-ttw text-center m-1 select-none">Designs</div>
         <ToolboxDesignSelect class="flex-1" />
         <div class="text-xs font-ttw text-center m-1 select-none">Snippets</div>
         <ToolboxSnippetsSelect class="flex-1" />
-      </div>
-    </template>
-    <template #right>
-      <div class="w-[5em] h-full left-border flex flex-col">
-        <div class="text-xs font-ttw text-center m-1 select-none">Toolbox</div>
-        <ToolboxControls class="mx-2" />
       </div>
     </template>
     <div class="absolute inset-0">
@@ -43,6 +34,15 @@
         <DialogInfoBox class="m-2 w-[1000px]" />
       </div>
     </div>
+    <template #right>
+      <div class="w-[5em] h-full left-border flex flex-col">
+        <div class="text-xs font-ttw text-center m-1 select-none">Toolbox</div>
+        <ToolboxControls class="mx-2" />
+      </div>
+    </template>
+    <template #bottom>
+      <div class="h-[1.5em] top-border"></div>
+    </template>
   </NuxtLayout>
 </template>
 
