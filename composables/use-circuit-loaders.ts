@@ -1,24 +1,48 @@
-import type { CircuitSimulationFactoryEntry } from '@/circuits';
+import type {
+  CircuitSimulationFactories,
+  CircuitSimulationFactory,
+} from '@/circuits';
 import { tutorial } from '@/circuits/tutorial';
 import { openkonstruktor } from '@/circuits/open-konstruktor';
 import { kohctpyktop } from '@/circuits/kohctpyktop';
+import { debugLevels } from '@/circuits/debug-levels';
 
-const loaders: Record<string, CircuitSimulationFactoryEntry> = {
-  ...kohctpyktop,
-  ...openkonstruktor,
-  ...tutorial,
-};
+const loaders: CircuitSimulationFactories[] = [
+  tutorial,
+  kohctpyktop,
+  openkonstruktor,
+  debugLevels,
+];
 
-const getLoader = (id: string) => {
-  const entry = loaders[id];
-  if (!entry) {
-    throw new Error(`No loader found for id: ${id}`);
+const findLoaderById = (
+  loaders: CircuitSimulationFactories[],
+  id: string,
+): CircuitSimulationFactory | null => {
+  for (const loader of loaders) {
+    if ('items' in loader) {
+      const found = loader.items.find((item) => item.key === id);
+      if (found) {
+        return found;
+      }
+    } else if ('children' in loader) {
+      const found = findLoaderById(loader.children, id);
+      if (found) {
+        return found;
+      }
+    }
   }
-  return entry ? { key: id, ...entry } : undefined;
+  return null;
 };
 
-export default function useLevelInfo() {
+export default function useCircuitLoaders() {
   return {
-    getLoader,
+    loaders: loaders as Readonly<typeof loaders>,
+    getLoader(id: string) {
+      const loader = findLoaderById(loaders, id);
+      if (!loader) {
+        throw new Error(`No loader found for id: ${id}`);
+      }
+      return loader;
+    },
   };
 }

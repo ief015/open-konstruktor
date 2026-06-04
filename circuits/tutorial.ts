@@ -1,41 +1,31 @@
-import type { CircuitSimulationFactoryEntry } from '@/circuits';
-import { PinNode, CircuitSimulation, Sequence } from '@/simulation';
+import { assignVCC, type CircuitSimulationFactories } from '@/circuits';
+import { CircuitSimulation, Sequence } from '@/simulation';
 import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
 
-const assignVCC = (...pins: PinNode[]) => {
-  pins.forEach((pin) => {
-    pin.label = 'VCC';
-    pin.active = true;
-  });
-};
-
-type LevelNames =
-  | '01 Introduction'
-  | '02 Metal, Silicon and Vias'
-  | '03 PNP Gates'
-  | '04 NPN Gates'
-  | '05 Propagation Delay';
-
-const tutorial: Record<LevelNames, CircuitSimulationFactoryEntry> = {
-  '01 Introduction': {
-    pinRows: 1,
-    width: 14,
-    height: 7,
-    setup: (network) => {
-      const [pinIn, pinOut] = network.getPinNodes();
-      pinIn.label = 'In';
-      pinOut.label = 'Out';
-      const sim = new CircuitSimulation(network, 280);
-      const seq = new Sequence().addOscillation(10, 3, 50, 50);
-      sim.setInputSequence(pinIn, seq);
-      sim.setOutputSequence(pinOut, seq.slice(0));
-      return sim;
-    },
-    info: {
-      title: 'Tutorial pt. 1 - Introduction',
-      pages: [
-        {
-          contentHtml: `
+const tutorial: CircuitSimulationFactories = {
+  category: 'Tutorial',
+  items: [
+    {
+      key: 'Tutorial 01 Introduction',
+      label: '01 - Introduction',
+      pinRows: 1,
+      width: 14,
+      height: 7,
+      setup: (network) => {
+        const [pinIn, pinOut] = network.getPinNodes();
+        pinIn.label = 'In';
+        pinOut.label = 'Out';
+        const sim = new CircuitSimulation(network, 280);
+        const seq = new Sequence().addOscillation(10, 3, 50, 50);
+        sim.setInputSequence(pinIn, seq);
+        sim.setOutputSequence(pinOut, seq.slice(0));
+        return sim;
+      },
+      info: {
+        title: 'Tutorial pt. 1 - Introduction',
+        pages: [
+          {
+            contentHtml: `
 <b>Welcome to Open-Konstruktor!</b><br/>
 </br>
 Your primary objective is to construct integrated circuits based on the provided specifications.<br/>
@@ -43,9 +33,9 @@ Your primary objective is to construct integrated circuits based on the provided
 Your circuits will be verified and graded based on how well they can produce the expected outputs
 from a set of input signals.<br/>
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 On the bottom of the screen is the verification graph, which shows the input and output signals
 of your circuit.<br/>
 <br/>
@@ -55,9 +45,9 @@ In this case, "In" represents a signal from an input, and "Out" represents an ou
 circuit is expected to produce. Signals can be one of two states:
 <u><b>high</b></u> or <u><b>low</b></u>.
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 On the right of the screen is the <u><b>toolbox</b></u>, which contains all the materials you can
 draw on the board to build your circuit.<br/>
 <br/>
@@ -66,9 +56,9 @@ The first one we'll look at is the <u><b>metal</b></u> tool. Metal is a basic co
 <br/>
 <img src="/tutorial/01/pins.png" /><br/>
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 <b>GOAL:</b><br/>
 <br/>
 Connect the input pin to the output pin by drawing metal, and click "Start" to run the
@@ -76,14 +66,14 @@ verification test.<br/>
 <br/>
 <img src="/tutorial/01/start.png" />
           `,
-        },
-      ],
-    },
-    infoCompleted: {
-      title: 'Tutorial pt. 1 - Introduction',
-      pages: [
-        {
-          contentHtml: `
+          },
+        ],
+      },
+      infoCompleted: {
+        title: 'Tutorial pt. 1 - Introduction',
+        pages: [
+          {
+            contentHtml: `
 <img src="/tutorial/01/verified.png" /><br/>
 <br/>
 After passing the verification test, the level will be marked as complete. In order to pass
@@ -92,9 +82,9 @@ verification, your circuit must reach a grade of at least <u><b>97%</b></u>.<br/
 Completing levels will unlock more levels, and you can always go back and replay previous
 levels.<br/>
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 The <u><b>design score</b></u> (shown on the bottom-right of the verification graph) represents the
 amount of material you have used to build your circuit. There is no limit to the amount of material you
 can use.<br/>
@@ -105,36 +95,38 @@ compare your design to others.<br/>
 In the next level, we'll look at the other materials available in the toolbox: silicon and vias.
 Click "Start Next Level" to continue.
           `,
-        },
-      ],
+          },
+        ],
+      },
+      nextLevelID: 'Tutorial 02 Metal, Silicon and Vias',
     },
-    nextLevelID: '02 Metal, Silicon and Vias',
-  },
 
-  '02 Metal, Silicon and Vias': {
-    pinRows: 2,
-    width: 22,
-    height: 11,
-    setup: (network) => {
-      const [pinInA, pinOutB, pinInB, pinOutA] = network.getPinNodes();
-      pinInA.label = 'In A';
-      pinOutB.label = 'Out B';
-      pinInB.label = 'In B';
-      pinOutA.label = 'Out A';
-      const sim = new CircuitSimulation(network, 280);
-      const seqA = new Sequence().addOscillation(10, 7, 20, 20);
-      const seqB = new Sequence().addOscillation(20, 5, 30, 20);
-      sim.setInputSequence(pinInA, seqA);
-      sim.setInputSequence(pinInB, seqB);
-      sim.setOutputSequence(pinOutB, seqB);
-      sim.setOutputSequence(pinOutA, seqA);
-      return sim;
-    },
-    info: {
-      title: 'Tutorial pt. 2 - Metal, Silicon and Vias',
-      pages: [
-        {
-          contentHtml: `
+    {
+      key: 'Tutorial 02 Metal, Silicon and Vias',
+      label: '02 - Metal, Silicon and Vias',
+      pinRows: 2,
+      width: 22,
+      height: 11,
+      setup: (network) => {
+        const [pinInA, pinOutB, pinInB, pinOutA] = network.getPinNodes();
+        pinInA.label = 'In A';
+        pinOutB.label = 'Out B';
+        pinInB.label = 'In B';
+        pinOutA.label = 'Out A';
+        const sim = new CircuitSimulation(network, 280);
+        const seqA = new Sequence().addOscillation(10, 7, 20, 20);
+        const seqB = new Sequence().addOscillation(20, 5, 30, 20);
+        sim.setInputSequence(pinInA, seqA);
+        sim.setInputSequence(pinInB, seqB);
+        sim.setOutputSequence(pinOutB, seqB);
+        sim.setOutputSequence(pinOutA, seqA);
+        return sim;
+      },
+      info: {
+        title: 'Tutorial pt. 2 - Metal, Silicon and Vias',
+        pages: [
+          {
+            contentHtml: `
 <u><b>Metal</b></u> and <u><b>silicon</b></u> are the two primary materials used to build your
 circuits. Metal and silicon are placed on different layers of the chip, which allows current to
 flow across them:<br/>
@@ -143,9 +135,9 @@ Place <u><b>vias</b></u> on silicon to make connections between the two layers:<
 <img src="/tutorial/02/metal-connected.png" />
 <img src="/tutorial/02/metal-connected-power.png" />
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 Silicon comes in two flavours: <u style="color:#FFFF00"><b>P-Type</b></u> and
 <u style="color:#FF0000"><b>N-Type</b></u>. By themselves, they are simply conductive materials
 just like metal. However, by drawing one type over another, we can create a <u><b>gate</b></u> to
@@ -157,54 +149,56 @@ In this level, either type of silicon will work.<br/>
 <br/>
 Place metal, silicon and vias in order to connect the matching pairs of pins.
           `,
-        },
-      ],
-    },
-    infoCompleted: {
-      title: 'Tutorial pt. 2 - Metal, Silicon and Vias',
-      pages: [
-        {
-          contentHtml: `
+          },
+        ],
+      },
+      infoCompleted: {
+        title: 'Tutorial pt. 2 - Metal, Silicon and Vias',
+        pages: [
+          {
+            contentHtml: `
 So far, the circuits we've built don't do anything practically useful. In the next level, we will
 construct gates which are used to control the flow of current and add logic to your circuits.<br/>
 <br/>
 Click "Start Next Level" to continue.
           `,
-        },
-      ],
+          },
+        ],
+      },
+      nextLevelID: 'Tutorial 03 PNP Gates',
     },
-    nextLevelID: '03 PNP Gates',
-  },
 
-  '03 PNP Gates': {
-    pinRows: 2,
-    width: 22,
-    height: 11,
-    setup: (network) => {
-      const [pinA, pinVCC, pinNC, pinNA] = network.getPinNodes();
-      assignVCC(pinVCC);
-      pinA.label = 'A';
-      pinNA.label = '/A';
-      const sim = new CircuitSimulation(network, 280);
-      const seqA = new Sequence().repeatTogglePoints(
-        10,
-        4,
-        30,
-        [0, 10, 20, 40],
-      );
-      sim.setInputSequence(pinA, seqA);
-      const [seqNA] = createSequencesFromInputs([seqA], ({ inputs }) => {
-        const [a] = inputs;
-        return [!a];
-      });
-      sim.setOutputSequence(pinNA, seqNA);
-      return sim;
-    },
-    info: {
-      title: 'Tutorial pt. 3 - PNP Gates',
-      pages: [
-        {
-          contentHtml: `
+    {
+      key: 'Tutorial 03 PNP Gates',
+      label: '03 - PNP Gates',
+      pinRows: 2,
+      width: 22,
+      height: 11,
+      setup: (network) => {
+        const [pinA, pinVCC, pinNC, pinNA] = network.getPinNodes();
+        assignVCC(pinVCC);
+        pinA.label = 'A';
+        pinNA.label = '/A';
+        const sim = new CircuitSimulation(network, 280);
+        const seqA = new Sequence().repeatTogglePoints(
+          10,
+          4,
+          30,
+          [0, 10, 20, 40],
+        );
+        sim.setInputSequence(pinA, seqA);
+        const [seqNA] = createSequencesFromInputs([seqA], ({ inputs }) => {
+          const [a] = inputs;
+          return [!a];
+        });
+        sim.setOutputSequence(pinNA, seqNA);
+        return sim;
+      },
+      info: {
+        title: 'Tutorial pt. 3 - PNP Gates',
+        pages: [
+          {
+            contentHtml: `
 Gates allow us to control the flow of current by opening or closing a path of silicon.<br/>
 There are two types of gates: the <u><b>PNP</b></u> gate and the <u><b>NPN</b></u> gate.<br/>
 <br/>
@@ -218,9 +212,9 @@ Gates can be built by drawing silicon over top silicon of the opposite type:<br/
 The first gate we will build is the PNP gate, which is <b style="color:#FF0000">N-Type</b> silicon
 drawn over <b style="color:#FFFF00">P-Type</b> silicon, as shown above.
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 A PNP gate allows current to flow through the <b style="color:#FFFF00">P-Type</b> silicon, unless a
 signal is applied to the <b style="color:#FF0000">N-Type</b> silicon, in which case the gate will
 close. When the signal is removed, the gate opens allowing current to flow again. By using a PNP
@@ -233,21 +227,21 @@ gate, we can invert a signal. This is also called a <u><b>NOT gate</b></u>:<br/>
 <u><b>VCC</b></u>, or <u><b>Voltage Common Collector</b></u>, is a special type of pin that is
 always high. In other words, it can be used as a constant power source.
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 <b>GOAL:</b><br/>
 <br/>
 Build a NOT gate to invert the input signal.
           `,
-        },
-      ],
-    },
-    infoCompleted: {
-      title: 'Tutorial pt. 3 - PNP Gates',
-      pages: [
-        {
-          contentHtml: `
+          },
+        ],
+      },
+      infoCompleted: {
+        title: 'Tutorial pt. 3 - PNP Gates',
+        pages: [
+          {
+            contentHtml: `
 You may notice that the output signal is not an exact inversion of the input signal, but
 is slightly delayed.<br/>
 <br/>
@@ -259,43 +253,45 @@ further in a later tutorial level.<br/>
 In the next level, you will be introduced to the counterpart of the PNP gate: the NPN gate. Click
 "Start Next Level" to continue.
           `,
-        },
-      ],
+          },
+        ],
+      },
+      nextLevelID: 'Tutorial 04 NPN Gates',
     },
-    nextLevelID: '04 NPN Gates',
-  },
 
-  '04 NPN Gates': {
-    pinRows: 2,
-    width: 22,
-    height: 11,
-    setup: (network) => {
-      const [pinA, pinVCC, pinB, pinY] = network.getPinNodes();
-      assignVCC(pinVCC);
-      pinA.label = 'A';
-      pinB.label = 'B';
-      pinY.label = 'Y';
-      const sim = new CircuitSimulation(network, 280);
-      const seqA = new Sequence()
-        .addOscillation(10, 10, 10, 10)
-        .addOscillation(210, 2, 20, 20);
-      const seqB = new Sequence()
-        .addOscillation(20, 7, 20, 10)
-        .addPulse(220, 50);
-      sim.setInputSequence(pinA, seqA);
-      sim.setInputSequence(pinB, seqB);
-      const [seqY] = createSequencesFromInputs([seqA, seqB], ({ inputs }) => {
-        const [a, b] = inputs;
-        return [a && b];
-      });
-      sim.setOutputSequence(pinY, seqY);
-      return sim;
-    },
-    info: {
-      title: 'Tutorial pt. 4 - NPN Gates',
-      pages: [
-        {
-          contentHtml: `
+    {
+      key: 'Tutorial 04 NPN Gates',
+      label: '04 - NPN Gates',
+      pinRows: 2,
+      width: 22,
+      height: 11,
+      setup: (network) => {
+        const [pinA, pinVCC, pinB, pinY] = network.getPinNodes();
+        assignVCC(pinVCC);
+        pinA.label = 'A';
+        pinB.label = 'B';
+        pinY.label = 'Y';
+        const sim = new CircuitSimulation(network, 280);
+        const seqA = new Sequence()
+          .addOscillation(10, 10, 10, 10)
+          .addOscillation(210, 2, 20, 20);
+        const seqB = new Sequence()
+          .addOscillation(20, 7, 20, 10)
+          .addPulse(220, 50);
+        sim.setInputSequence(pinA, seqA);
+        sim.setInputSequence(pinB, seqB);
+        const [seqY] = createSequencesFromInputs([seqA, seqB], ({ inputs }) => {
+          const [a, b] = inputs;
+          return [a && b];
+        });
+        sim.setOutputSequence(pinY, seqY);
+        return sim;
+      },
+      info: {
+        title: 'Tutorial pt. 4 - NPN Gates',
+        pages: [
+          {
+            contentHtml: `
 The other type of gate is the NPN gate, which is <b style="color:#FFFF00">P-Type</b> silicon drawn
 over <b style="color:#FF0000">N-Type</b> silicon.<br/>
 <br/>
@@ -308,9 +304,9 @@ again.<br/>
 <img src="/tutorial/04/high.png" />
 <img src="/tutorial/04/npn-scope.png" />
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 A single NPN gate used as shown previously is not very useful here, but by chaining multiple NPN
 gates we can stop the flow of current unless all inputs are active. This is also called an
 <u><b>AND gate</b></u>:<br/>
@@ -321,21 +317,21 @@ gates we can stop the flow of current unless all inputs are active. This is also
 <img src="/tutorial/04/11.png" />
 <img src="/tutorial/04/and-scope.png" />
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 <b>GOAL:</b><br/>
 <br/>
 Build an AND gate by using two NPN gates.
           `,
-        },
-      ],
-    },
-    infoCompleted: {
-      title: 'Tutorial pt. 4 - NPN Gates',
-      pages: [
-        {
-          contentHtml: `
+          },
+        ],
+      },
+      infoCompleted: {
+        title: 'Tutorial pt. 4 - NPN Gates',
+        pages: [
+          {
+            contentHtml: `
 The PNP gate and the NPN gate are the two fundamental building blocks of your circuits. By using
 them together, circuits can be designed to perform complex logical operations.<br/>
 <br/>
@@ -346,65 +342,67 @@ circuit design. Feel free to give it a try and see what happens!<br/>
 In the next level, we will go into more detail about propagation delay. Click "Start Next Level" to
 continue.
           `,
-        },
-      ],
+          },
+        ],
+      },
+      nextLevelID: 'Tutorial 05 Propagation Delay',
     },
-    nextLevelID: '05 Propagation Delay',
-  },
 
-  '05 Propagation Delay': {
-    pinRows: 1,
-    width: 36,
-    height: 7,
-    setup: (network) => {
-      const [pinIn, pinDelay] = network.getPinNodes();
-      pinIn.label = 'In';
-      pinDelay.label = 'Delay';
-      const sim = new CircuitSimulation(network, 280);
-      const seqIn = new Sequence().addTogglePoints(
-        10,
-        40,
-        60,
-        120,
-        150,
-        160,
-        200,
-        250,
-      );
-      sim.setInputSequence(pinIn, seqIn);
-      const delay = 10;
-      const [seqDelay] = createSequencesFromInputs(
-        [seqIn],
-        ({ inputs, state }) => {
-          const [a] = inputs;
-          if (a) {
-            state.counter++;
-          } else {
-            state.counter = 0;
-          }
-          return [state.counter > delay];
-        },
-        {
-          counter: 0,
-        },
-      );
-      sim.setOutputSequence(pinDelay, seqDelay);
-      return sim;
-    },
-    info: {
-      title: 'Tutorial pt. 5 - Propagation Delay',
-      pages: [
-        {
-          contentHtml: `
+    {
+      key: 'Tutorial 05 Propagation Delay',
+      label: '05 - Propagation Delay',
+      pinRows: 1,
+      width: 36,
+      height: 7,
+      setup: (network) => {
+        const [pinIn, pinDelay] = network.getPinNodes();
+        pinIn.label = 'In';
+        pinDelay.label = 'Delay';
+        const sim = new CircuitSimulation(network, 280);
+        const seqIn = new Sequence().addTogglePoints(
+          10,
+          40,
+          60,
+          120,
+          150,
+          160,
+          200,
+          250,
+        );
+        sim.setInputSequence(pinIn, seqIn);
+        const delay = 10;
+        const [seqDelay] = createSequencesFromInputs(
+          [seqIn],
+          ({ inputs, state }) => {
+            const [a] = inputs;
+            if (a) {
+              state.counter++;
+            } else {
+              state.counter = 0;
+            }
+            return [state.counter > delay];
+          },
+          {
+            counter: 0,
+          },
+        );
+        sim.setOutputSequence(pinDelay, seqDelay);
+        return sim;
+      },
+      info: {
+        title: 'Tutorial pt. 5 - Propagation Delay',
+        pages: [
+          {
+            contentHtml: `
 <u><b>Propegation delay</b></u> is caused by the time it takes for a gate to transition between its
 opened and closed states.<br/>
 <br/>
 For most early levels and simple circuits, propagation delay is usually not a significant concern.
 Although it is important to understand as it does affect the behavior of your circuits.
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 The delay occurs when a PNP or NPN gate receives a signal to change its state from opened to closed,
 or vice versa. The gate's state does not change immediately, and instead takes 1 cycle to
 transition.<br/>
@@ -421,9 +419,9 @@ In the above example, the gate's input signal is high on steps +1 and +2, but th
 flows during steps +2 and +3.
 
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 Because of this delay, some circuits may not behave as expected if care is not taken to account for
 it. However, it may also be useful to exploit this delay to create a delay in your circuits.<br/>
 <br/>
@@ -433,21 +431,21 @@ need.<br/>
 <br/>
 <img src="/tutorial/05/delay.png" />
           `,
-        },
-        {
-          contentHtml: `
+          },
+          {
+            contentHtml: `
 <b>GOAL:</b><br/>
 <br/>
 Build a circuit to delay the input by 10 cycles.
           `,
-        },
-      ],
-    },
-    infoCompleted: {
-      title: 'Tutorial pt. 5 - Propagation Delay',
-      pages: [
-        {
-          contentHtml: `
+          },
+        ],
+      },
+      infoCompleted: {
+        title: 'Tutorial pt. 5 - Propagation Delay',
+        pages: [
+          {
+            contentHtml: `
 Tutorial complete! Select a level from the menu bar to start building on your own. Besides this
 tutorial, there are two other categories of levels: <u><b>KOHCTPYKTOP</b></u> and
 <u><b>Open-Konstruktor</b></u>.<br/>
@@ -460,10 +458,11 @@ upon previous levels. These levels start you off by designing very simple circui
 you will be building large, complex devices. If you're a newcomer to this game or KOHCTPYKTOP,
 these levels are a good place to start.
           `,
-        },
-      ],
+          },
+        ],
+      },
     },
-  },
+  ],
 };
 
 export { tutorial };

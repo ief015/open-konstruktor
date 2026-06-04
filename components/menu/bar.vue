@@ -61,7 +61,10 @@
 import { DockMenu } from '@/external/vue-dock-menu/vue-dock-menu.es';
 import '@/external/vue-dock-menu/assets/output-9689c4bb.css';
 import type { CircuitDesignData } from '@/serialization';
-import { useMenuItems } from '@/components/menu/items';
+
+const props = defineProps<{
+  items: MenuItem[];
+}>();
 
 const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim, circuitFactory } = useCircuitSimulator();
@@ -75,7 +78,6 @@ const fileInputLoad = ref<HTMLInputElement>();
 const exportCode = ref('');
 const exportCopied = ref(false);
 const importCode = ref('');
-const { items } = useMenuItems();
 
 const onClear = () => {
   const data = field.value.getData() as CircuitDesignData;
