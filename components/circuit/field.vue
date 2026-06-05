@@ -710,9 +710,11 @@ const endSelection = () => {
             selectionState.value = lastState;
           } else {
             // Force the selection back to its original position
+            if (lastState === 'dragging') {
               field.value.paste([left, top], selectionFieldGraph.value, {
                 overwrite: true,
               });
+            }
             selectionTranslate.value = [0, 0];
           }
         }
