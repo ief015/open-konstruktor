@@ -2,12 +2,15 @@
   <div
     @click.stop="onClick"
     class="relative flex flex-row gap-2 items-center px-2 cursor-pointer"
+    :class="{
+      'pointer-events-none opacity-50': props.disabled,
+    }"
     :style="{
       'background-color':
         hoverItem || isOpen ? theme.backgroundHover : theme.background,
       color: hoverItem || isOpen ? theme.foregroundHover : theme.foreground,
     }"
-    @mouseenter="hoverItem = true"
+    @mouseenter="hoverItem = !disabled"
     @mouseleave="hoverItem = false"
   >
     <slot name="icon"> </slot>
@@ -52,6 +55,7 @@ const props = defineProps<{
   label?: string;
   items?: MenuBarItem[];
   theme: MenuBarTheme;
+  disabled?: boolean;
   noHoverOpen?: boolean;
   menuDirection: 'down' | 'right';
 }>();
@@ -81,6 +85,7 @@ const isOpen = computed({
 });
 
 function onSelected(id?: string, _keepOpen?: boolean) {
+  if (props.disabled) return;
   if (_keepOpen) {
     forceOpened.value = true;
   } else {
