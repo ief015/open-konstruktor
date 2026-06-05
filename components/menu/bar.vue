@@ -11,7 +11,7 @@
       v-for="(item, idx) in items"
       :key="item === 'divider' ? `divider-${idx}` : item.id"
     >
-      <div v-if="item === 'divider'" class="bg-black h-full w-[1px] mx-1" />
+      <div v-if="item === 'divider'" class="bg-[#666] h-full w-[1px] mx-1" />
       <MenuBarItem
         v-else
         :ref="(ref) => assignRef(idx, ref)"
@@ -37,7 +37,7 @@
       v-for="(item, idx) in items"
       :key="item === 'divider' ? `divider-${idx}` : item.id"
     >
-      <div v-if="item === 'divider'" class="w-full h-[1px] bg-black my-1" />
+      <div v-if="item === 'divider'" class="w-full h-[1px] bg-[#666] my-1" />
       <MenuBarItem
         v-else
         class="py-2"
