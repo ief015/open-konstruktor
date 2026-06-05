@@ -4,7 +4,11 @@
     :class="{ 'flex-row': props.horizontal, 'flex-col': !props.horizontal }"
   >
     <div v-for="item in toolkit" class="w-full">
-      <div v-if="item === true" class="my-1" style="border-top: 1px solid #666"></div>
+      <div
+        v-if="item === 'divider'"
+        class="my-1"
+        style="border-top: 1px solid #666"
+      />
       <button
         v-else
         @click="onClickTool(item)"
@@ -29,12 +33,13 @@
 </template>
 
 <script setup lang="ts">
-import type { ToolboxMode } from "@/composables/use-toolbox";
+import type { ToolboxMode } from '@/composables/use-toolbox';
 
 interface ToolkitItem {
   name: string;
   icon?: string;
   mode: ToolboxMode;
+  shiftMode?: ToolboxMode;
   classes?: string;
   labelClass?: string;
   key?: string;
@@ -46,100 +51,125 @@ const props = withDefaults(
   }>(),
   {
     horizontal: false,
-  }
+  },
 );
 
 const emit = defineEmits<{
   change: [mode: ToolboxMode, prevMode: ToolboxMode];
 }>();
 
-const toolkit: (ToolkitItem|true)[] = [
+const toolkit: (ToolkitItem | 'divider')[] = [
   {
-    name: "Select",
-    mode: "select",
-    key: "1",
+    name: 'Select',
+    mode: 'select',
+    key: '1',
   },
-  true,
+  'divider',
   {
-    name: "Metal",
-    mode: "draw-metal",
-    classes: "bg-metal text-black font-bold",
-    key: "2",
-  },
-  {
-    name: "P-Type",
-    mode: "draw-p-silicon",
-    classes: "bg-ptype text-black font-bold",
-    key: "3",
+    name: 'Metal',
+    mode: 'draw-metal',
+    classes: 'bg-metal text-black font-bold',
+    key: '2',
   },
   {
-    name: "N-Type",
-    mode: "draw-n-silicon",
-    classes: "bg-ntype text-black font-bold",
-    key: "4",
+    name: 'P-Type',
+    mode: 'draw-p-silicon',
+    shiftMode: 'draw-n-silicon',
+    classes: 'bg-ptype text-black font-bold',
+    key: '3',
   },
   {
-    name: "Via",
-    mode: "draw-via",
-    icon: "/tiles/link.png",
-    classes: "bg-neutral-400 text-black font-bold",
-    key: "5",
-  },
-  true,
-  {
-    name: "Erase",
-    mode: "erase",
-    key: "6",
+    name: 'N-Type',
+    mode: 'draw-n-silicon',
+    shiftMode: 'draw-p-silicon',
+    classes: 'bg-ntype text-black font-bold',
+    key: '4',
   },
   {
-    name: "Erase (Metal)",
-    mode: "erase-metal",
-    key: "7",
+    name: 'Via',
+    mode: 'draw-via',
+    icon: '/tiles/link.png',
+    classes: 'bg-neutral-400 text-black font-bold',
+    key: '5',
+  },
+  'divider',
+  {
+    name: 'Erase',
+    mode: 'erase',
+    key: '6',
   },
   {
-    name: "Erase (Silicon)",
-    mode: "erase-silicon",
-    key: "8",
+    name: 'Erase (Metal)',
+    mode: 'erase-metal',
+    shiftMode: 'erase',
+    key: '7',
   },
   {
-    name: "Erase (Vias)",
-    mode: "erase-via",
-    key: "9",
+    name: 'Erase (Silicon)',
+    mode: 'erase-silicon',
+    shiftMode: 'erase',
+    key: '8',
   },
   {
-    name: "Erase (Gates)",
-    mode: "erase-gate",
-    key: "0",
+    name: 'Erase (Vias)',
+    mode: 'erase-via',
+    shiftMode: 'erase',
+    key: '9',
+  },
+  {
+    name: 'Erase (Gates)',
+    mode: 'erase-gate',
+    shiftMode: 'erase',
+    key: '0',
   },
 ];
 
 const { mode, ignoreKeyShortcuts } = useToolbox();
 
+const selectedTool = ref<ToolkitItem | null>(null);
+
 const onChange = (mode: ToolboxMode, prevMode: ToolboxMode) => {
-  emit("change", mode, prevMode);
+  emit('change', mode, prevMode);
 };
 
 const onClickTool = (item: ToolkitItem) => {
-  let toMode = item.mode;
-  if (toMode === mode.value) {
-    toMode = "none";
-  }
+  const toMode = item.mode === selectedTool.value?.mode ? 'none' : item.mode;
   const prevMode = mode.value;
+  selectedTool.value = toMode === 'none' ? null : item;
   mode.value = toMode;
   onChange(toMode, prevMode);
 };
 
-useEventListener("keypress", (ev) => {
+useEventListener('keypress', (ev) => {
   if (ignoreKeyShortcuts.value) {
     return;
   }
-  if (ev.key >= "0" && ev.key <= "9") {
+  if (ev.key >= '0' && ev.key <= '9') {
     const item = toolkit.find((item) => {
-      return item !== true && item.key === ev.key;
+      return item !== 'divider' && item.key === ev.key;
     }) as ToolkitItem | undefined;
     if (item) {
       onClickTool(item);
     }
+  }
+});
+
+useEventListener('keydown', (ev) => {
+  if (ignoreKeyShortcuts.value) {
+    return;
+  }
+  if (ev.key == 'Shift') {
+    mode.value =
+      selectedTool.value?.shiftMode ?? selectedTool.value?.mode ?? 'none';
+  }
+});
+
+useEventListener('keyup', (ev) => {
+  if (ignoreKeyShortcuts.value) {
+    return;
+  }
+  if (ev.key == 'Shift') {
+    mode.value = selectedTool.value?.mode ?? 'none';
   }
 });
 </script>
