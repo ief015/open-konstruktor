@@ -19,6 +19,7 @@
         :label="item.label"
         :items="item.items"
         :theme
+        :no-hover-open
         menu-direction="down"
         @selected="onSelected"
         @menu-opened="onMenuOpened(idx)"
@@ -46,6 +47,7 @@
         :label="item.label"
         :items="item.items"
         :theme
+        :no-hover-open
         menu-direction="right"
         @selected="onSelected"
         @menu-opened="onMenuOpened(idx)"
@@ -78,10 +80,12 @@ const props = withDefaults(
     items?: MenuBarItem[];
     theme?: MenuBarTheme;
     horizontal?: boolean;
+    noHoverOpen?: boolean;
     _root?: boolean;
   }>(),
   {
     _root: true,
+    noHoverOpen: false,
     items: () => [],
     theme: () => ({
       background: '#242424',

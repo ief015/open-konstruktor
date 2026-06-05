@@ -3,8 +3,9 @@
     @click.stop="onClick"
     class="relative flex flex-row gap-2 items-center px-2 cursor-pointer"
     :style="{
-      'background-color': isOpen ? theme.backgroundHover : theme.background,
-      color: isOpen ? theme.foregroundHover : theme.foreground,
+      'background-color':
+        hoverItem || isOpen ? theme.backgroundHover : theme.background,
+      color: hoverItem || isOpen ? theme.foregroundHover : theme.foreground,
     }"
     @mouseenter="hoverItem = true"
     @mouseleave="hoverItem = false"
@@ -51,6 +52,7 @@ const props = defineProps<{
   label?: string;
   items?: MenuBarItem[];
   theme: MenuBarTheme;
+  noHoverOpen?: boolean;
   menuDirection: 'down' | 'right';
 }>();
 
@@ -66,7 +68,10 @@ const forceOpened = ref(false);
 
 const isOpen = computed({
   get() {
-    return hoverItem.value || hoverMenu.value || forceOpened.value;
+    return (
+      (!props.noHoverOpen && (hoverItem.value || hoverMenu.value)) ||
+      forceOpened.value
+    );
   },
   set(value: boolean) {
     hoverItem.value = value;
