@@ -1,5 +1,5 @@
 import type { CircuitSimulationFactories } from '@/circuits';
-import type { MenuBarItem } from '@/components/menu/bar2.vue';
+import type { MenuBarItem } from '@/components/menu/bar-menu.vue';
 
 export type MenuItem =
   | {

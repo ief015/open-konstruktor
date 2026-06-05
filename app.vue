@@ -6,8 +6,7 @@
           open-konstruktor
         </div>
         <div class="flex-1">
-          <!-- MenuBar :items="menuItems" / -->
-          <MenuBar2 class="font-ttw" :items="menuItems2" horizontal />
+          <MenuBarMenu class="font-ttw" :items="menuItems" horizontal />
         </div>
       </div>
     </template>
@@ -49,7 +48,7 @@
 
 <script setup lang="ts">
 import { useMenuItems } from '@/composables/menu-items';
-const { items: menuItems, items2: menuItems2 } = useMenuItems();
+const { items2: menuItems } = useMenuItems();
 </script>
 
 <style scoped>

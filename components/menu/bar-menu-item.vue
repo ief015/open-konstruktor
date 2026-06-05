@@ -12,9 +12,7 @@
     @mouseleave="hoverItem = false"
   >
     <slot name="icon"> </slot>
-    <slot name="label">
-      {{ label ?? '' }}
-    </slot>
+    <slot name="label"> {{ label ?? '' }} </slot>
     <div
       v-if="items && items.length && props.menuDirection === 'right'"
       class="ml-auto"
@@ -34,11 +32,12 @@
         />
       </svg>
     </div>
-    <Bar2
+    <MenuBarMenu
       v-if="items && items.length && isOpen"
       :class="`absolute z-10 ${props.menuDirection === 'down' ? 'top-full left-0' : '-top-2 left-full'}`"
       :items="items"
       :theme
+      :_root="false"
       @selected="onSelected"
       @mouseenter="hoverMenu = true"
       @mouseleave="hoverMenu = false"
@@ -47,9 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import BarMenu from '@/components/menu/bar-menu.vue';
-import Bar2 from '@/components/menu/bar2.vue';
-import type { MenuBarItem, MenuBarTheme } from '@/components/menu/bar2.vue';
+import type { MenuBarItem, MenuBarTheme } from '@/components/menu/bar-menu.vue';
 
 const props = defineProps<{
   id?: string;
