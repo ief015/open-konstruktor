@@ -1,12 +1,10 @@
-import { Buffer } from 'node:buffer';
-
 export type LayerColumn = number[];
 export type DesignDataLayer = LayerColumn[];
 
 export interface LayerDimensions {
   columns: number;
   rows: number;
-};
+}
 
 export enum Layer {
   Silicon = 0,
@@ -19,7 +17,7 @@ export enum Layer {
   MetalConnectionsH = 7,
   MetalConnectionsV = 8,
 
-  COUNT // Keep last
+  COUNT, // Keep last
 }
 
 export enum SiliconValue {
@@ -60,7 +58,7 @@ export class DesignData {
 
   constructor(columns: number, rows: number);
   constructor(copy: DesignData);
-  constructor(columns: number|DesignData, rows: number = 0) {
+  constructor(columns: number | DesignData, rows: number = 0) {
     if (columns instanceof DesignData) {
       const copy = columns;
       this.dimensions = structuredClone(copy.dimensions);
@@ -89,7 +87,7 @@ export class DesignData {
     this.layers.splice(0, this.layers.length, ...layers);
   }
 
-  public getLayer(layer: Layer|number): DesignDataLayer {
+  public getLayer(layer: Layer | number): DesignDataLayer {
     return this.layers[layer];
   }
 
@@ -101,15 +99,18 @@ export class DesignData {
     return this.layers;
   }
 
-  public get(layer: Layer|number, col: number, row: number): number {
+  public get(layer: Layer | number, col: number, row: number): number {
     return this.layers[layer][col]?.[row];
   }
 
-  public set(layer: Layer|number, col: number, row: number, value: number): void {
-    if (col < 0 || col >= this.dimensions.columns)
-      return;
-    if (row < 0 || row >= this.dimensions.rows)
-      return;
+  public set(
+    layer: Layer | number,
+    col: number,
+    row: number,
+    value: number,
+  ): void {
+    if (col < 0 || col >= this.dimensions.columns) return;
+    if (row < 0 || row >= this.dimensions.rows) return;
     this.layers[layer][col][row] = value;
   }
 
@@ -136,7 +137,7 @@ export class DesignData {
         data.readUInt8(offset++) != 0x59 ||
         data.readUInt8(offset++) != 0x01
       ) {
-        throw new Error("Malformed design data (invalid layer marker)");
+        throw new Error('Malformed design data (invalid layer marker)');
       }
       for (let col = 0; col < cols; col++) {
         const column = layer[col];
@@ -145,10 +146,10 @@ export class DesignData {
           data.readUInt8(offset++) != 0x37 ||
           data.readUInt8(offset++) != 0x01
         ) {
-          throw new Error("Malformed design data (invalid column marker)");
+          throw new Error('Malformed design data (invalid column marker)');
         }
         for (let row = 0; row < rows; row++) {
-          const val = data.readUInt8(offset + (i == Layer.Silicon ? 1 : 0))
+          const val = data.readUInt8(offset + (i == Layer.Silicon ? 1 : 0));
           if (i == Layer.Metal) {
             if (val == 0x04) {
               // Compensate possible bug with metal layer during export from original game.
@@ -160,7 +161,7 @@ export class DesignData {
             }
           }
           column[row] = val;
-          offset += (i == 0 ? 2 : 1);
+          offset += i == 0 ? 2 : 1;
         }
       }
     }
@@ -172,7 +173,7 @@ export class DesignData {
         design.extraData = JSON.parse(extraData.toString());
         offset += extraData.length + 1;
       } else {
-        throw new Error("Malformed design data (invalid extra data marker)");
+        throw new Error('Malformed design data (invalid extra data marker)');
       }
     }
     return design;
@@ -185,9 +186,13 @@ export class DesignData {
     const szLayerMarkers = 3 * numLayers;
     const szLayer = (numLayers - 1) * columns * (rows + 3);
     const szLayerSilicon = columns * (rows * 2 + 3);
-    const extraDataBytes = this.extraData ? new TextEncoder().encode(JSON.stringify(this.extraData)) : undefined;
-    const szExtraData = extraDataBytes ? (extraDataBytes.length + 2) : 0;
-    const buf = Buffer.alloc(szDimensions + szLayerMarkers + szLayer + szLayerSilicon + szExtraData);
+    const extraDataBytes = this.extraData
+      ? new TextEncoder().encode(JSON.stringify(this.extraData))
+      : undefined;
+    const szExtraData = extraDataBytes ? extraDataBytes.length + 2 : 0;
+    const buf = Buffer.alloc(
+      szDimensions + szLayerMarkers + szLayer + szLayerSilicon + szExtraData,
+    );
     let offset = 0;
     buf[offset++] = 0x04;
     buf[offset++] = columns;
@@ -221,5 +226,4 @@ export class DesignData {
     }
     return buf;
   }
-
 }
