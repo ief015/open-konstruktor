@@ -6,10 +6,3 @@ export class WelcomeDialogActionEvent extends Event {
     super(WelcomeDialogActionEvent.eventType);
   }
 }
-
-export class WelcomeDialogOpenEvent extends Event {
-  static eventType = 'ok/welcome-dialog-open';
-  constructor() {
-    super(WelcomeDialogOpenEvent.eventType);
-  }
-}
