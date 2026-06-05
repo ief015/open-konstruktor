@@ -40,6 +40,7 @@ interface ToolkitItem {
   icon?: string;
   mode: ToolboxMode;
   shiftMode?: ToolboxMode;
+  ctrlMode?: ToolboxMode;
   classes?: string;
   labelClass?: string;
   key?: string;
@@ -68,12 +69,14 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'Metal',
     mode: 'draw-metal',
+    ctrlMode: 'erase-metal',
     classes: 'bg-metal text-black font-bold',
     key: '2',
   },
   {
     name: 'P-Type',
     mode: 'draw-p-silicon',
+    ctrlMode: 'erase-silicon',
     shiftMode: 'draw-n-silicon',
     classes: 'bg-ptype text-black font-bold',
     key: '3',
@@ -81,6 +84,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'N-Type',
     mode: 'draw-n-silicon',
+    ctrlMode: 'erase-silicon',
     shiftMode: 'draw-p-silicon',
     classes: 'bg-ntype text-black font-bold',
     key: '4',
@@ -88,6 +92,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'Via',
     mode: 'draw-via',
+    ctrlMode: 'erase-via',
     icon: '/tiles/link.png',
     classes: 'bg-neutral-400 text-black font-bold',
     key: '5',
@@ -162,6 +167,10 @@ useEventListener('keydown', (ev) => {
     mode.value =
       selectedTool.value?.shiftMode ?? selectedTool.value?.mode ?? 'none';
   }
+  if (ev.key == 'Control') {
+    mode.value =
+      selectedTool.value?.ctrlMode ?? selectedTool.value?.mode ?? 'none';
+  }
 });
 
 useEventListener('keyup', (ev) => {
@@ -169,6 +178,9 @@ useEventListener('keyup', (ev) => {
     return;
   }
   if (ev.key == 'Shift') {
+    mode.value = selectedTool.value?.mode ?? 'none';
+  }
+  if (ev.key == 'Control') {
     mode.value = selectedTool.value?.mode ?? 'none';
   }
 });
