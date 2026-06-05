@@ -22,11 +22,12 @@ export default defineNuxtConfig({
     },
   },
   ssr: false,
-  testUtils: {},
   vite: {
     plugins: [
       nodePolyfills({
         globals: { Buffer: true },
+        include: ['buffer'],
+        protocolImports: true,
       }),
     ],
   },
