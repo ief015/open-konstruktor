@@ -125,31 +125,31 @@ export class DesignData {
     return score;
   }
 
-  public static from(data: Buffer): DesignData {
-    const cols = data.readUInt8(1);
-    const rows = data.readUInt8(3);
+  public static from(data: Uint8Array): DesignData {
+    const cols = data[1];
+    const rows = data[3];
     let offset = 4;
     const design = new DesignData(cols, rows);
     for (let i = 0; i < Layer.COUNT; i++) {
       const layer = design.layers[i];
       if (
-        data.readUInt8(offset++) != 0x09 ||
-        data.readUInt8(offset++) != 0x59 ||
-        data.readUInt8(offset++) != 0x01
+        data[offset++] != 0x09 ||
+        data[offset++] != 0x59 ||
+        data[offset++] != 0x01
       ) {
         throw new Error('Malformed design data (invalid layer marker)');
       }
       for (let col = 0; col < cols; col++) {
         const column = layer[col];
         if (
-          data.readUInt8(offset++) != 0x09 ||
-          data.readUInt8(offset++) != 0x37 ||
-          data.readUInt8(offset++) != 0x01
+          data[offset++] != 0x09 ||
+          data[offset++] != 0x37 ||
+          data[offset++] != 0x01
         ) {
           throw new Error('Malformed design data (invalid column marker)');
         }
         for (let row = 0; row < rows; row++) {
-          const val = data.readUInt8(offset + (i == Layer.Silicon ? 1 : 0));
+          const val = data[offset + (i == Layer.Silicon ? 1 : 0)];
           if (i == Layer.Metal) {
             if (val == 0x04) {
               // Compensate possible bug with metal layer during export from original game.
@@ -165,12 +165,12 @@ export class DesignData {
         }
       }
     }
-    // Parse extra data from toBuffer() if present
+    // Parse extra data from toByteArray() if present
     if (offset < data.length) {
       if (data[offset++] == 0x06) {
         const nulIdx = data.indexOf(0x00, offset);
         const extraData = data.subarray(offset, nulIdx);
-        design.extraData = JSON.parse(extraData.toString());
+        design.extraData = JSON.parse(new TextDecoder().decode(extraData));
         offset += extraData.length + 1;
       } else {
         throw new Error('Malformed design data (invalid extra data marker)');
@@ -179,7 +179,7 @@ export class DesignData {
     return design;
   }
 
-  public toBuffer(): Buffer {
+  public toByteArray(): Uint8Array {
     const numLayers = this.layers.length;
     const { columns, rows } = this.dimensions;
     const szDimensions = 4;
@@ -190,7 +190,7 @@ export class DesignData {
       ? new TextEncoder().encode(JSON.stringify(this.extraData))
       : undefined;
     const szExtraData = extraDataBytes ? extraDataBytes.length + 2 : 0;
-    const buf = Buffer.alloc(
+    const buf = new Uint8Array(
       szDimensions + szLayerMarkers + szLayer + szLayerSilicon + szExtraData,
     );
     let offset = 0;
