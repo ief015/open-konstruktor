@@ -90,7 +90,7 @@ amount of material you have used to build your circuit. There is no limit to the
 can use.<br/>
 <br/>
 The design score is not related to your grade on the verification test, and is only used to
-compare your design to others.<br/>
+compare your design solution to others.<br/>
 <br/>
 In the next level, we'll look at the other materials available in the toolbox: silicon and vias.
 Click "Start Next Level" to continue.
@@ -335,7 +335,7 @@ Build an AND gate by using two NPN gates.
 The PNP gate and the NPN gate are the two fundamental building blocks of your circuits. By using
 them together, circuits can be designed to perform complex logical operations.<br/>
 <br/>
-It is worth noting that building an AND gate is possible only one NPN gate. However, doing so can
+It is worth noting that building an AND gate is possible with only one NPN gate. However, doing so can
 result with some side-effects due to propagation delay, which may or may not be beneficial to your
 circuit design. Feel free to give it a try and see what happens!<br/>
 <br/>
@@ -394,11 +394,11 @@ continue.
         pages: [
           {
             contentHtml: `
-<u><b>Propegation delay</b></u> is caused by the time it takes for a gate to transition between its
+<u><b>Propagation delay</b></u> is caused by the time it takes for a gate to transition between its
 opened and closed states.<br/>
 <br/>
 For most early levels and simple circuits, propagation delay is usually not a significant concern.
-Although it is important to understand as it does affect the behavior of your circuits.
+Although it is important to understand as it can affect the behavior of your circuits.
           `,
           },
           {
@@ -453,10 +453,10 @@ tutorial, there are two other categories of levels: <u><b>KOHCTPYKTOP</b></u> an
 <u><b>KOHCTPYKTOP</b></u>: These levels are based on the levels in the game KOHCTPYKTOP: Engineer of the
 People. There are only a handful, but they can quickly become very challenging.<br/>
 <br/>
-<u><b>Open-Konstruktor</b></u>: These levels feature a more linear progression of difficulty and often build
-upon previous levels. These levels start you off by designing very simple circuits, and by the end
-you will be building large, complex devices. If you're a newcomer to this game or KOHCTPYKTOP,
-these levels are a good place to start.
+<u><b>Open-Konstruktor</b></u> (Work in progress): These levels feature a more linear progression of
+difficulty and often build upon previous levels. These levels start you off by designing very simple
+circuits, and by the end you will be building large, complex devices. If you're a newcomer to this
+game or KOHCTPYKTOP, these levels are a good place to start.
           `,
           },
         ],
