@@ -1,5 +1,5 @@
-import { decode, decodeSync } from "@/serialization/decode";
-import { encode, encodeSync, /*encodeFromFile*/ } from "@/serialization/encode";
+import { decode } from '@/serialization/decode';
+import { encode } from '@/serialization/encode';
 import {
   DesignData,
   Layer,
@@ -7,24 +7,20 @@ import {
   MetalValue,
   GateValue,
   ViaValue,
-  ConnectionValue
-} from "./DesignData";
+  ConnectionValue,
+} from './DesignData';
 import type {
   DesignDataLayer,
   LayerColumn,
   LayerDimensions,
-} from "./DesignData";
-import CircuitDesignData from "@/serialization/CircuitDesignData";
-import SnippetDesignData from "@/serialization/SnippetDesignData";
-
+} from './DesignData';
+import CircuitDesignData from '@/serialization/CircuitDesignData';
+import SnippetDesignData from '@/serialization/SnippetDesignData';
 
 export type Base64String = string;
 export {
   encode,
-  encodeSync,
-  // encodeFromFile,
   decode,
-  decodeSync,
   DesignData,
   CircuitDesignData,
   SnippetDesignData,
@@ -36,8 +32,4 @@ export {
   ConnectionValue,
 };
 
-export type {
-  DesignDataLayer,
-  LayerColumn,
-  LayerDimensions,
-};
+export type { DesignDataLayer, LayerColumn, LayerDimensions };

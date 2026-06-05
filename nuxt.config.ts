@@ -1,12 +1,13 @@
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: false },
-  modules: ['@nuxtjs/tailwindcss', 'nuxt-vitest', '@vueuse/nuxt'],
   alias: {
     '@/*': './*',
   },
+  devtools: { enabled: false },
+  experimental: {
+    viteEnvironmentApi: true,
+  },
+  modules: ['@nuxtjs/tailwindcss', '@nuxt/test-utils/module', '@vueuse/nuxt'],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -20,15 +21,6 @@ export default defineNuxtConfig({
   },
   ssr: false,
   vite: {
-    plugins: [
-      nodePolyfills({
-        globals: {
-          Buffer: true,
-          global: true,
-          process: true,
-        },
-        protocolImports: true,
-      }),
-    ],
+    plugins: [],
   },
 });
