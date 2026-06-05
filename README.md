@@ -22,12 +22,14 @@ and expanding on it.
 The following features are planned:
 
 ### ✅️ Milestone 1
-Reimplementing circuit logic, design data compatibility
+*Reimplementing circuit logic, design data compatibility*
 
 ### ✅️ Milestone 2
-UI for drawing circuits, running simulations, design verification
+*UI for drawing circuits, running simulations, design verification*
 
-### Milestone 3
+### 🚧️ Milestone 3
+
+*Custom levels, workspace UI features*
 
 ⬜️ UI Overhaul: support tabbed workspaces  
 ⬜️ Editable scope timings (Prerequisite for custom levels)  
@@ -35,6 +37,8 @@ UI for drawing circuits, running simulations, design verification
 ⬜️ Graphical themes  
 
 ### Milestone 4
+
+*Multi-circuit projects, finish Open-Kon. Level pack*
 
 ⬜️ Multi-circuit designs for simulating entire devices  
 ⬜️ Support multi-circuit levels  
