@@ -14,6 +14,7 @@
         <a
           class="text-gray-200 underline"
           href="https://www.zachtronics.com/kohctpyktop-engineer-of-the-people"
+          target="_blank"
         >
           KOHCTPYKTOP: Engineer of the People.
         </a>
