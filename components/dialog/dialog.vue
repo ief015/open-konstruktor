@@ -1,18 +1,25 @@
 <template>
-  <DialogModal v-if="isOpen">
+  <DialogModal :class="isOpen ? 'block' : 'hidden'">
     <div class="flex flex-col gap-4">
       <slot name="title">
-        <span v-if="title" class="text-base font-bold">
+        <span
+          v-if="title"
+          class="text-base font-bold"
+          :class="titleClass"
+          :style="titleStyle"
+        >
           {{ title }}
         </span>
       </slot>
       <div class="text-xs">
-        <slot/>
+        <slot />
       </div>
       <div class="flex flex-row justify-end gap-2">
         <slot name="actions">
           <button v-if="!!btnOk" @click="onOk">{{ btnOkLabel }}</button>
-          <button v-if="!!btnCancel" @click="onCancel">{{ btnCancelLabel }}</button>
+          <button v-if="!!btnCancel" @click="onCancel">
+            {{ btnCancelLabel }}
+          </button>
         </slot>
       </div>
     </div>
@@ -20,16 +27,22 @@
 </template>
 
 <script setup lang="ts">
+const props = withDefaults(
+  defineProps<{
+    startOpen?: boolean;
+    title?: string;
+    titleClass?: string;
+    titleStyle?: string;
+    btnOk?: boolean | string;
+    btnCancel?: boolean | string;
+  }>(),
+  {
+    btnOk: true,
+    btnCancel: true,
+  },
+);
 
-const props = withDefaults(defineProps<{
-  startOpen?: boolean;
-  title?: string;
-  btnOk?: boolean|string;
-  btnCancel?: boolean|string;
-}>(), {
-  btnOk: true,
-  btnCancel: true,
-});
+const toolbox = useToolbox();
 
 const isOpen = defineModel<boolean>({
   default: false,
@@ -58,30 +71,33 @@ const btnCancelLabel = computed(() => {
 
 const show = () => {
   isOpen.value = true;
-}
+};
 
 const hide = () => {
   isOpen.value = false;
-}
+};
 
 const toggle = () => {
   isOpen.value = !isOpen.value;
-}
+};
 
 const onOk = () => {
   emit('ok');
   hide();
-}
+};
 
 const onCancel = () => {
   emit('cancel');
   hide();
-}
+};
 
 watch(isOpen, (opened) => {
   if (opened) {
+    toolbox.ignoreKeyShortcuts.value = true;
     emit('show');
   } else {
+    // FIXME: nested dialogs will cause this to re-enable shortcuts too early
+    toolbox.ignoreKeyShortcuts.value = false;
     emit('hide');
   }
 });
@@ -97,5 +113,4 @@ defineExpose({
   hide,
   toggle,
 });
-
 </script>

@@ -86,7 +86,7 @@ function onSelected(id?: string, _keepOpen?: boolean) {
 
 function onClick() {
   const keepOpen = props.items && props.items.length > 0;
-  onSelected(props.id ?? '', keepOpen);
+  onSelected(props.id, keepOpen);
 }
 
 watch(isOpen, (newVal) => {
@@ -98,6 +98,12 @@ watch(isOpen, (newVal) => {
 });
 
 defineExpose({
+  id: computed(() => props.id),
+  openMenu() {
+    if (props.items && props.items.length > 0) {
+      onSelected(props.id, true);
+    }
+  },
   closeMenu() {
     isOpen.value = false;
   },

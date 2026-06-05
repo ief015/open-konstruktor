@@ -130,4 +130,14 @@ if (props._root) {
     closeAllMenus();
   });
 }
+
+defineExpose({
+  openMenu(id: string) {
+    const item = itemRefs.value.find((ref) => ref.id === id);
+    if (item) {
+      item.openMenu();
+    }
+  },
+  closeAllMenus,
+});
 </script>

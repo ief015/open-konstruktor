@@ -26,6 +26,7 @@ export function useMenuItems() {
   );
   const items = computed((): MenuBarItem[] => [
     {
+      id: 'file',
       label: 'File',
       items: [
         { id: 'file/load-design', label: 'Load Design' },
@@ -35,13 +36,17 @@ export function useMenuItems() {
         { id: 'file/export', label: 'Export' },
         'divider',
         { id: 'file/clear', label: 'Clear' },
+        'divider',
+        { id: 'file/welcome', label: 'Welcome' },
       ],
     },
     {
+      id: 'view',
       label: 'View',
       items: [{ id: 'view/reset', label: 'Center' }],
     },
     {
+      id: 'levels',
       label: 'Levels',
       items: levelItems.value,
     },

@@ -1,6 +1,7 @@
 <template>
   <div>
     <MenuBar
+      ref="menuBar"
       class="font-ttw"
       :items="menuItems"
       horizontal
@@ -54,6 +55,12 @@
 <script setup lang="ts">
 import type { CircuitDesignData } from '@/serialization';
 import { useMenuItems } from '@/composables/menu-items';
+import { ResetViewEvent } from '@/components/circuit/field-events';
+import { OpenMenuEvent } from '@/components/menu/bar-app-events';
+import {
+  WelcomeDialogActionEvent,
+  WelcomeDialogOpenEvent,
+} from '@/components/dialog/welcome/welcome-events';
 
 const { items: menuItems } = useMenuItems();
 const { field, load, loadBlank } = useFieldGraph();
@@ -68,6 +75,7 @@ const fileInputLoad = ref<HTMLInputElement>();
 const exportCode = ref('');
 const exportCopied = ref(false);
 const importCode = ref('');
+const menuBar = useTemplateRef('menuBar');
 
 const onClear = () => {
   const data = field.value.getData() as CircuitDesignData;
@@ -198,8 +206,11 @@ const onSelected = (id?: string) => {
     case 'file/clear':
       onClear();
       return;
+    case 'file/welcome':
+      document.dispatchEvent(new WelcomeDialogOpenEvent());
+      return;
     case 'view/reset':
-      document.dispatchEvent(new Event('game/reset-view'));
+      document.dispatchEvent(new ResetViewEvent());
       return;
   }
   if (id.startsWith('level/')) {
@@ -213,6 +224,27 @@ useEventListener('keydown', (e) => {
     closeAllDialogs();
   }
 });
+
+useEventListener(
+  document,
+  OpenMenuEvent.eventType,
+  (event: OpenMenuEvent) => {},
+);
+
+useEventListener(
+  document,
+  WelcomeDialogActionEvent.eventType,
+  (event: WelcomeDialogActionEvent) => {
+    switch (event.action) {
+      case 'start-tutorial':
+        loadLevel('Tutorial 01 Introduction');
+        break;
+      case 'play-levels':
+        menuBar.value?.openMenu('levels');
+        break;
+    }
+  },
+);
 
 watch(importCode, (code) => {
   // remove newlines
