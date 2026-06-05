@@ -1,4 +1,11 @@
-import { CircuitSimulation, Network } from '@/simulation';
+import { CircuitSimulation, Network, PinNode } from '@/simulation';
+
+export function assignVCC(...pins: PinNode[]) {
+  pins.forEach((pin) => {
+    pin.label = 'VCC';
+    pin.active = true;
+  });
+}
 
 export interface LevelInfoPage {
   contentHtml: string;
@@ -6,11 +13,17 @@ export interface LevelInfoPage {
 
 export interface LevelInfo {
   title?: string;
-  pages: LevelInfoPage[];
+  pages?: LevelInfoPage[];
 }
 
-export interface CircuitSimulationFactoryEntry {
-  setup: (network: Network) => CircuitSimulation;
+export type CircuitSimulationFactories = { category: string } & (
+  | { items: CircuitSimulationFactory[] }
+  | { children: CircuitSimulationFactories[] }
+);
+
+export interface CircuitSimulationFactory {
+  key: string;
+  label?: string;
   width?: number;
   height?: number;
   pinRows?: number;
@@ -18,8 +31,5 @@ export interface CircuitSimulationFactoryEntry {
   info?: LevelInfo;
   infoCompleted?: LevelInfo;
   nextLevelID?: string;
+  setup: (network: Network) => CircuitSimulation;
 }
-
-export type CircuitSimulationFactory = CircuitSimulationFactoryEntry & {
-  key: string;
-};

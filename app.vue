@@ -6,7 +6,7 @@
           open-konstruktor
         </div>
         <div class="flex-1">
-          <MenuBar />
+          <MenuBarApp />
         </div>
       </div>
     </template>
