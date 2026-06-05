@@ -32,6 +32,7 @@
       </div>
       <div class="absolute inset-x-0 top-0 flex flex-row justify-center">
         <DialogInfoBox class="m-2 w-[1000px]" />
+        <DialogWelcome />
       </div>
     </div>
     <template #right>
