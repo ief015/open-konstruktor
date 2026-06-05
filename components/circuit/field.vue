@@ -503,7 +503,9 @@ const renderOverlay = () => {
   ctx.restore();
 };
 
-const renderAll = () => {
+const tilePreloader = useTileRenderer();
+const renderAll = async () => {
+  await tilePreloader.preloadImages();
   renderBackground();
   renderTiles();
   renderHot();
