@@ -30,7 +30,7 @@
         />
       </svg>
     </div>
-    <MenuBarMenu
+    <MenuBar
       v-if="items && items.length && isOpen"
       :class="`absolute z-10 ${props.menuDirection === 'down' ? 'top-full left-0' : '-top-2 left-full'}`"
       :items="items"
@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MenuBarItem, MenuBarTheme } from '@/components/menu/bar-menu.vue';
+import type { MenuBarItem, MenuBarTheme } from '@/components/menu/bar.vue';
 
 const props = defineProps<{
   id?: string;

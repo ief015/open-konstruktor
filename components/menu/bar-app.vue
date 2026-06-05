@@ -1,6 +1,6 @@
 <template>
   <div>
-    <MenuBarMenu
+    <MenuBar
       class="font-ttw"
       :items="menuItems"
       horizontal
@@ -55,7 +55,7 @@
 import type { CircuitDesignData } from '@/serialization';
 import { useMenuItems } from '@/composables/menu-items';
 
-const { items2: menuItems } = useMenuItems();
+const { items: menuItems } = useMenuItems();
 const { field, load, loadBlank } = useFieldGraph();
 const { load: loadSim, circuitFactory } = useCircuitSimulator();
 const { getLoader } = useCircuitLoaders();
