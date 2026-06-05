@@ -22,7 +22,10 @@ and expanding on it.
 The following features are planned:
 
 ### ✅️ Milestone 1
+Reimplementing circuit logic, design data compatibility
+
 ### ✅️ Milestone 2
+UI for drawing circuits, running simulations, design verification
 
 ### Milestone 3
 
