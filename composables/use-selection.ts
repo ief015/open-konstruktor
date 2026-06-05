@@ -1,21 +1,21 @@
-import { FieldGraph } from "@/simulation";
-import type { Point } from "@/simulation";
+import { FieldGraph } from '@/simulation';
+import type { Point } from '@/simulation';
 
-export type SelectionState = 'selecting' | 'selected' | 'dragging';
+export type SelectionState =
+  | 'selecting'
+  | 'selected'
+  | 'dragging'
+  | 'dragging-duplicate';
 
 const state = ref<SelectionState>();
 const start = ref<Point>();
 const end = ref<Point>();
-const bounds = computed<[
-  left: number,
-  top: number,
-  right: number,
-  bottom: number
-]|undefined>(() => {
-  if (!start.value || !end.value)
-    return undefined;
-  const [ sx, sy ] = start.value;
-  const [ ex, ey ] = end.value;
+const bounds = computed<
+  [left: number, top: number, right: number, bottom: number] | undefined
+>(() => {
+  if (!start.value || !end.value) return undefined;
+  const [sx, sy] = start.value;
+  const [ex, ey] = end.value;
   return [
     Math.min(sx, ex),
     Math.min(sy, ey),

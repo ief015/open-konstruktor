@@ -470,7 +470,11 @@ const renderOverlay = () => {
       ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
       ctx.restore();
     }
-    if (selectionFieldGraph.value && selectionState.value === 'dragging') {
+    if (
+      selectionFieldGraph.value &&
+      (selectionState.value === 'dragging' ||
+        selectionState.value === 'dragging-duplicate')
+    ) {
       ctx.save();
       ctx.translate(1, 1);
       const [left, top] = selectionBounds.value ?? [0, 0];
@@ -624,7 +628,11 @@ const startDraw = (e: MouseEvent) => {
 };
 
 const startSelection = (e: MouseEvent) => {
-  if (selectionState.value === 'dragging') return;
+  if (
+    selectionState.value === 'dragging' ||
+    selectionState.value === 'dragging-duplicate'
+  )
+    return;
   const mouseCoords = mouseToGrid(e.offsetX, e.offsetY);
   if (coordInSelection(mouseCoords)) {
     const [left, top, right, bottom] = selectionBounds.value!;
@@ -632,8 +640,10 @@ const startSelection = (e: MouseEvent) => {
     const end: Point = [right, bottom];
     if (!e.shiftKey) {
       field.value.clearRect(start, end, { enforceBounds: true });
+      selectionState.value = 'dragging';
+    } else {
+      selectionState.value = 'dragging-duplicate';
     }
-    selectionState.value = 'dragging';
     queueAnimFuncs.add(renderTiles);
     queueAnimFuncs.add(renderOverlay);
   } else {
@@ -669,7 +679,9 @@ const endSelection = () => {
       clearSelection();
       break;
     }
-    case 'dragging': {
+    case 'dragging':
+    case 'dragging-duplicate': {
+      const lastState = selectionState.value;
       selectionState.value = undefined;
       if (selectionFieldGraph.value && selectionBounds.value) {
         const [left, top, right, bottom] = selectionBounds.value;
@@ -695,12 +707,12 @@ const endSelection = () => {
         } else {
           if (selectionIsSnippet.value) {
             // Continue dragging the snippet
-            selectionState.value = 'dragging';
+            selectionState.value = lastState;
           } else {
             // Force the selection back to its original position
-            field.value.paste([left, top], selectionFieldGraph.value, {
-              overwrite: true,
-            });
+              field.value.paste([left, top], selectionFieldGraph.value, {
+                overwrite: true,
+              });
             selectionTranslate.value = [0, 0];
           }
         }
@@ -726,7 +738,10 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
       queueAnimFuncs.add(renderOverlay);
       break;
     case 'r':
-      if (selectionState.value === 'dragging') {
+      if (
+        selectionState.value === 'dragging' ||
+        selectionState.value === 'dragging-duplicate'
+      ) {
         if (e.shiftKey) {
           selectionFieldGraph.value.rotateCCW();
         } else {
@@ -809,6 +824,7 @@ watch([canvasMouseX, canvasMouseY], ([x, y], [oldX, oldY]) => {
   } else if (selectionState.value) {
     switch (selectionState.value) {
       case 'dragging':
+      case 'dragging-duplicate':
         if (selectionTranslate.value) {
           selectionTranslate.value[0] += dx / TILE_SIZE;
           selectionTranslate.value[1] += dy / TILE_SIZE;
