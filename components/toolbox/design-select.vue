@@ -88,6 +88,7 @@ const onDelete = async () => {
   const opt = selected.value[0];
   if (opt?.id && confirm(`Are you sure you want to delete "${opt.name}"?`)) {
     await deleteDesign(opt.id);
+    selected.value = [];
   }
 };
 </script>

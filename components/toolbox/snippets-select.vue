@@ -127,6 +127,7 @@ const onDelete = async () => {
     confirm(`Are you sure you want to delete snippet "${opt.name}"?`)
   ) {
     await deleteSnippet(opt.id);
+    selected.value = [];
   }
 };
 </script>
