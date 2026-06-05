@@ -18,8 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import type Dialog from '@/components/dialog/index.vue';
-
 export interface SaveSnippetFormData {
   name: string;
   category: string;
@@ -32,8 +30,12 @@ const emit = defineEmits<{
 
 const { categories } = useSavedSnippets();
 
-const formData = ref<SaveSnippetFormData>();
-const dialog = ref<InstanceType<typeof Dialog>>();
+const formData = ref<SaveSnippetFormData>({
+  name: '',
+  category: '',
+  description: '',
+});
+const dialog = useTemplateRef('dialog');
 
 const reset = () => {
   formData.value = { name: '', category: '', description: '' };
