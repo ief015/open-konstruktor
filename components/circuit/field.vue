@@ -31,6 +31,7 @@ import {
 import { FieldGraph, GateNode, PathNode } from '@/simulation';
 import type { Point } from '@/simulation';
 import type { ToolboxMode } from '@/composables/use-toolbox';
+import { ResetViewEvent } from '@/components/circuit/field-events';
 
 const TILE_SIZE = 13;
 const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);
@@ -881,10 +882,14 @@ useEventListener('keydown', (e) => {
   onKeyDownDeleteSelection(e);
 });
 
-useEventListener(document, 'game/reset-view', () => {
-  resetView();
-  queueAnimFuncs.add(renderAll);
-});
+useEventListener(
+  document,
+  ResetViewEvent.eventType,
+  (event: ResetViewEvent) => {
+    resetView();
+    queueAnimFuncs.add(renderAll);
+  },
+);
 
 useResizeObserver(canvas, (entries, obs) => {
   invalidateCanvasSizes();
