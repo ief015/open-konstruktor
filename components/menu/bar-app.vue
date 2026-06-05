@@ -5,6 +5,7 @@
       class="font-ttw"
       :items="menuItems"
       horizontal
+      no-hover-open
       @selected="onSelected"
     />
     <DialogModal v-if="showImportDialog">
