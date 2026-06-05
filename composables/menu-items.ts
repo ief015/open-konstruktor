@@ -23,7 +23,6 @@ export function useMenuItems() {
   const { loaders } = useCircuitLoaders();
   const clipboard = useClipboard();
   const selection = useSelection();
-  selection.bounds;
   const levelItems = computed((): MenuBarItem[] =>
     loaders.map(mapLoaderToMenuItem),
   );
@@ -53,7 +52,7 @@ export function useMenuItems() {
         {
           id: 'edit/paste',
           label: 'Paste',
-          disabled: !clipboard.text.value,
+          disabled: clipboard.copied.value,
         },
         'divider',
         { id: 'edit/clear', label: 'Clear' },
