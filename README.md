@@ -13,19 +13,16 @@ and expanding on it.
 ✅️ Realtime performance - simulate millions of Hz!  
 ✅️ Import/export designs with KOHCTPYKTOP compatibility  
 ✅️ Improved controls such as selection rotating and flipping  
-✅️ Design debugging tools: Pausing, stepping, looping  
+✅️ Design debugging tools: Pausing, stepping, looping, pause-on-error  
 ✅️ Original KOHCTPYKTOP level pack  
 ✅️ New tutorial levels  
 
 ## Work in progress
 
-⚠️ *Open-Konstructor is not abandoned, just on hiatus! I do plan on returning to this project to continue working on planned features in the nearish future.*
-
 The following features are planned:
 
-### Milestone 2
-🚧️ Saving/loading designs and snippets to files  
-🚧️ Debugging "Pause-on-error"  
+### ✅️ Milestone 1
+### ✅️ Milestone 2
 
 ### Milestone 3
 
