@@ -1,5 +1,3 @@
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   alias: {
@@ -23,12 +21,6 @@ export default defineNuxtConfig({
   },
   ssr: false,
   vite: {
-    plugins: [
-      /*nodePolyfills({
-        globals: { Buffer: true },
-        include: ['buffer'],
-        protocolImports: true,
-      }),*/
-    ],
+    plugins: [],
   },
 });
