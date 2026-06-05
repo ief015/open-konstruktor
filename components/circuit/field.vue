@@ -47,7 +47,7 @@ const canvasLayers = {
   overlay: document.createElement('canvas'),
 };
 
-const { field, dimensions, updateDesignScore } = useFieldGraph();
+const { field, dimensions, updateDesignScore, history } = useFieldGraph();
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 const {
   sim,
@@ -56,6 +56,7 @@ const {
   isRunning,
   stepsPerSecond,
   onRender: onCircuitRender,
+  stop: stopSim,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
 const images = useImageLoader();
@@ -560,6 +561,16 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   queueAnimFuncs.add(() => renderTiles({ bounds }));
 };
 
+const clear = () => {
+  stopSim();
+  field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
+    enforceBounds: true,
+  });
+  updateDesignScore();
+  queueAnimFuncs.add(renderAll);
+  history.push();
+};
+
 const panView = (dx: number, dy: number) => {
   const { minX, minY, maxX, maxY } = viewBounds.value;
   viewX.value = Math.max(minX, Math.min(maxX, viewX.value + dx));
@@ -626,6 +637,20 @@ const startDraw = (e: MouseEvent) => {
   isDrawing.value = true;
   prevDrawingCoords = mouseCoords;
   draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
+};
+
+const endDraw = (e: MouseEvent) => {
+  if (!isDrawing.value) return;
+  isDrawing.value = false;
+  history.push();
+};
+
+const startPan = (e: MouseEvent) => {
+  isPanning.value = true;
+};
+
+const endPan = (e: MouseEvent) => {
+  isPanning.value = false;
 };
 
 const startSelection = (e: MouseEvent) => {
@@ -767,6 +792,7 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
     field.value.clearRect(start, end, { enforceBounds: true });
     field.value.paste(start, selectionFieldGraph.value);
     queueAnimFuncs.add(renderTiles);
+    history.push();
   }
 };
 
@@ -783,6 +809,7 @@ const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
       endSelection();
       queueAnimFuncs.add(renderTiles);
       queueAnimFuncs.add(renderOverlay);
+      history.push();
       break;
   }
 };
@@ -808,7 +835,7 @@ const onMouseDown = (e: MouseEvent) => {
       }
       break;
     case 2:
-      isPanning.value = true;
+      startPan(e);
       break;
   }
 };
@@ -861,10 +888,10 @@ useEventListener('mouseup', (e) => {
   if (!canvas.value) return;
   switch (e.button) {
     case 0:
-      isDrawing.value = false;
+      endDraw(e);
       break;
     case 2:
-      isPanning.value = false;
+      endPan(e);
       break;
   }
 });
@@ -882,13 +909,42 @@ useEventListener('keydown', (e) => {
   onKeyDownDeleteSelection(e);
 });
 
+useEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'z' && e.ctrlKey) {
+    if (e.shiftKey) {
+      history.redo();
+      updateDesignScore();
+      queueAnimFuncs.add(renderAll);
+    } else {
+      history.undo();
+      updateDesignScore();
+      queueAnimFuncs.add(renderAll);
+    }
+  }
+});
+
 useEventListener(
   document,
   MenuBarActionEvent.eventType,
   (event: MenuBarActionEvent) => {
-    if (event.id === 'view/reset') {
-      resetView();
-      queueAnimFuncs.add(renderAll);
+    switch (event.id) {
+      case 'view/reset':
+        resetView();
+        queueAnimFuncs.add(renderAll);
+        break;
+      case 'edit/clear':
+        clear();
+        break;
+      case 'edit/undo':
+        history.undo();
+        updateDesignScore();
+        queueAnimFuncs.add(renderAll);
+        break;
+      case 'edit/redo':
+        history.redo();
+        updateDesignScore();
+        queueAnimFuncs.add(renderAll);
+        break;
     }
   },
 );

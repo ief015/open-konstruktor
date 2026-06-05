@@ -90,7 +90,7 @@ function onSelected(id?: string, _keepOpen?: boolean) {
 }
 
 function onClick() {
-  const keepOpen = props.items && props.items.length > 0;
+  const keepOpen = !forceOpened.value && props.items && props.items.length > 0;
   onSelected(props.id, keepOpen);
 }
 

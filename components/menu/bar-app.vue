@@ -54,13 +54,12 @@
 </template>
 
 <script setup lang="ts">
-import type { CircuitDesignData } from '@/serialization';
 import { useMenuItems } from '@/composables/menu-items';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
 
 const { items: menuItems } = useMenuItems();
-const { field, load, loadBlank } = useFieldGraph();
+const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
 const { load: loadSim, circuitFactory } = useCircuitSimulator();
 const { getLoader } = useCircuitLoaders();
 const { ignoreKeyShortcuts } = useToolbox();
@@ -74,20 +73,12 @@ const exportCopied = ref(false);
 const importCode = ref('');
 const menuBar = useTemplateRef('menuBar');
 
-const onClear = () => {
-  const data = field.value.getData() as CircuitDesignData;
-  const { columns, rows } = data.getDimensions();
-  const pinRows = data.getPinRowsCount();
-  loadBlank(columns, rows, pinRows);
-  loadSim(field.value);
-};
-
 const loadLevel = (levelName: string) => {
   const loader = getLoader(levelName);
   if (!loader) {
     throw new Error(`Unknown loader: ${levelName}`);
   }
-  loadBlank(loader.width, loader.height, loader.pinRows);
+  loadBlankDesign(loader.width, loader.height, loader.pinRows);
   loadSim(field.value, loader);
 };
 
@@ -129,7 +120,7 @@ const onFileSelectedLoad = () => {
         if (levelKey && circuitFactory.value?.key !== levelKey) {
           loadLevel(levelKey);
         }
-        load(data);
+        loadDesign(data);
         loadSim(field.value);
       } catch (e: any) {
         alert(`Failed to load:\n${e.message ?? e}`);
@@ -177,7 +168,7 @@ const onCopyExport = () => {
 const onImport = () => {
   if (!importCode.value) return;
   try {
-    load(importCode.value);
+    loadDesign(importCode.value);
     loadSim(field.value);
     showImportDialog.value = false;
   } catch (e: any) {
@@ -200,9 +191,6 @@ const onSelected = (id?: string) => {
       return;
     case 'file/export':
       onShowExportDialog();
-      return;
-    case 'file/clear':
-      onClear();
       return;
   }
   if (id.startsWith('level/')) {

@@ -581,12 +581,7 @@ export default class FieldGraph {
   }
 
   public clearRect(start: Point, end: Point, options: ClearOptions = {}) {
-    const { enforceBounds } = Object.assign(
-      <CopyOptions>{
-        enforceBounds: false,
-      },
-      options,
-    );
+    const { enforceBounds = false } = options;
     const { data } = this;
     const { columns, rows } = this.getDimensions();
     const [x1, y1] = start;
@@ -633,12 +628,7 @@ export default class FieldGraph {
   }
 
   public copy(start: Point, end: Point, options: CopyOptions = {}): FieldGraph {
-    const { enforceBounds } = Object.assign(
-      <CopyOptions>{
-        enforceBounds: false,
-      },
-      options,
-    );
+    const { enforceBounds = false } = options;
     const { data } = this;
     const { columns, rows } = this.getDimensions();
     const [x1, y1] = start;
@@ -768,12 +758,7 @@ export default class FieldGraph {
     graph: FieldGraph,
     options: PasteOptions = {},
   ): boolean {
-    const { overwrite } = Object.assign(
-      <PasteOptions>{
-        overwrite: false,
-      },
-      options,
-    );
+    const { overwrite = false } = options;
     if (!overwrite && !this.canPaste(leftTop, graph)) {
       return false;
     }

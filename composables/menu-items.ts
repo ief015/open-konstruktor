@@ -35,9 +35,17 @@ export function useMenuItems() {
         { id: 'file/import', label: 'Import' },
         { id: 'file/export', label: 'Export' },
         'divider',
-        { id: 'file/clear', label: 'Clear' },
-        'divider',
         { id: 'file/welcome', label: 'Welcome' },
+      ],
+    },
+    {
+      id: 'edit',
+      label: 'Edit',
+      items: [
+        { id: 'edit/undo', label: 'Undo' },
+        { id: 'edit/redo', label: 'Redo' },
+        'divider',
+        { id: 'edit/clear', label: 'Clear' },
       ],
     },
     {
