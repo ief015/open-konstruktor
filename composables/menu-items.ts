@@ -21,6 +21,9 @@ function mapLoaderToMenuItem(loader: CircuitSimulationFactories): MenuBarItem {
 
 export function useMenuItems() {
   const { loaders } = useCircuitLoaders();
+  const clipboard = useClipboard();
+  const selection = useSelection();
+  selection.bounds;
   const levelItems = computed((): MenuBarItem[] =>
     loaders.map(mapLoaderToMenuItem),
   );
@@ -44,6 +47,14 @@ export function useMenuItems() {
       items: [
         { id: 'edit/undo', label: 'Undo' },
         { id: 'edit/redo', label: 'Redo' },
+        'divider',
+        { id: 'edit/cut', label: 'Cut', disabled: !selection.bounds.value },
+        { id: 'edit/copy', label: 'Copy', disabled: !selection.bounds.value },
+        {
+          id: 'edit/paste',
+          label: 'Paste',
+          disabled: !clipboard.text.value,
+        },
         'divider',
         { id: 'edit/clear', label: 'Clear' },
       ],

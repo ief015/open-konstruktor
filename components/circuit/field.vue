@@ -923,6 +923,68 @@ useEventListener('keydown', (e) => {
   }
 });
 
+const clipboard = useClipboard();
+useEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+    switch (k) {
+      case 'c': {
+        if (selectionFieldGraph.value) {
+          const data = selectionFieldGraph.value.toSaveString();
+          clipboard.copy(data);
+          console.log('Copied selection to clipboard');
+        }
+        break;
+      }
+      case 'x': {
+        if (selectionFieldGraph.value) {
+          const data = selectionFieldGraph.value.toSaveString();
+          clipboard.copy(data);
+          const [left, top, right, bottom] = selectionBounds.value!;
+          const start: Point = [left, top];
+          const end: Point = [right, bottom];
+          field.value.clearRect(start, end, { enforceBounds: true });
+          endSelection();
+          queueAnimFuncs.add(renderTiles);
+          queueAnimFuncs.add(renderOverlay);
+          history.push();
+          console.log('Cut selection to clipboard');
+        }
+        break;
+      }
+      case 'v': {
+        try {
+          if (!clipboard.text.value) return;
+          const text = clipboard.text.value;
+          const graph = FieldGraph.from(text, 'snippet');
+          const { columns, rows } = graph.getDimensions();
+          if (columns > 0 && rows > 0) {
+            selectionFieldGraph.value = graph;
+            const viewX =
+              Math.ceil(selectionFieldView.value[0] / TILE_SIZE) || 0;
+            const viewY =
+              Math.ceil(selectionFieldView.value[1] / TILE_SIZE) || 0;
+            selectionTranslate.value = [
+              coordMouseX.value - columns / 2,
+              coordMouseY.value - rows / 2,
+            ];
+            selectionStart.value = [0, 0];
+            selectionEnd.value = [columns - 1, rows - 1];
+            selectionIsSnippet.value = true;
+            selectionState.value = 'dragging';
+            toolBoxMode.value = 'select';
+            queueAnimFuncs.add(renderOverlay);
+            console.log('Pasted selection from clipboard');
+          }
+        } catch (err) {
+          console.error('Failed to parse clipboard data as field graph', err);
+        }
+        break;
+      }
+    }
+  }
+});
+
 useEventListener(
   document,
   MenuBarActionEvent.eventType,
