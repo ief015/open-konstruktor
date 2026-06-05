@@ -932,7 +932,6 @@ useEventListener('keydown', (e) => {
         if (selectionFieldGraph.value) {
           const data = selectionFieldGraph.value.toSaveString();
           clipboard.copy(data);
-          console.log('Copied selection to clipboard');
         }
         break;
       }
@@ -948,7 +947,6 @@ useEventListener('keydown', (e) => {
           queueAnimFuncs.add(renderTiles);
           queueAnimFuncs.add(renderOverlay);
           history.push();
-          console.log('Cut selection to clipboard');
         }
         break;
       }
@@ -974,7 +972,6 @@ useEventListener('keydown', (e) => {
             selectionState.value = 'dragging';
             toolBoxMode.value = 'select';
             queueAnimFuncs.add(renderOverlay);
-            console.log('Pasted selection from clipboard');
           }
         } catch (err) {
           console.error('Failed to parse clipboard data as field graph', err);
