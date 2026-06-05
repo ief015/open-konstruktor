@@ -7,11 +7,11 @@ import { openkonstruktor } from '@/circuits/open-konstruktor';
 import { kohctpyktop } from '@/circuits/kohctpyktop';
 import { debugLevels } from '@/circuits/debug-levels';
 
-const findLoaderById = (
-  loaders: CircuitSimulationFactories[],
+export function findLoaderById(
+  loaders: CircuitSimulationFactories | CircuitSimulationFactories[],
   id: string,
-): CircuitSimulationFactory | null => {
-  for (const loader of loaders) {
+): CircuitSimulationFactory | null {
+  for (const loader of Array.isArray(loaders) ? loaders : [loaders]) {
     if ('items' in loader) {
       const found = loader.items.find((item) => item.key === id);
       if (found) {
@@ -25,7 +25,7 @@ const findLoaderById = (
     }
   }
   return null;
-};
+}
 
 export default function useCircuitLoaders() {
   const cfg = useRuntimeConfig();
