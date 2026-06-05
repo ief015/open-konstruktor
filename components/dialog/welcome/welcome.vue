@@ -28,10 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import {
-  WelcomeDialogActionEvent,
-  WelcomeDialogOpenEvent,
-} from '@/components/dialog/welcome/welcome-events';
+import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
+import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 
 const dialog = useTemplateRef('dialog');
 
@@ -52,9 +50,11 @@ function onClickClose() {
 
 useEventListener(
   document,
-  WelcomeDialogOpenEvent.eventType,
-  (event: WelcomeDialogOpenEvent) => {
-    dialog.value?.show();
+  MenuBarActionEvent.eventType,
+  (event: MenuBarActionEvent) => {
+    if (event.id === 'file/welcome') {
+      dialog.value?.show();
+    }
   },
 );
 </script>

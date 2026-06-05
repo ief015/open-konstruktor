@@ -31,7 +31,7 @@ import {
 import { FieldGraph, GateNode, PathNode } from '@/simulation';
 import type { Point } from '@/simulation';
 import type { ToolboxMode } from '@/composables/use-toolbox';
-import { ResetViewEvent } from '@/components/circuit/field-events';
+import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 
 const TILE_SIZE = 13;
 const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);
@@ -884,10 +884,12 @@ useEventListener('keydown', (e) => {
 
 useEventListener(
   document,
-  ResetViewEvent.eventType,
-  (event: ResetViewEvent) => {
-    resetView();
-    queueAnimFuncs.add(renderAll);
+  MenuBarActionEvent.eventType,
+  (event: MenuBarActionEvent) => {
+    if (event.id === 'view/reset') {
+      resetView();
+      queueAnimFuncs.add(renderAll);
+    }
   },
 );
 

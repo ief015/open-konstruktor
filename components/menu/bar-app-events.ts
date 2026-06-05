@@ -1,6 +1,6 @@
-export class OpenMenuEvent extends Event {
-  static eventType = 'ok/open-menu';
+export class MenuBarActionEvent extends Event {
+  static eventType = 'ok/menu-bar-action';
   constructor(public id?: string) {
-    super(OpenMenuEvent.eventType);
+    super(MenuBarActionEvent.eventType);
   }
 }

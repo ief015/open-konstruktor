@@ -56,12 +56,8 @@
 <script setup lang="ts">
 import type { CircuitDesignData } from '@/serialization';
 import { useMenuItems } from '@/composables/menu-items';
-import { ResetViewEvent } from '@/components/circuit/field-events';
-import { OpenMenuEvent } from '@/components/menu/bar-app-events';
-import {
-  WelcomeDialogActionEvent,
-  WelcomeDialogOpenEvent,
-} from '@/components/dialog/welcome/welcome-events';
+import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
+import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
 
 const { items: menuItems } = useMenuItems();
 const { field, load, loadBlank } = useFieldGraph();
@@ -191,6 +187,7 @@ const onImport = () => {
 
 const onSelected = (id?: string) => {
   if (!id) return;
+  document.dispatchEvent(new MenuBarActionEvent(id));
   switch (id) {
     case 'file/load-design':
       onLoadDesign();
@@ -207,12 +204,6 @@ const onSelected = (id?: string) => {
     case 'file/clear':
       onClear();
       return;
-    case 'file/welcome':
-      document.dispatchEvent(new WelcomeDialogOpenEvent());
-      return;
-    case 'view/reset':
-      document.dispatchEvent(new ResetViewEvent());
-      return;
   }
   if (id.startsWith('level/')) {
     const loaderKey = id.slice('level/'.length);
@@ -225,12 +216,6 @@ useEventListener('keydown', (e) => {
     closeAllDialogs();
   }
 });
-
-useEventListener(
-  document,
-  OpenMenuEvent.eventType,
-  (event: OpenMenuEvent) => {},
-);
 
 useEventListener(
   document,
