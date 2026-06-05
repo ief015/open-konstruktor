@@ -87,7 +87,6 @@ function onSelected(id?: string, _keepOpen?: boolean) {
 function onClick() {
   const keepOpen = props.items && props.items.length > 0;
   onSelected(props.id ?? '', keepOpen);
-  console.log('Clicked menu item:', props.id, keepOpen);
 }
 
 watch(isOpen, (newVal) => {

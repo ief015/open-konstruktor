@@ -65,7 +65,6 @@ const levelInfoPage = computed<LevelInfoPage | undefined>(() => {
 
 const nextLevelId = computed<string | undefined>(() => {
   if (completedAvailable.value) {
-    console.log(circuitFactory.value.nextLevelID);
     return circuitFactory.value.nextLevelID;
   } else {
     return undefined;
