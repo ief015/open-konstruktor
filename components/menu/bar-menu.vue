@@ -1,9 +1,6 @@
-<!-- Homebrewed menu bar to get rid of existing external dependencies -->
-
 <template>
   <div
     v-if="horizontal"
-    @click="onClick"
     class="flex flex-row items-center px-2 select-none overflow-visible"
     :style="{
       'background-color': theme.background,
@@ -14,13 +11,10 @@
       v-for="(item, idx) in items"
       :key="item === 'divider' ? `divider-${idx}` : item.id"
     >
-      <div
-        v-if="item === 'divider'"
-        class="bg-neutral-700 h-full w-[1px] mx-1"
-      />
+      <div v-if="item === 'divider'" class="bg-black h-full w-[1px] mx-1" />
       <MenuBarMenuItem
         v-else
-        :ref="(ref) => (itemRefs[idx] = ref)"
+        :ref="(ref) => assignRef(idx, ref)"
         :id="item.id"
         :label="item.label"
         :items="item.items"
@@ -33,8 +27,7 @@
   </div>
   <div
     v-else
-    @click="onClick"
-    class="flex flex-col py-2 min-w-32 max-w-80 w-max rounded shadow"
+    class="flex flex-col py-2 min-w-32 max-w-80 w-max shadow border rounded border-solid border-black"
     :style="{
       'background-color': theme.background,
       color: theme.foreground,
@@ -44,14 +37,11 @@
       v-for="(item, idx) in items"
       :key="item === 'divider' ? `divider-${idx}` : item.id"
     >
-      <div
-        v-if="item === 'divider'"
-        class="w-full h-[1px] bg-neutral-700 my-1"
-      />
+      <div v-if="item === 'divider'" class="w-full h-[1px] bg-black my-1" />
       <MenuBarMenuItem
         v-else
         class="py-2"
-        :ref="(ref) => (itemRefs[idx] = ref)"
+        :ref="(ref) => assignRef(idx, ref)"
         :id="item.id"
         :label="item.label"
         :items="item.items"
@@ -65,6 +55,9 @@
 </template>
 
 <script setup lang="ts">
+import type BarMenuItem from '@/components/menu/bar-menu-item.vue';
+import type { ComponentPublicInstance } from 'vue';
+
 export type MenuBarItem =
   | {
       id?: string;
@@ -100,10 +93,18 @@ const props = withDefaults(
 );
 
 const emits = defineEmits<{
-  selected: [id: string];
+  selected: [id?: string, _keepOpen?: boolean];
 }>();
 
-const itemRefs = ref<any>([]);
+const itemRefs = ref<InstanceType<typeof BarMenuItem>[]>([]);
+
+function assignRef(
+  index: number,
+  ref: ComponentPublicInstance | Element | null,
+) {
+  if (ref === null) return;
+  itemRefs.value[index] = ref as InstanceType<typeof BarMenuItem>;
+}
 
 function closeAllMenus() {
   for (const ref of itemRefs.value) {
@@ -119,15 +120,9 @@ function onMenuOpened(itemIdx: number) {
   }
 }
 
-function onSelected(id: string) {
-  closeAllMenus();
-  emits('selected', id);
-}
-
-function onClick(event: MouseEvent) {
-  if (props._root) {
-    event.stopPropagation();
-  }
+function onSelected(id?: string, _keepOpen?: boolean) {
+  if (!_keepOpen) closeAllMenus();
+  emits('selected', id, _keepOpen);
 }
 
 if (props._root) {

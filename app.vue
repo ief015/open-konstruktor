@@ -6,7 +6,7 @@
           open-konstruktor
         </div>
         <div class="flex-1">
-          <MenuBarMenu class="font-ttw" :items="menuItems" horizontal />
+          <MenuBarApp />
         </div>
       </div>
     </template>
@@ -45,11 +45,6 @@
     </template>
   </NuxtLayout>
 </template>
-
-<script setup lang="ts">
-import { useMenuItems } from '@/composables/menu-items';
-const { items2: menuItems } = useMenuItems();
-</script>
 
 <style scoped>
 .bottom-border {

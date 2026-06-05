@@ -1,8 +1,6 @@
-<!-- Menu list item -->
-
 <template>
   <div
-    @click="onClick"
+    @click.stop="onClick"
     class="relative flex flex-row gap-2 items-center px-2 cursor-pointer"
     :style="{
       'background-color': isOpen ? theme.backgroundHover : theme.background,
@@ -57,7 +55,7 @@ const props = defineProps<{
 }>();
 
 const emits = defineEmits<{
-  selected: [id: string];
+  selected: [id?: string, _keepOpen?: boolean];
   menuOpened: [];
   menuClosed: [];
 }>();
@@ -77,18 +75,19 @@ const isOpen = computed({
   },
 });
 
-function onSelected(id: string) {
-  isOpen.value = false;
-  emits('selected', id);
+function onSelected(id?: string, _keepOpen?: boolean) {
+  if (_keepOpen) {
+    forceOpened.value = true;
+  } else {
+    isOpen.value = false;
+  }
+  emits('selected', id, _keepOpen);
 }
 
 function onClick() {
-  if (props.id) {
-    isOpen.value = false;
-    emits('selected', props.id);
-  } else if (props.items && props.items.length) {
-    forceOpened.value = true;
-  }
+  const keepOpen = props.items && props.items.length > 0;
+  onSelected(props.id ?? '', keepOpen);
+  console.log('Clicked menu item:', props.id, keepOpen);
 }
 
 watch(isOpen, (newVal) => {
