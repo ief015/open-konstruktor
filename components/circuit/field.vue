@@ -56,6 +56,7 @@ const {
   isRunning,
   stepsPerSecond,
   onRender: onCircuitRender,
+  stop: stopSim,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
 const images = useImageLoader();
@@ -560,6 +561,15 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   queueAnimFuncs.add(() => renderTiles({ bounds }));
 };
 
+const clear = () => {
+  stopSim();
+  field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
+    enforceBounds: true,
+  });
+  updateDesignScore();
+  queueAnimFuncs.add(renderAll);
+};
+
 const panView = (dx: number, dy: number) => {
   const { minX, minY, maxX, maxY } = viewBounds.value;
   viewX.value = Math.max(minX, Math.min(maxX, viewX.value + dx));
@@ -886,9 +896,14 @@ useEventListener(
   document,
   MenuBarActionEvent.eventType,
   (event: MenuBarActionEvent) => {
-    if (event.id === 'view/reset') {
-      resetView();
-      queueAnimFuncs.add(renderAll);
+    switch (event.id) {
+      case 'view/reset':
+        resetView();
+        queueAnimFuncs.add(renderAll);
+        break;
+      case 'file/clear':
+        clear();
+        break;
     }
   },
 );
