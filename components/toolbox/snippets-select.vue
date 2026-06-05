@@ -2,24 +2,34 @@
   <div class="flex flex-col">
     <select multiple v-model="selected" class="flex-1">
       <optgroup v-for="snippet in groupsSorted" :label="snippet.label">
-        <option v-for="option in snippet.options" :value="option" @dblclick="onSelect(option)">
+        <option
+          v-for="option in snippet.options"
+          :value="option"
+          @dblclick="onSelect(option)"
+        >
           {{ option.name }}
         </option>
       </optgroup>
     </select>
     <div class="flex flex-row m-1 gap-1">
-      <button class="flex-1" @click="onSave" :disabled="!selectionFieldGraph">Save</button>
-      <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">Load</button>
-      <button class="flex-1" @click="onDelete" :disabled="!selected.length">Delete</button>
+      <button class="flex-1" @click="onSave" :disabled="!selectionFieldGraph">
+        Save
+      </button>
+      <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">
+        Load
+      </button>
+      <button class="flex-1" @click="onDelete" :disabled="!selected.length">
+        Delete
+      </button>
     </div>
     <DialogSnippetsSave v-model="showSaveDialog" @save="onSaveSubmit" />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { SaveSnippetFormData } from "@/components/dialog/snippets/save.vue";
-import type { SnippetRecord } from "@/composables/use-saved-snippets";
-import { FieldGraph } from "@/simulation";
+import type { SaveSnippetFormData } from '@/components/dialog/snippets/save.vue';
+import type { SnippetRecord } from '@/composables/use-saved-snippets';
+import { FieldGraph } from '@/simulation';
 
 const fieldCanvas = ref();
 const updateFieldCanvas = () => {
@@ -28,14 +38,12 @@ const updateFieldCanvas = () => {
     console.warn('Field canvas not found, retrying...');
     nextTick(updateFieldCanvas);
   }
-}
+};
 updateFieldCanvas();
 
 const TILE_SIZE = 13; // TODO: this needs to be shared with field.vue
-const {
-  elementX: canvasMouseX,
-  elementY: canvasMouseY,
-} = useMouseInElement(fieldCanvas);
+const { elementX: canvasMouseX, elementY: canvasMouseY } =
+  useMouseInElement(fieldCanvas);
 
 const coordMouseX = computed(() => {
   return Math.floor(canvasMouseX.value / TILE_SIZE);
@@ -46,7 +54,8 @@ const coordMouseY = computed(() => {
 
 const showSaveDialog = ref(false);
 
-const { groups, snippets, categories, saveSnippet, deleteSnippet } = useSavedSnippets();
+const { groups, snippets, categories, saveSnippet, deleteSnippet } =
+  useSavedSnippets();
 const {
   start: startSelection,
   end: endSelection,
@@ -68,8 +77,8 @@ const loadOption = async (opt: SnippetRecord) => {
   const field = FieldGraph.from(opt.data, 'snippet');
   const { columns, rows } = field.getDimensions();
   selectionFieldGraph.value = field;
-  startSelection.value = [ 0, 0 ];
-  endSelection.value = [ columns - 1, rows - 1 ];
+  startSelection.value = [0, 0];
+  endSelection.value = [columns - 1, rows - 1];
   const viewX = Math.ceil(selectionFieldView.value[0] / TILE_SIZE) || 0;
   const viewY = Math.ceil(selectionFieldView.value[1] / TILE_SIZE) || 0;
   translateSelection.value = [
@@ -79,21 +88,19 @@ const loadOption = async (opt: SnippetRecord) => {
   selectionIsSnippet.value = true;
   selectionState.value = 'dragging';
   toolboxMode.value = 'select';
-}
+};
 
 const onSelect = (opt: SnippetRecord) => {
   loadOption(opt);
-}
+};
 
 const onSave = () => {
-  if (!selectionFieldGraph.value)
-    return;
+  if (!selectionFieldGraph.value) return;
   showSaveDialog.value = true;
-}
+};
 
 const onSaveSubmit = async (formData: SaveSnippetFormData) => {
-  if (!selectionFieldGraph.value)
-    return;
+  if (!selectionFieldGraph.value) return;
   const { columns, rows } = selectionFieldGraph.value.getDimensions();
   const data = selectionFieldGraph.value.toSaveString();
   await saveSnippet({
@@ -104,20 +111,22 @@ const onSaveSubmit = async (formData: SaveSnippetFormData) => {
     width: columns,
     height: rows,
   });
-}
+};
 
 const onLoad = () => {
   const opt = selected.value[0];
   if (opt) {
     loadOption(opt);
   }
-}
+};
 
 const onDelete = async () => {
   const opt = selected.value[0];
-  if (opt?.id && confirm(`Are you sure you want to delete snippet "${opt.name}"?`)) {
+  if (
+    opt?.id &&
+    confirm(`Are you sure you want to delete snippet "${opt.name}"?`)
+  ) {
     await deleteSnippet(opt.id);
   }
-}
-
+};
 </script>

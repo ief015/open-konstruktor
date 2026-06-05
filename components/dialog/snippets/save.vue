@@ -1,5 +1,11 @@
 <template>
-  <Dialog ref="dialog" title="Save Snippet" btn-ok="Save" @ok="onSave" @show="onShow">
+  <Dialog
+    ref="dialog"
+    title="Save Snippet"
+    btn-ok="Save"
+    @ok="onSave"
+    @show="onShow"
+  >
     <form class="flex flex-col gap-2">
       <label for="name">Snippet name</label>
       <input name="name" type="text" v-model="formData!.name" />
@@ -18,10 +24,10 @@ export interface SaveSnippetFormData {
   name: string;
   category: string;
   description: string;
-};
+}
 
 const emit = defineEmits<{
-  save: [formData: SaveSnippetFormData]
+  save: [formData: SaveSnippetFormData];
 }>();
 
 const { categories } = useSavedSnippets();
@@ -31,14 +37,13 @@ const dialog = ref<InstanceType<typeof Dialog>>();
 
 const reset = () => {
   formData.value = { name: '', category: '', description: '' };
-}
+};
 
 const onShow = () => {
   reset();
-}
+};
 
 const onSave = () => {
   emit('save', formData.value!);
-}
-
+};
 </script>
