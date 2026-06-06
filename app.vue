@@ -42,10 +42,26 @@
       </div>
     </template>
     <template #bottom>
-      <div class="h-[1.5em] top-border"></div>
+      <div class="h-[1.5em] top-border">
+        <div
+          class="flex flex-row justify-between items-center h-full font-mono text-sm"
+        >
+          <div class="opacity-75 pl-1 text-nowrap overflow-hidden">
+            {{ status.text.value }}
+          </div>
+          <div class="opacity-30 pr-1 select-none">
+            {{ config.public.appVersion }}
+          </div>
+        </div>
+      </div>
     </template>
   </NuxtLayout>
 </template>
+
+<script setup lang="ts">
+const config = useRuntimeConfig();
+const status = useStatusBar();
+</script>
 
 <style scoped>
 .bottom-border {

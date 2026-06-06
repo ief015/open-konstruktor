@@ -41,6 +41,7 @@ interface ToolkitItem {
   mode: ToolboxMode;
   classes?: string;
   labelClass?: string;
+  description?: string;
   key?: string;
 }
 
@@ -61,6 +62,8 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'Select',
     mode: 'select',
+    description:
+      'Click + drag selection tool. Drag selection to move, hold shift to duplicate. R to rotate. F (+ Shift) to flip',
     key: '1',
   },
   'divider',
@@ -68,18 +71,24 @@ const toolkit: (ToolkitItem | 'divider')[] = [
     name: 'Metal',
     mode: 'draw-metal',
     classes: 'bg-metal text-black font-bold',
+    description:
+      'Metal tool. Basic conductor, can connect to pins. Connects to silicon with vias.',
     key: '2',
   },
   {
     name: 'P-Type',
     mode: 'draw-p-silicon',
     classes: 'bg-ptype text-black font-bold',
+    description:
+      'P-Type silicon tool. Connect N-Type silicon with this to create a PNP gate.',
     key: '3',
   },
   {
     name: 'N-Type',
     mode: 'draw-n-silicon',
     classes: 'bg-ntype text-black font-bold',
+    description:
+      'N-Type silicon tool. Connect P-Type silicon with this to create an NPN gate.',
     key: '4',
   },
   {
@@ -87,43 +96,45 @@ const toolkit: (ToolkitItem | 'divider')[] = [
     mode: 'draw-via',
     icon: '/tiles/link.png',
     classes: 'bg-neutral-400 text-black font-bold',
+    description: 'Via tool. Place on silicon to connect to metal layer.',
     key: '5',
   },
   'divider',
   {
     name: 'Erase',
     mode: 'erase',
+    description: 'Eraser tool. Removes material from all layers.',
     key: '6',
   },
   {
     name: 'Erase (Metal)',
     mode: 'erase-metal',
+    description: 'Metal eraser. Removes only metal.',
     key: '7',
   },
   {
     name: 'Erase (Silicon)',
     mode: 'erase-silicon',
+    description: 'Silicon eraser. Removes only silicon.',
     key: '8',
   },
   {
     name: 'Erase (Vias)',
     mode: 'erase-via',
+    description: 'Via eraser. Removes only vias.',
     key: '9',
   },
   {
     name: 'Erase (Gates)',
     mode: 'erase-gate',
+    description: 'Gate eraser. Disconnects gates without removing silicon.',
     key: '0',
   },
 ];
 
 const { mode, modifiers, ignoreKeyShortcuts } = useToolbox();
 
-const currentTool = computed(() => {
-  return toolkit.find((item) => {
-    return item !== 'divider' && item.mode === mode.value;
-  }) as ToolkitItem | undefined;
-});
+const status = useStatusBar();
 
 const onChange = (mode: ToolboxMode, prevMode: ToolboxMode) => {
   emit('change', mode, prevMode);
@@ -133,6 +144,11 @@ const onClickTool = (item: ToolkitItem) => {
   const toMode = item.mode === mode.value ? 'none' : item.mode;
   const prevMode = mode.value;
   mode.value = toMode;
+  if (toMode === 'none') {
+    status.setText('');
+  } else {
+    status.setText(item.description ?? '');
+  }
   onChange(toMode, prevMode);
 };
 
