@@ -266,9 +266,7 @@ const kohctpyktop: CircuitSimulationFactories = {
 
         {
           key: '05 KO223 DUAL FIXED FREQUENCY OSCILLATOR',
-          info: {
-            title: '05 - KO223 - DUAL FIXED FREQUENCY OSCILLATOR',
-          },
+          label: '05 - KO223 - DUAL FIXED FREQUENCY OSCILLATOR',
           setup: (network) => {
             const pins = network.getPinNodes();
             if (pins.length !== 12) {
