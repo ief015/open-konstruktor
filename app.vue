@@ -22,7 +22,7 @@
           <CircuitField />
         </div>
         <div class="top-border">
-          <CircuitScope class="min-h-[10em]" />
+          <CircuitScope />
         </div>
         <div class="top-border py-2">
           <CircuitControls class="w-full h-full" />

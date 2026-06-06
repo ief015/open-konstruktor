@@ -1,15 +1,19 @@
 <template>
-  <div
-    class="flex flex-col justify-between"
-    :style="{ 'background-color': COLOR_CHART }"
-  >
+  <div :style="{ 'background-color': COLOR_CHART }">
     <div
       ref="canvasContainer"
-      :class="`m-[8px] overflow-auto max-h-[${maxScopeHeight}px]`"
+      class="p-[8px] overflow-auto"
+      :style="{
+        minHeight: `${minScopeHeight}px`,
+        maxHeight: `${maxScopeHeight}px`,
+      }"
     >
       <canvas
         ref="canvas"
-        class="w-full h-full"
+        class="w-full block"
+        :style="{
+          height: `${scopeHeight}px`,
+        }"
         @mousemove="onMouseMove"
         @mousedown="onMouseDown"
         @mouseup="onMouseUp"
@@ -18,24 +22,12 @@
         Your browser must support the canvas tag.
       </canvas>
     </div>
-    <div class="px-[8px] flex flex-row justify-between items-end text-black">
-      <div class="font-georgia12 text-[12px] uppercase">
-        <span v-if="isRunning">
-          VERIFICATION TEST RUNNING... {{ currentFrame }}
-        </span>
-        <span v-else-if="!verifyResult">
-          VERIFICATION TEST NOT YET COMPLETED
-        </span>
-        <span
-          v-else-if="verifyResult.passed"
-          :style="{ color: COLOR_VERIFY_PASS }"
-        >
-          VERIFICATION TEST PASSED ({{ verifyResult.gradePercent }}%) - FLAGGED
-          AS COMPLETED
-        </span>
-        <span v-else :style="{ color: COLOR_VERIFY_FAIL }">
-          VERIFICATION TEST FAILED ({{ verifyResult.gradePercent }}%)
-        </span>
+    <div class="mx-[8px] flex flex-row justify-between items-end text-black">
+      <div
+        class="font-georgia12 text-[12px] uppercase"
+        :style="{ color: verificationMessageColor }"
+      >
+        {{ verificationMessage }}
       </div>
       <div class="font-georgia10 text-[10px] flex flex-row gap-4 items-end">
         <div v-if="verificationResult">
@@ -72,10 +64,10 @@ const COLOR_SCOPE_TIME_LINE = '#F00';
 const COLOR_GRID_LINE = '#BFBBB1';
 const COLOR_VERIFY_PASS = '#080';
 const COLOR_VERIFY_FAIL = '#800';
-const TICK_WIDTH_PX = 2; // 2px per tick
-const HEIGHT_PX_SCOPE = 25; // 25px per scope
+const SCOPE_SCALE_X = 2; // 2px per tick
+const SCOPE_ROW_HEIGHT_PX = 25; // 25px per scope row
+const SCOPE_LABEL_WIDTH_PX = 52; // Minimum width for labels
 const GRID_LINE_INTERVAL = 5; // Grid line every 5 ticks
-const WIDTH_PX_LABELS = 52; // Minimum width for labels
 const FONT = '10px Georgia10';
 
 const canvasContainer = ref<HTMLDivElement>();
@@ -108,21 +100,44 @@ const filteredPins = computed<PinNode[]>(() => {
   // TODO: need a more proper way to filter out VCC (flag on PinNode?)
   return pins.filter((node, idx) => node.label !== 'VCC');
 });
+const scopeHeight = computed<number>(() => {
+  return filteredPins.value.length * SCOPE_ROW_HEIGHT_PX;
+});
 const maxScopeHeight = computed<number>(() => {
-  return filteredPins.value.length * HEIGHT_PX_SCOPE;
+  return 8 * SCOPE_ROW_HEIGHT_PX;
+});
+const minScopeHeight = computed<number>(() => {
+  return 4 * SCOPE_ROW_HEIGHT_PX;
 });
 const translateX = computed<number>(() => {
   if (!canvas.value) return 0;
-  const padLength = WIDTH_PX_LABELS / TICK_WIDTH_PX;
-  const visibleFrameLength = canvasWidth.value / TICK_WIDTH_PX;
+  const padLength = SCOPE_LABEL_WIDTH_PX / SCOPE_SCALE_X;
+  const visibleFrameLength = canvasWidth.value / SCOPE_SCALE_X;
   const endPos = sim.value.getRunningLength() + padLength;
   if (endPos <= visibleFrameLength) return 0;
   const curPos = currentFrame.value + padLength;
   const center = visibleFrameLength / 2;
   return (
     Math.max(0, Math.min(endPos - visibleFrameLength + 1, curPos - center)) *
-    TICK_WIDTH_PX
+    SCOPE_SCALE_X
   );
+});
+
+const verificationMessage = computed<string>(() => {
+  if (isRunning.value) {
+    return `Verification test is running... (${currentFrame.value} ticks)`;
+  } else if (!verifyResult.value) {
+    return 'Verification test not yet completed';
+  } else if (verifyResult.value.passed) {
+    return `Verification test passed (${verifyResult.value.gradePercent}%) - flagged as completed`;
+  } else {
+    return `Verification test failed (${verifyResult.value.gradePercent}%)`;
+  }
+});
+
+const verificationMessageColor = computed<string>(() => {
+  if (!verifyResult.value) return '#000';
+  return verifyResult.value.passed ? COLOR_VERIFY_PASS : COLOR_VERIFY_FAIL;
 });
 
 const renderScope = () => {
@@ -138,19 +153,19 @@ const renderScope = () => {
   ctx.lineWidth = 1;
 
   const runningLength = vsim.getRunningLength();
-  const scopeWidth = runningLength * TICK_WIDTH_PX;
-  const currentX = vsim.getRecordingLength() * TICK_WIDTH_PX;
+  const scopeWidth = runningLength * SCOPE_SCALE_X;
+  const currentX = vsim.getRecordingLength() * SCOPE_SCALE_X;
 
   // draw grid lines
   ctx.strokeStyle = COLOR_GRID_LINE;
   ctx.save();
   {
     ctx.setLineDash([2, 1]);
-    ctx.translate(WIDTH_PX_LABELS, 0);
+    ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
     ctx.beginPath();
     for (let i = 0; i <= runningLength; i += GRID_LINE_INTERVAL) {
-      ctx.moveTo(i * TICK_WIDTH_PX, 0);
-      ctx.lineTo(i * TICK_WIDTH_PX, ctx.canvas.height);
+      ctx.moveTo(i * SCOPE_SCALE_X, 0);
+      ctx.lineTo(i * SCOPE_SCALE_X, ctx.canvas.height);
     }
     ctx.stroke();
   }
@@ -162,29 +177,29 @@ const renderScope = () => {
   ctx.strokeStyle = COLOR_SCOPE_LINE;
   ctx.fillStyle = COLOR_SCOPE_LINE;
   for (const offset of [0, 1]) {
-    const baseline = -(HEIGHT_PX_SCOPE / 4 + 0.5);
-    const highLine = baseline - Math.floor(HEIGHT_PX_SCOPE / 2);
+    const baseline = -(SCOPE_ROW_HEIGHT_PX / 4 + 0.5);
+    const highLine = baseline - Math.floor(SCOPE_ROW_HEIGHT_PX / 2);
     for (let i = offset; i < pins.length; i += 2) {
       const pin = pins[i];
       const { input, output } = vsim.getSequence(pin);
-      ctx.translate(0, HEIGHT_PX_SCOPE);
+      ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
 
       // draw label
       ctx.beginPath();
       ctx.moveTo(0, baseline);
-      ctx.lineTo(WIDTH_PX_LABELS, baseline);
+      ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
       ctx.stroke();
       if (pin.label) {
         ctx.save();
         ctx.translate(translateX.value, 0);
         ctx.font = FONT;
-        ctx.fillText(pin.label, -0.5, baseline - 4, WIDTH_PX_LABELS);
+        ctx.fillText(pin.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
         ctx.restore();
       }
 
       // draw scopes on graph
       ctx.save();
-      ctx.translate(WIDTH_PX_LABELS, 0);
+      ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
       if (input) {
         ctx.strokeStyle = COLOR_SCOPE_LINE;
         ctx.beginPath();
@@ -192,10 +207,10 @@ const renderScope = () => {
         let i = 0;
         let lastY = baseline;
         for (const state of input) {
-          const x = i * TICK_WIDTH_PX;
+          const x = i * SCOPE_SCALE_X;
           const y = state ? highLine : baseline;
           ctx.lineTo(x, y);
-          ctx.lineTo(x + TICK_WIDTH_PX, y);
+          ctx.lineTo(x + SCOPE_SCALE_X, y);
           i++;
           lastY = y;
         }
@@ -209,10 +224,10 @@ const renderScope = () => {
         let i = 0;
         let lastY = baseline;
         for (const state of output) {
-          const x = i * TICK_WIDTH_PX;
+          const x = i * SCOPE_SCALE_X;
           const y = state ? highLine : baseline;
           ctx.lineTo(x, y);
-          ctx.lineTo(x + TICK_WIDTH_PX, y);
+          ctx.lineTo(x + SCOPE_SCALE_X, y);
           i++;
           lastY = y;
         }
@@ -228,10 +243,10 @@ const renderScope = () => {
           let i = 0;
           let lastY = baseline;
           for (const state of rec) {
-            const x = i * TICK_WIDTH_PX;
+            const x = i * SCOPE_SCALE_X;
             const y = state ? highLine : baseline;
             ctx.lineTo(x, y);
-            ctx.lineTo(x + TICK_WIDTH_PX, y);
+            ctx.lineTo(x + SCOPE_SCALE_X, y);
             i++;
             lastY = y;
           }
@@ -254,8 +269,8 @@ const renderScope = () => {
   if (isRunning.value) {
     ctx.strokeStyle = COLOR_SCOPE_TIME_LINE;
     ctx.beginPath();
-    ctx.moveTo(WIDTH_PX_LABELS + currentX, 0);
-    ctx.lineTo(WIDTH_PX_LABELS + currentX, ctx.canvas.height);
+    ctx.moveTo(SCOPE_LABEL_WIDTH_PX + currentX, 0);
+    ctx.lineTo(SCOPE_LABEL_WIDTH_PX + currentX, ctx.canvas.height);
     ctx.stroke();
   }
 
@@ -317,7 +332,7 @@ const onResize = () => {
   if (!ctx) throw new Error('Could not get canvas context');
   ctx.canvas.width = Math.trunc(canvas.value.clientWidth);
   canvasWidth.value = ctx.canvas.width;
-  ctx.canvas.height = maxScopeHeight.value;
+  ctx.canvas.height = scopeHeight.value;
   renderScope();
 };
 
