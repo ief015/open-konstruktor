@@ -10,7 +10,7 @@
           v-for="snippet in group.options"
           :value="snippet"
           @dblclick="onSelect(snippet)"
-          :title="snippet.description || snippet.name"
+          :title="getTooltip(snippet)"
         >
           {{ snippet.name }}
         </option>
@@ -142,6 +142,14 @@ const loadOption = async (opt: SnippetRecord) => {
   selectionState.value = 'dragging';
   toolboxMode.value = 'select';
 };
+
+function getTooltip(snippet: SnippetRecord) {
+  const { name, description } = snippet;
+  if (description) {
+    return `${name}\n${description}`;
+  }
+  return name;
+}
 
 const onSelect = (opt: SnippetRecord) => {
   loadOption(opt);

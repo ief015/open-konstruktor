@@ -10,7 +10,7 @@
           v-for="design in group.options"
           :value="design"
           @dblclick="onSelect(design)"
-          :title="design.description || design.name"
+          :title="getTooltip(design)"
         >
           {{ design.name }}
         </option>
@@ -93,6 +93,14 @@ function getAutoName() {
     : 'Unverified';
   const date = new Date().toLocaleString();
   return `${grade} (${designScore.value}) - ${date}`;
+}
+
+function getTooltip(design: DesignRecord) {
+  const { name, description } = design;
+  if (description) {
+    return `${name}\n${description}`;
+  }
+  return name;
 }
 
 const showSaveDialog = ref(false);
