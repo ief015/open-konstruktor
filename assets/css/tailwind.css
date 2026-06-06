@@ -7,12 +7,12 @@
 @tailwind utilities;
 
 :root {
-  font-family: "IBM Plex Serif", Georgia, 'Times New Roman', Times, serif;
+  font-family: "IBM Plex Serif", serif;
   font-size: 1rem /* 16px */;
   line-height: 1.5rem /* 24px */;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: rgb(223, 223, 223);
   background-color: #242424;
 
   font-synthesis: none;
@@ -37,7 +37,7 @@ body {
 }
 
 button, input, select, textarea, label {
-  font-family: "IBM Plex Serif", Georgia, 'Times New Roman', Times, serif;
+  font-family: "IBM Plex Serif", sans-serif;
 }
 
 @media (prefers-color-scheme: light) {
@@ -46,7 +46,7 @@ button, input, select, textarea, label {
     background-color: #ffffff;
   }
   a:hover {
-    color: #ffff90;
+    color: #666611;
   }
 }
 

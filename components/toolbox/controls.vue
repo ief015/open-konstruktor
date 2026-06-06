@@ -23,7 +23,7 @@
         <img v-if="item.icon" :src="item.icon" class="w-[12px] h-[12px]" />
         <span>{{ item.name }}</span>
         <span
-          class="absolute top-0 right-0.5 text-black text-opacity-50 font-georgia10 text-[10px]"
+          class="absolute top-0 right-0.5 opacity-60 font-georgia10 text-[10px]"
         >
           {{ item.key }}
         </span>
@@ -40,7 +40,6 @@ interface ToolkitItem {
   icon?: string;
   mode: ToolboxMode;
   classes?: string;
-  labelClass?: string;
   description?: string;
   key?: string;
 }
