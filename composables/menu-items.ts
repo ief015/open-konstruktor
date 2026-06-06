@@ -23,6 +23,7 @@ export function useMenuItems() {
   const { loaders } = useCircuitLoaders();
   const clipboard = useClipboard();
   const selection = useSelection();
+  const { history } = useFieldGraph();
   const levelItems = computed((): MenuBarItem[] =>
     loaders.map(mapLoaderToMenuItem),
   );
@@ -44,8 +45,12 @@ export function useMenuItems() {
       id: 'edit',
       label: 'Edit',
       items: [
-        { id: 'edit/undo', label: 'Undo' },
-        { id: 'edit/redo', label: 'Redo' },
+        {
+          id: 'edit/undo',
+          label: 'Undo',
+          disabled: !history.canUndo.value,
+        },
+        { id: 'edit/redo', label: 'Redo', disabled: !history.canRedo.value },
         'divider',
         { id: 'edit/cut', label: 'Cut', disabled: !selection.bounds.value },
         { id: 'edit/copy', label: 'Copy', disabled: !selection.bounds.value },

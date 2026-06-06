@@ -53,6 +53,12 @@ const history = {
   states: [] as string[],
   position: 0,
   maxLength: 50,
+  canUndo: ref(false),
+  canRedo: ref(false),
+  updatePermissions() {
+    history.canUndo.value = history.position < history.states.length - 1;
+    history.canRedo.value = history.position > 0;
+  },
   push() {
     const data = field.value.toSaveString();
     // FIXME: a more performant way to check difference in state would be nice
@@ -65,6 +71,7 @@ const history = {
     if (history.states.length > history.maxLength) {
       history.states.pop();
     }
+    history.updatePermissions();
   },
   move(steps: number) {
     const newPosition = history.position + steps;
@@ -72,6 +79,7 @@ const history = {
     history.position = newPosition;
     const data = history.states[history.position];
     load(data, false);
+    history.updatePermissions();
   },
   undo() {
     history.move(1);
