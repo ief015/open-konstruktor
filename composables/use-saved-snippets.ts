@@ -8,6 +8,8 @@ export interface SnippetRecord {
   description?: string;
   width: number;
   height: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SnippetGroup {

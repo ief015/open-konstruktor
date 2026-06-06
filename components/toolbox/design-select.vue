@@ -37,16 +37,16 @@
       v-model="showSaveDialog"
       :data="showSaveDialogInit"
       @save="onSaveSubmit"
-      :title="`${showSaveDialogID ? 'Edit' : 'New'} Design`"
+      :title="`${showSaveDialogRecord ? 'Edit' : 'New'} Design`"
     >
       <template #append-form>
-        <div v-if="showSaveDialogID" class="text-xs opacity-50">
-          ID: {{ showSaveDialogID }}
+        <div v-if="showSaveDialogRecord" class="text-xs opacity-50">
+          ID: {{ showSaveDialogRecord.id }}
         </div>
       </template>
       <template #prepend-actions>
         <button
-          v-if="showSaveDialogID"
+          v-if="showSaveDialogRecord"
           class="text-xs mr-auto"
           @click="onDelete"
         >
@@ -75,8 +75,14 @@ const groupsSorted = computed(() => {
 });
 
 const showSaveDialog = ref(false);
-const showSaveDialogID = ref<DesignRecord['id']>();
-const showSaveDialogInit = ref<SaveDesignFormData>();
+const showSaveDialogRecord = ref<DesignRecord>();
+const showSaveDialogInit = computed(() => {
+  if (showSaveDialogRecord.value) {
+    const { name, category, description } = showSaveDialogRecord.value;
+    return { name, category, description };
+  }
+  return undefined;
+});
 
 const loadOption = (opt: DesignRecord) => {
   loadField(opt.data);
@@ -95,23 +101,29 @@ const onSelect = (opt: DesignRecord) => {
 
 const onSave = () => {
   if (!field.value) return;
-  showSaveDialogInit.value = undefined;
-  showSaveDialogID.value = undefined;
+  showSaveDialogRecord.value = undefined;
   showSaveDialog.value = true;
 };
 
 const onSaveSubmit = async (formData: SaveDesignFormData) => {
   if (!field.value) return;
   const { columns, rows } = field.value.getDimensions();
-  const data = field.value.toSaveString();
+  const data = showSaveDialogRecord.value?.data ?? field.value.toSaveString();
+  const width = showSaveDialogRecord.value?.width ?? columns;
+  const height = showSaveDialogRecord.value?.height ?? rows;
+  const createdAt =
+    showSaveDialogRecord.value?.createdAt ?? new Date().toISOString();
+  const updatedAt = new Date().toISOString();
   await saveDesign({
-    id: showSaveDialogID.value,
+    id: showSaveDialogRecord.value?.id,
     name: formData.name,
     category: formData.category,
     description: formData.description,
     data,
-    width: columns,
-    height: rows,
+    width,
+    height,
+    createdAt,
+    updatedAt,
   });
 };
 
@@ -125,12 +137,7 @@ const onLoad = () => {
 const onEdit = () => {
   const opt = selected.value[0];
   if (opt) {
-    showSaveDialogID.value = opt.id;
-    showSaveDialogInit.value = {
-      name: opt.name,
-      category: opt.category,
-      description: opt.description || '',
-    };
+    showSaveDialogRecord.value = opt;
     showSaveDialog.value = true;
   }
 };

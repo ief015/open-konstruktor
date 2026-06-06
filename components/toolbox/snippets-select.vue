@@ -43,16 +43,16 @@
       v-model="showSaveDialog"
       :data="showSaveDialogInit"
       @save="onSaveSubmit"
-      :title="`${showSaveDialogID ? 'Edit' : 'New'} Snippet`"
+      :title="`${showSaveDialogRecord ? 'Edit' : 'New'} Snippet`"
     >
       <template #append-form>
-        <div v-if="showSaveDialogID" class="text-xs opacity-50">
-          ID: {{ showSaveDialogID }}
+        <div v-if="showSaveDialogRecord" class="text-xs opacity-50">
+          ID: {{ showSaveDialogRecord.id }}
         </div>
       </template>
       <template #prepend-actions>
         <button
-          v-if="showSaveDialogID"
+          v-if="showSaveDialogRecord"
           class="text-xs mr-auto"
           @click="onDelete"
         >
@@ -90,8 +90,14 @@ const coordMouseY = computed(() => {
 });
 
 const showSaveDialog = ref(false);
-const showSaveDialogID = ref<SnippetRecord['id']>();
-const showSaveDialogInit = ref<SaveSnippetFormData>();
+const showSaveDialogRecord = ref<SnippetRecord>();
+const showSaveDialogInit = computed(() => {
+  if (showSaveDialogRecord.value) {
+    const { name, category, description } = showSaveDialogRecord.value;
+    return { name, category, description };
+  }
+  return undefined;
+});
 
 const { groups, snippets, categories, saveSnippet, deleteSnippet } =
   useSavedSnippets();
@@ -135,23 +141,31 @@ const onSelect = (opt: SnippetRecord) => {
 
 const onSave = () => {
   if (!selectionFieldGraph.value) return;
-  showSaveDialogInit.value = undefined;
-  showSaveDialogID.value = undefined;
+  showSaveDialogRecord.value = undefined;
   showSaveDialog.value = true;
 };
 
 const onSaveSubmit = async (formData: SaveSnippetFormData) => {
   if (!selectionFieldGraph.value) return;
   const { columns, rows } = selectionFieldGraph.value.getDimensions();
-  const data = selectionFieldGraph.value.toSaveString();
+  const data =
+    showSaveDialogRecord.value?.data ??
+    selectionFieldGraph.value.toSaveString();
+  const width = showSaveDialogRecord.value?.width ?? columns;
+  const height = showSaveDialogRecord.value?.height ?? rows;
+  const createdAt =
+    showSaveDialogRecord.value?.createdAt ?? new Date().toISOString();
+  const updatedAt = new Date().toISOString();
   await saveSnippet({
-    id: showSaveDialogID.value,
+    id: showSaveDialogRecord.value?.id,
     name: formData.name,
     category: formData.category,
     description: formData.description,
     data,
-    width: columns,
-    height: rows,
+    width,
+    height,
+    createdAt,
+    updatedAt,
   });
 };
 
@@ -165,12 +179,7 @@ const onLoad = () => {
 const onEdit = () => {
   const opt = selected.value[0];
   if (opt) {
-    showSaveDialogID.value = opt.id;
-    showSaveDialogInit.value = {
-      name: opt.name,
-      category: opt.category,
-      description: opt.description || '',
-    };
+    showSaveDialogRecord.value = opt;
     showSaveDialog.value = true;
   }
 };

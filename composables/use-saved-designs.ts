@@ -8,6 +8,8 @@ export interface DesignRecord {
   description?: string;
   width: number;
   height: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface DesignGroup {
