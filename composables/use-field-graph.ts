@@ -1,13 +1,22 @@
 import { CircuitDesignData } from '@/serialization';
 import type { LayerDimensions } from '@/serialization';
-import { FieldGraph } from '@/simulation';
+import { FieldGraph, type VerificationResult } from '@/simulation';
 
 const field = shallowRef<FieldGraph>(new FieldGraph());
-const designScore = ref(0);
 const dimensions = reactive<LayerDimensions>({ columns: 0, rows: 0 });
+const designScore = ref(0);
+const verificationResult = ref<VerificationResult | null>(null);
 
 const updateDesignScore = () => {
   designScore.value = field.value.getDesignScore();
+};
+
+const setVerificationResult = (result: VerificationResult) => {
+  verificationResult.value = result;
+};
+
+const resetVerificationResult = () => {
+  verificationResult.value = null;
 };
 
 const updateDimensions = () => {
@@ -25,6 +34,7 @@ const loadBlank = (
   const data = new CircuitDesignData(columns, rows, pinRows);
   field.value = new FieldGraph(data);
   updateDesignScore();
+  resetVerificationResult();
   updateDimensions();
   if (clearHistory) {
     history.clear();
@@ -34,6 +44,7 @@ const loadBlank = (
 const loadData = (data: CircuitDesignData, clearHistory = true) => {
   field.value = new FieldGraph(data);
   updateDesignScore();
+  resetVerificationResult();
   updateDimensions();
   if (clearHistory) {
     history.clear();
@@ -43,6 +54,7 @@ const loadData = (data: CircuitDesignData, clearHistory = true) => {
 const load = (saveString: string, clearHistory = true) => {
   field.value = FieldGraph.from(saveString, 'circuit');
   updateDesignScore();
+  resetVerificationResult();
   updateDimensions();
   if (clearHistory) {
     history.clear();
@@ -96,6 +108,7 @@ const history = {
 
 history.clear();
 updateDesignScore();
+resetVerificationResult();
 updateDimensions();
 
 export default function useFieldGraph() {
@@ -104,9 +117,12 @@ export default function useFieldGraph() {
     designScore: readonly(designScore),
     dimensions: readonly(dimensions),
     history,
+    verificationResult: readonly(verificationResult),
     loadBlank,
     loadData,
     load,
     updateDesignScore,
+    setVerificationResult,
+    resetVerificationResult,
   };
 }

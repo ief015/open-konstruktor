@@ -27,7 +27,7 @@
           VERIFICATION TEST NOT YET COMPLETED
         </span>
         <span
-          v-else-if="verifyResult.gradePercent >= VERIFY_PASS_THRESHOLD"
+          v-else-if="verifyResult.passed"
           :style="{ color: COLOR_VERIFY_PASS }"
         >
           VERIFICATION TEST PASSED ({{ verifyResult.gradePercent }}%) - FLAGGED
@@ -37,8 +37,23 @@
           VERIFICATION TEST FAILED ({{ verifyResult.gradePercent }}%)
         </span>
       </div>
-      <div class="font-georgia10 text-[10px] min-w-[20em]">
-        DESIGN SCORE (lower is better): {{ designScore }}
+      <div class="font-georgia10 text-[10px] flex flex-row gap-4 items-end">
+        <div v-if="verificationResult">
+          GRADE:
+          <span
+            class="text-bold"
+            :style="{
+              color: verificationResult.passed
+                ? COLOR_VERIFY_PASS
+                : COLOR_VERIFY_FAIL,
+            }"
+          >
+            {{ verificationResult.gradePercent }}%
+          </span>
+        </div>
+        <div class="min-w-[20em]">
+          DESIGN SCORE (lower is better): {{ designScore }}
+        </div>
       </div>
     </div>
   </div>
@@ -63,12 +78,15 @@ const GRID_LINE_INTERVAL = 5; // Grid line every 5 ticks
 const WIDTH_PX_LABELS = 52; // Minimum width for labels
 const FONT = '10px Georgia10';
 
-const VERIFY_PASS_THRESHOLD = 97;
-
 const canvasContainer = ref<HTMLDivElement>();
 const canvas = ref<HTMLCanvasElement>();
 const canvasWidth = ref(0);
-const { designScore } = useFieldGraph();
+const {
+  designScore,
+  setVerificationResult,
+  resetVerificationResult,
+  verificationResult,
+} = useFieldGraph();
 const {
   network,
   sim,
@@ -307,16 +325,20 @@ onCircuitRender(renderScope);
 
 onComplete((result) => {
   verifyResult.value = result;
-  if ((result?.gradePercent ?? 0) >= VERIFY_PASS_THRESHOLD) {
-    if (!hasOpenedCompleted.value) {
+  if (result) {
+    setVerificationResult(result);
+    if (result.passed && !hasOpenedCompleted.value) {
       levelInfoOpenCompleted();
     }
+  } else {
+    resetVerificationResult();
   }
 });
 
 watch(isRunning, (running) => {
   if (running) {
     isDrawing.value = false;
+    resetVerificationResult();
     verifyResult.value = undefined;
   }
   renderScope();
@@ -324,6 +346,7 @@ watch(isRunning, (running) => {
 
 watch(sim, (sim) => {
   verifyResult.value = undefined;
+  resetVerificationResult();
   renderScope();
 });
 

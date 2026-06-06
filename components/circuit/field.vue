@@ -47,7 +47,13 @@ const canvasLayers = {
   overlay: document.createElement('canvas'),
 };
 
-const { field, dimensions, updateDesignScore, history } = useFieldGraph();
+const {
+  field,
+  dimensions,
+  updateDesignScore,
+  history,
+  resetVerificationResult,
+} = useFieldGraph();
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
 const {
   sim,
@@ -551,6 +557,7 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
       break;
   }
   updateDesignScoreThrottle();
+  resetVerificationResult();
   const bounds = [
     Math.min(coordA[0], coordB[0]),
     Math.min(coordA[1], coordB[1]),
@@ -566,6 +573,7 @@ const clear = () => {
     enforceBounds: true,
   });
   updateDesignScore();
+  resetVerificationResult();
   queueAnimFuncs.add(renderAll);
   history.push();
 };
@@ -818,6 +826,7 @@ function undo() {
   if (isRunning.value) return;
   history.undo();
   updateDesignScore();
+  resetVerificationResult();
   queueAnimFuncs.add(renderAll);
 }
 
@@ -825,6 +834,7 @@ function redo() {
   if (isRunning.value) return;
   history.redo();
   updateDesignScore();
+  resetVerificationResult();
   queueAnimFuncs.add(renderAll);
 }
 

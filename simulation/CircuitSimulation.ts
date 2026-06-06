@@ -1,7 +1,7 @@
-import Network from "@/simulation/Network";
-import PinNode from "@/simulation/PinNode";
-import Sequence from "@/simulation/Sequence";
-import type { DifferenceMethod } from "@/simulation/Sequence";
+import Network from '@/simulation/Network';
+import PinNode from '@/simulation/PinNode';
+import Sequence from '@/simulation/Sequence';
+import type { DifferenceMethod } from '@/simulation/Sequence';
 
 export type PrintPinOrdering = 'none' | 'even-odd';
 export type PinFilter = (id: number, pin: PinNode) => boolean;
@@ -47,7 +47,10 @@ export interface VerificationResult {
   ratioAvg: number;
   gradePercent: number;
   outputs: VerificationResultOutput[];
+  passed: boolean;
 }
+
+const VERIFICATION_PASS_THRESHOLD = 97;
 
 const evenOddPinSort = (pins: PinNode[]) => {
   pins.sort((a, b) => {
@@ -61,10 +64,9 @@ const evenOddPinSort = (pins: PinNode[]) => {
       return aid - bid;
     }
   });
-}
+};
 
 export class CircuitSimulation {
-
   private network: Network;
 
   private inputSequences: SequenceMap = new Map();
@@ -82,7 +84,7 @@ export class CircuitSimulation {
   }
 
   public step(record: boolean = true): boolean {
-    for (const [ pin, sequence ] of this.inputSequences) {
+    for (const [pin, sequence] of this.inputSequences) {
       const state = sequence.getFrames()[this.currentFrame];
       if (state !== undefined) {
         pin.active = state;
@@ -90,11 +92,11 @@ export class CircuitSimulation {
     }
     this.network.step();
     record && this.recordFrame();
-    return (++this.currentFrame) >= this.getRunningLength();
+    return ++this.currentFrame >= this.getRunningLength();
   }
 
   public reset(clearRecordings: boolean = true) {
-    for (const [ pin, sequence ] of this.inputSequences) {
+    for (const [pin, sequence] of this.inputSequences) {
       pin.active = sequence.getFrames()[0] ?? false;
     }
     this.network.reset();
@@ -105,7 +107,7 @@ export class CircuitSimulation {
   public run(
     length: number = this.getRunningLength(),
     onPostStep?: (frame: number) => void,
-    record: boolean = true
+    record: boolean = true,
   ) {
     this.reset(record);
     while (this.currentFrame < length) {
@@ -197,12 +199,16 @@ export class CircuitSimulation {
   }
 
   private updateSequenceLength() {
-    const inputLengths = [ ...this.inputSequences.values() ].map(s => s.getLength());
-    const outputLengths = [ ...this.outputSequences.values() ].map(s => s.getLength());
+    const inputLengths = [...this.inputSequences.values()].map((s) =>
+      s.getLength(),
+    );
+    const outputLengths = [...this.outputSequences.values()].map((s) =>
+      s.getLength(),
+    );
     this.sequenceLength = Math.max(...inputLengths, ...outputLengths, 0);
   }
 
-  public setInputSequence(pin: PinNode|number, sequence: Sequence) {
+  public setInputSequence(pin: PinNode | number, sequence: Sequence) {
     if (typeof pin === 'number') {
       pin = this.network.getPinNodes()[pin];
       if (!pin) {
@@ -213,7 +219,7 @@ export class CircuitSimulation {
     this.updateSequenceLength();
   }
 
-  public removeInputSequence(pin: PinNode|number) {
+  public removeInputSequence(pin: PinNode | number) {
     if (typeof pin === 'number') {
       pin = this.network.getPinNodes()[pin];
       if (!pin) {
@@ -229,7 +235,7 @@ export class CircuitSimulation {
     this.updateSequenceLength();
   }
 
-  public setOutputSequence(pin: PinNode|number, sequence: Sequence) {
+  public setOutputSequence(pin: PinNode | number, sequence: Sequence) {
     if (typeof pin === 'number') {
       pin = this.network.getPinNodes()[pin];
       if (!pin) {
@@ -240,7 +246,7 @@ export class CircuitSimulation {
     this.updateSequenceLength();
   }
 
-  public removeOutputSequence(pin: PinNode|number) {
+  public removeOutputSequence(pin: PinNode | number) {
     if (typeof pin === 'number') {
       pin = this.network.getPinNodes()[pin];
       if (!pin) {
@@ -256,7 +262,10 @@ export class CircuitSimulation {
     this.updateSequenceLength();
   }
 
-  public getSequence(pin: PinNode|number): { input?: Readonly<Sequence>, output?: Readonly<Sequence> } {
+  public getSequence(pin: PinNode | number): {
+    input?: Readonly<Sequence>;
+    output?: Readonly<Sequence>;
+  } {
     if (typeof pin === 'number') {
       pin = this.network.getPinNodes()[pin];
       if (!pin) {
@@ -269,12 +278,20 @@ export class CircuitSimulation {
     };
   }
 
-  public getInputSequences(): Readonly<{ pin: PinNode, sequence: Sequence }[]> {
-    return [ ...this.inputSequences.entries() ].map(([ pin, sequence ]) => ({ pin, sequence }));
+  public getInputSequences(): Readonly<{ pin: PinNode; sequence: Sequence }[]> {
+    return [...this.inputSequences.entries()].map(([pin, sequence]) => ({
+      pin,
+      sequence,
+    }));
   }
 
-  public getOutputSequences(): Readonly<{ pin: PinNode, sequence: Sequence }[]> {
-    return [ ...this.outputSequences.entries() ].map(([ pin, sequence ]) => ({ pin, sequence }));
+  public getOutputSequences(): Readonly<
+    { pin: PinNode; sequence: Sequence }[]
+  > {
+    return [...this.outputSequences.entries()].map(([pin, sequence]) => ({
+      pin,
+      sequence,
+    }));
   }
 
   public clearRecordings() {
@@ -303,10 +320,13 @@ export class CircuitSimulation {
     let sumRatio = 0;
     let sumGrade = 0;
     const outputs: VerificationResultOutput[] = [];
-    for (const [ pin, expected ] of this.outputSequences) {
+    for (const [pin, expected] of this.outputSequences) {
       const actual = this.recording.get(pin);
       if (actual) {
-        const { differences, ratio } = expected.getDifference(actual, { method, length: this.currentFrame });
+        const { differences, ratio } = expected.getDifference(actual, {
+          method,
+          length: this.currentFrame,
+        });
         sumRatio += ratio;
         sumGrade += Math.trunc(ratio * 100); // Inaccurate, but how kohctpyktop does it.
         outputs.push({
@@ -320,10 +340,12 @@ export class CircuitSimulation {
     }
     const ratioAvg = sumRatio / this.outputSequences.size;
     const gradePercent = Math.trunc(sumGrade / this.outputSequences.size);
+    const passed = gradePercent >= VERIFICATION_PASS_THRESHOLD;
     return {
       ratioAvg,
       gradePercent,
       outputs,
+      passed,
     };
   }
 
@@ -333,9 +355,12 @@ export class CircuitSimulation {
    * @param method Method to use for verification.
    * @returns Array of errors found, if any.
    */
-  public findFrameVerificationErrors(frame: number, method: DifferenceMethod = 'kohctpyktop'): FrameError[] {
+  public findFrameVerificationErrors(
+    frame: number,
+    method: DifferenceMethod = 'kohctpyktop',
+  ): FrameError[] {
     const errors: FrameError[] = [];
-    for (const [ pin, expected ] of this.outputSequences) {
+    for (const [pin, expected] of this.outputSequences) {
       const actual = this.recording.get(pin);
       if (actual) {
         // TODO: Verification done in CircuitSimulation and Sequence
@@ -392,14 +417,16 @@ export class CircuitSimulation {
       filter,
     } = options;
     const pins = this.network.getPinNodes();
-    const sortedPins = [ ...(filter ? pins.filter((p, i) => filter(i, p)) : pins) ];
+    const sortedPins = [
+      ...(filter ? pins.filter((p, i) => filter(i, p)) : pins),
+    ];
     switch (pinOrder) {
       case 'even-odd':
         evenOddPinSort(sortedPins);
         break;
     }
     if (horizontal) {
-      const maxLengthName = Math.max(...sortedPins.map(p => p.label.length));
+      const maxLengthName = Math.max(...sortedPins.map((p) => p.label.length));
       for (const pin of sortedPins) {
         let line = '';
         if (showLabels) {
@@ -408,16 +435,19 @@ export class CircuitSimulation {
         const pinRec = this.recording.get(pin)?.getFrames();
         let state = false;
         for (let frame = 0; frame < this.recordingLength; frame++) {
-          state = pinRec?.[frame] === undefined ? state : !!(pinRec[frame]);
+          state = pinRec?.[frame] === undefined ? state : !!pinRec[frame];
           line += state ? highSymbol : lowSymbol;
         }
         console.log(line);
       }
     } else {
       const sPadding = ' '.repeat(padding);
-      const maxLengthName = Math.max(...sortedPins.map(p => p.label.length), String(this.recordingLength).length);
+      const maxLengthName = Math.max(
+        ...sortedPins.map((p) => p.label.length),
+        String(this.recordingLength).length,
+      );
       if (showLabels) {
-        const pinNames = sortedPins.map(p => p.label.padStart(maxLengthName));
+        const pinNames = sortedPins.map((p) => p.label.padStart(maxLengthName));
         console.log([' '.repeat(maxLengthName), ...pinNames].join(sPadding));
       }
       const currentStates = new Map<PinNode, boolean>();
@@ -426,7 +456,7 @@ export class CircuitSimulation {
       }
       for (let frame = 0; frame < this.recordingLength; frame++) {
         const sFrame = `${frame}`.padStart(maxLengthName);
-        const pinStates = sortedPins.map(p => {
+        const pinStates = sortedPins.map((p) => {
           const s = this.recording.get(p)?.getFrames()[frame];
           if (s !== undefined) {
             currentStates.set(p, s);
@@ -434,7 +464,12 @@ export class CircuitSimulation {
           }
           return currentStates.get(p) ?? false;
         });
-        const sLine = [sFrame, ...pinStates.map(s => (s ? highSymbol : lowSymbol).padStart(maxLengthName))].join(sPadding);
+        const sLine = [
+          sFrame,
+          ...pinStates.map((s) =>
+            (s ? highSymbol : lowSymbol).padStart(maxLengthName),
+          ),
+        ].join(sPadding);
         console.log(`${sLine}`);
       }
     }
@@ -449,16 +484,18 @@ export class CircuitSimulation {
       filter,
     } = options;
     const pins = this.network.getPinNodes();
-    const sortedPins = [ ...(filter ? pins.filter((p, i) => filter(i, p)) : pins) ];
+    const sortedPins = [
+      ...(filter ? pins.filter((p, i) => filter(i, p)) : pins),
+    ];
     switch (pinOrder) {
       case 'even-odd':
         evenOddPinSort(sortedPins);
         break;
     }
     if (horizontal) {
-      const maxLengthName = Math.max(...sortedPins.map(p => p.label.length));
+      const maxLengthName = Math.max(...sortedPins.map((p) => p.label.length));
       for (const pin of sortedPins) {
-        for (const isTop of [ true, false ]) {
+        for (const isTop of [true, false]) {
           let line = '';
           if (showLabels) {
             if (!isTop) {
@@ -470,9 +507,10 @@ export class CircuitSimulation {
           let lastState = false;
           const pinRec = this.recording.get(pin)?.getFrames();
           for (let frame = 0; frame < this.recordingLength; frame++) {
-            const state: boolean = (pinRec?.[frame] === undefined) ? lastState : !!(pinRec[frame]);
+            const state: boolean =
+              pinRec?.[frame] === undefined ? lastState : !!pinRec[frame];
             if (state !== lastState) {
-              line += isTop ? (state ? '┌' : '┐') : (state ? '┘' : '└');
+              line += isTop ? (state ? '┌' : '┐') : state ? '┘' : '└';
               lastState = state;
             } else {
               if ((state && isTop) || (!state && !isTop)) {
@@ -486,13 +524,16 @@ export class CircuitSimulation {
         }
       }
     } else {
-      const maxLengthName = Math.max(...sortedPins.map(p => p.label.length), 2);
+      const maxLengthName = Math.max(
+        ...sortedPins.map((p) => p.label.length),
+        2,
+      );
       const sPadding = ' '.repeat(padding);
       if (showLabels) {
-        const pinNames = sortedPins.map(p => p.label.padEnd(maxLengthName));
+        const pinNames = sortedPins.map((p) => p.label.padEnd(maxLengthName));
         console.log([' '.repeat(maxLengthName), ...pinNames].join(sPadding));
       }
-      const pinStates = new Map<PinNode, { cur: boolean, prev: boolean }>();
+      const pinStates = new Map<PinNode, { cur: boolean; prev: boolean }>();
       for (const pin of sortedPins) {
         pinStates.set(pin, { cur: false, prev: false });
       }
@@ -517,5 +558,4 @@ export class CircuitSimulation {
       }
     }
   }
-
 }
