@@ -12,6 +12,7 @@
         name="description"
         v-model="formData!.description"
         style="resize: vertical"
+        class="h-[10em]"
       />
       <slot name="append-form" />
     </form>
