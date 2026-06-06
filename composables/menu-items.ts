@@ -24,6 +24,7 @@ export function useMenuItems() {
   const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
   const selection = useSelection();
   const { history } = useFieldGraph();
+  const { isRunning } = useCircuitSimulator();
   const levelItems = computed((): MenuBarItem[] =>
     loaders.map(mapLoaderToMenuItem),
   );
@@ -48,24 +49,33 @@ export function useMenuItems() {
         {
           id: 'edit/undo',
           label: 'Undo',
-          disabled: !history.canUndo.value,
+          disabled: isRunning.value || !history.canUndo.value,
         },
-        { id: 'edit/redo', label: 'Redo', disabled: !history.canRedo.value },
+        {
+          id: 'edit/redo',
+          label: 'Redo',
+          disabled: isRunning.value || !history.canRedo.value,
+        },
         'divider',
-        { id: 'edit/cut', label: 'Cut', disabled: !selection.bounds.value },
+        {
+          id: 'edit/cut',
+          label: 'Cut',
+          disabled: isRunning.value || !selection.bounds.value,
+        },
         { id: 'edit/copy', label: 'Copy', disabled: !selection.bounds.value },
         {
           id: 'edit/paste',
           label: 'Paste',
-          disabled: !clipboard || clipboard.text.value.length === 0,
+          disabled:
+            isRunning.value || !clipboard || clipboard.text.value.length === 0,
         },
         {
           id: 'edit/delete',
           label: 'Delete',
-          disabled: !selection.bounds.value,
+          disabled: isRunning.value || !selection.bounds.value,
         },
         'divider',
-        { id: 'edit/clear', label: 'Clear' },
+        { id: 'edit/clear', label: 'Clear', disabled: isRunning.value },
       ],
     },
     {
