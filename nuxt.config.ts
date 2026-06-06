@@ -17,6 +17,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       dev: process.env.NODE_ENV === 'development',
+      appVersion: process.env.npm_package_version,
     },
   },
   ssr: false,
