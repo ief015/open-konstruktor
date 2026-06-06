@@ -153,9 +153,7 @@ const onClickTool = (item: ToolkitItem) => {
 };
 
 useEventListener('keypress', (ev) => {
-  if (ignoreKeyShortcuts.value) {
-    return;
-  }
+  if (ignoreKeyShortcuts.value) return;
   if (ev.key >= '0' && ev.key <= '9') {
     const item = toolkit.find((item) => {
       return item !== 'divider' && item.key === ev.key;
@@ -167,9 +165,7 @@ useEventListener('keypress', (ev) => {
 });
 
 useEventListener('keydown', (ev) => {
-  if (ignoreKeyShortcuts.value) {
-    return;
-  }
+  if (ignoreKeyShortcuts.value) return;
   const k = ev.key.toLowerCase();
   if (k == 'shift') {
     modifiers.shift = true;

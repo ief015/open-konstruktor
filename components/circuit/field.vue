@@ -63,7 +63,7 @@ const {
   stepsPerSecond,
   onRender: onCircuitRender,
 } = useCircuitSimulator();
-const { mode: toolBoxMode } = useToolbox();
+const { mode: toolBoxMode, ignoreKeyShortcuts } = useToolbox();
 const images = useImageLoader();
 
 const canvasWidth = ref(0);
@@ -938,11 +938,13 @@ useEventListener(canvas, 'mouseup', (e) => {
 });
 
 useEventListener('keydown', (e) => {
+  if (ignoreKeyShortcuts.value) return;
   onKeyDownModifySelection(e);
   onKeyDownDeleteSelection(e);
 });
 
 useEventListener('keydown', (e) => {
+  if (ignoreKeyShortcuts.value) return;
   if (e.key.toLowerCase() === 'z' && e.ctrlKey) {
     if (e.shiftKey) {
       redo();
@@ -1005,6 +1007,7 @@ function pasteClipboard() {
 }
 
 useEventListener('keydown', (e) => {
+  if (ignoreKeyShortcuts.value) return;
   const k = e.key.toLowerCase();
   if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
     switch (k) {
