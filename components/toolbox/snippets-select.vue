@@ -6,6 +6,7 @@
           v-for="option in snippet.options"
           :value="option"
           @dblclick="onSelect(option)"
+          :title="option.description"
         >
           {{ option.name }}
         </option>

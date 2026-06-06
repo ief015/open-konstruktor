@@ -6,6 +6,7 @@
           v-for="option in group.options"
           :value="option"
           @dblclick="onSelect(option)"
+          :title="option.description"
         >
           {{ option.name }}
         </option>
