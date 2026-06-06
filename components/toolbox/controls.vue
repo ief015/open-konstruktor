@@ -19,6 +19,7 @@
           'border-neutral-600': item.mode !== mode,
           'hover:border-neutral-300': item.mode !== mode,
         }"
+        :title="item.description"
       >
         <img v-if="item.icon" :src="item.icon" class="w-[12px] h-[12px]" />
         <span>{{ item.name }}</span>
