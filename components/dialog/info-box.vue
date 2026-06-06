@@ -5,19 +5,13 @@
         <div class="font-ttw text-lg text-ellipsis">
           {{ title }}
         </div>
-        <div class="cursor-pointer px-2" @click="close()">
-          🗙
-        </div>
+        <div class="cursor-pointer px-2" @click="close()">🗙</div>
       </div>
       <div class="font-mono text-sm h-[16em] overflow-auto">
         <div v-html="contentHtml" />
       </div>
       <div class="flex flex-row justify-center gap-4">
-        <button
-          class="min-w-[4em]"
-          @click="previous()"
-          :disabled="page <= 0"
-        >
+        <button class="min-w-[4em]" @click="previous()" :disabled="page <= 0">
           &lt;
         </button>
         <div class="font-ttw text-center min-w-[5em] select-none">
@@ -44,9 +38,7 @@
     </div>
   </div>
   <div v-else-if="lengthAvailablePages > 0" class="text-center">
-    <button @click="open()">
-      Show Info
-    </button>
+    <button @click="open()">Show Info</button>
   </div>
 </template>
 
@@ -74,6 +66,5 @@ const loadLevel = (id: string) => {
   }
   loadBlank(loader.width, loader.height, loader.pinRows);
   loadSim(field.value, loader);
-}
-
+};
 </script>

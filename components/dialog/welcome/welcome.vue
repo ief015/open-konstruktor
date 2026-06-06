@@ -3,11 +3,11 @@
     ref="dialog"
     start-open
     title="Welcome to Open-Konstruktor!"
-    title-class="font-ttw"
+    title-class="font-ttw text-xl text-center"
     :btn-ok="false"
     :btn-cancel="false"
   >
-    <div class="max-w-[500px] flex flex-col gap-4">
+    <div class="max-w-[500px] flex flex-col gap-4 text-base">
       <div>
         Open-Konstruktor is a game about designing and simulating digital
         circuits, based on the Zachtronics game
@@ -19,11 +19,13 @@
           KOHCTPYKTOP: Engineer of the People.
         </a>
       </div>
-      <button class="h-8" @click.stop="onClickStartTutorial">
+      <button class="h-12 mx-12" @click.stop="onClickStartTutorial">
         Start Tutorial
       </button>
-      <button class="h-8" @click.stop="onClickPlayLevels">Play Levels</button>
-      <button class="h-8" @click.stop="onClickClose">Close</button>
+      <button class="h-12 mx-12" @click.stop="onClickPlayLevels">
+        Play Levels
+      </button>
+      <button class="h-12 mx-12" @click.stop="onClickClose">Close</button>
     </div>
   </Dialog>
 </template>

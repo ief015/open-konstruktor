@@ -21,7 +21,7 @@
         }"
       >
         <img v-if="item.icon" :src="item.icon" class="w-[12px] h-[12px]" />
-        <span>{{ item.name }}</span>
+        <span class="text-xs">{{ item.name }}</span>
         <span
           class="absolute top-0 right-0.5 text-black text-opacity-50 font-georgia10 text-[10px]"
         >

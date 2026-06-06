@@ -12,7 +12,7 @@
       <div class="flex flex-col gap-2">
         <textarea
           ref="importTextArea"
-          class="max-w-sm w-[50vw] h-32 font-mono break-words"
+          class="max-w-sm w-[50vw] h-32 break-words"
           v-model="importCode"
           @keypress.enter="onImport"
         />
@@ -33,7 +33,7 @@
         <textarea
           readonly
           ref="exportTextArea"
-          class="max-w-sm w-[50vw] h-32 font-mono break-words"
+          class="max-w-sm w-[50vw] h-32 break-words"
           :value="exportCode"
         />
         <div class="flex flex-row gap-2 justify-end">

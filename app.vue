@@ -12,9 +12,9 @@
     </template>
     <template #left>
       <div class="w-[10em] h-full right-border flex flex-col">
-        <div class="text-xs font-ttw text-center m-1 select-none">Designs</div>
+        <div class="text-sm font-ttw text-center m-1 select-none">Designs</div>
         <ToolboxDesignSelect class="flex-1" />
-        <div class="text-xs font-ttw text-center m-1 select-none">Snippets</div>
+        <div class="text-sm font-ttw text-center m-1 select-none">Snippets</div>
         <ToolboxSnippetsSelect class="flex-1" />
       </div>
     </template>
@@ -37,7 +37,7 @@
     </div>
     <template #right>
       <div class="w-[5em] h-full left-border flex flex-col">
-        <div class="text-xs font-ttw text-center m-1 select-none">Toolbox</div>
+        <div class="text-sm font-ttw text-center m-1 select-none">Toolbox</div>
         <ToolboxControls class="mx-2" />
       </div>
     </template>

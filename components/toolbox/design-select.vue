@@ -12,11 +12,19 @@
       </optgroup>
     </select>
     <div class="flex flex-row m-1 gap-1">
-      <button class="flex-1" @click="onSave">Save</button>
-      <button class="flex-1" @click="onLoad" :disabled="selected.length != 1">
+      <button class="flex-1 text-xs" @click="onSave">Save</button>
+      <button
+        class="flex-1 text-xs"
+        @click="onLoad"
+        :disabled="selected.length != 1"
+      >
         Load
       </button>
-      <button class="flex-1" @click="onDelete" :disabled="!selected.length">
+      <button
+        class="flex-1 text-xs"
+        @click="onDelete"
+        :disabled="!selected.length"
+      >
         Delete
       </button>
     </div>
