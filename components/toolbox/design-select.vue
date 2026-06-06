@@ -1,14 +1,18 @@
 <template>
   <div class="flex flex-col">
     <select multiple v-model="selected" class="flex-1">
-      <optgroup v-for="group in groupsSorted" :label="group.label">
+      <optgroup
+        v-for="group in groupsSorted"
+        :label="group.label"
+        :title="group.label"
+      >
         <option
-          v-for="option in group.options"
-          :value="option"
-          @dblclick="onSelect(option)"
-          :title="option.description"
+          v-for="design in group.options"
+          :value="design"
+          @dblclick="onSelect(design)"
+          :title="design.description"
         >
-          {{ option.name }}
+          {{ design.name }}
         </option>
       </optgroup>
     </select>
