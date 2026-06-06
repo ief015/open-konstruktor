@@ -8,7 +8,11 @@
       <label for="category">Category</label>
       <input name="category" type="text" v-model="formData!.category" />
       <label for="description">Description</label>
-      <textarea name="description" v-model="formData!.description" />
+      <textarea
+        name="description"
+        v-model="formData!.description"
+        style="resize: vertical"
+      />
       <slot name="append-form" />
     </form>
     <slot name="after-form" />
