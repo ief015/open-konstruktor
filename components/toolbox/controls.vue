@@ -39,8 +39,6 @@ interface ToolkitItem {
   name: string;
   icon?: string;
   mode: ToolboxMode;
-  shiftMode?: ToolboxMode;
-  ctrlMode?: ToolboxMode;
   classes?: string;
   labelClass?: string;
   key?: string;
@@ -69,30 +67,24 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'Metal',
     mode: 'draw-metal',
-    ctrlMode: 'erase-metal',
     classes: 'bg-metal text-black font-bold',
     key: '2',
   },
   {
     name: 'P-Type',
     mode: 'draw-p-silicon',
-    ctrlMode: 'erase-silicon',
-    shiftMode: 'draw-n-silicon',
     classes: 'bg-ptype text-black font-bold',
     key: '3',
   },
   {
     name: 'N-Type',
     mode: 'draw-n-silicon',
-    ctrlMode: 'erase-silicon',
-    shiftMode: 'draw-p-silicon',
     classes: 'bg-ntype text-black font-bold',
     key: '4',
   },
   {
     name: 'Via',
     mode: 'draw-via',
-    ctrlMode: 'erase-via',
     icon: '/tiles/link.png',
     classes: 'bg-neutral-400 text-black font-bold',
     key: '5',
@@ -106,41 +98,40 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'Erase (Metal)',
     mode: 'erase-metal',
-    shiftMode: 'erase',
     key: '7',
   },
   {
     name: 'Erase (Silicon)',
     mode: 'erase-silicon',
-    shiftMode: 'erase',
     key: '8',
   },
   {
     name: 'Erase (Vias)',
     mode: 'erase-via',
-    shiftMode: 'erase',
     key: '9',
   },
   {
     name: 'Erase (Gates)',
     mode: 'erase-gate',
-    shiftMode: 'erase',
     key: '0',
   },
 ];
 
-const { mode, ignoreKeyShortcuts } = useToolbox();
+const { mode, modifiers, ignoreKeyShortcuts } = useToolbox();
 
-const selectedTool = ref<ToolkitItem | null>(null);
+const currentTool = computed(() => {
+  return toolkit.find((item) => {
+    return item !== 'divider' && item.mode === mode.value;
+  }) as ToolkitItem | undefined;
+});
 
 const onChange = (mode: ToolboxMode, prevMode: ToolboxMode) => {
   emit('change', mode, prevMode);
 };
 
 const onClickTool = (item: ToolkitItem) => {
-  const toMode = item.mode === selectedTool.value?.mode ? 'none' : item.mode;
+  const toMode = item.mode === mode.value ? 'none' : item.mode;
   const prevMode = mode.value;
-  selectedTool.value = toMode === 'none' ? null : item;
   mode.value = toMode;
   onChange(toMode, prevMode);
 };
@@ -163,13 +154,12 @@ useEventListener('keydown', (ev) => {
   if (ignoreKeyShortcuts.value) {
     return;
   }
-  if (ev.key == 'Shift') {
-    mode.value =
-      selectedTool.value?.shiftMode ?? selectedTool.value?.mode ?? 'none';
+  const k = ev.key.toLowerCase();
+  if (k == 'shift') {
+    modifiers.shift = true;
   }
-  if (ev.key == 'Control') {
-    mode.value =
-      selectedTool.value?.ctrlMode ?? selectedTool.value?.mode ?? 'none';
+  if (k == 'control') {
+    modifiers.control = true;
   }
 });
 
@@ -177,11 +167,12 @@ useEventListener('keyup', (ev) => {
   if (ignoreKeyShortcuts.value) {
     return;
   }
-  if (ev.key == 'Shift') {
-    mode.value = selectedTool.value?.mode ?? 'none';
+  const k = ev.key.toLowerCase();
+  if (k == 'shift') {
+    modifiers.shift = false;
   }
-  if (ev.key == 'Control') {
-    mode.value = selectedTool.value?.mode ?? 'none';
+  if (k == 'control') {
+    modifiers.control = false;
   }
 });
 </script>

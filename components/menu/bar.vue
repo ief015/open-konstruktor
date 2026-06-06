@@ -46,6 +46,7 @@
         :id="item.id"
         :label="item.label"
         :items="item.items"
+        :disabled="item.disabled"
         :theme
         :no-hover-open
         menu-direction="right"
@@ -65,6 +66,7 @@ export type MenuBarItem =
       id?: string;
       label?: string;
       items?: MenuBarItem[];
+      disabled?: boolean;
     }
   | 'divider';
 

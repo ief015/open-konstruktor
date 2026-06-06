@@ -796,20 +796,29 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
   }
 };
 
-const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
+function deleteSelection() {
   if (!selectionBounds.value) return;
+  const [left, top, right, bottom] = selectionBounds.value!;
+  const start: Point = [left, top];
+  const end: Point = [right, bottom];
+  if (
+    selectionState.value === 'selecting' ||
+    selectionState.value === 'selected'
+  ) {
+    field.value.clearRect(start, end, { enforceBounds: true });
+  }
+  selectionFieldGraph.value = undefined;
+  endSelection();
+  queueAnimFuncs.add(renderTiles);
+  queueAnimFuncs.add(renderOverlay);
+  history.push();
+}
+
+const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Delete':
     case 'Backspace':
-      const [left, top, right, bottom] = selectionBounds.value!;
-      const start: Point = [left, top];
-      const end: Point = [right, bottom];
-      field.value.clearRect(start, end, { enforceBounds: true });
-      selectionFieldGraph.value = undefined;
-      endSelection();
-      queueAnimFuncs.add(renderTiles);
-      queueAnimFuncs.add(renderOverlay);
-      history.push();
+      deleteSelection();
       break;
   }
 };
@@ -923,6 +932,70 @@ useEventListener('keydown', (e) => {
   }
 });
 
+const clipboard = useClipboard();
+
+function cutSelectionToClipboard() {
+  if (!selectionFieldGraph.value) return;
+  const data = selectionFieldGraph.value.toSaveString();
+  clipboard.copy(data);
+  const [left, top, right, bottom] = selectionBounds.value!;
+  const start: Point = [left, top];
+  const end: Point = [right, bottom];
+  field.value.clearRect(start, end, { enforceBounds: true });
+  endSelection();
+  queueAnimFuncs.add(renderTiles);
+  queueAnimFuncs.add(renderOverlay);
+  history.push();
+}
+
+function copySelectionToClipboard() {
+  if (!selectionFieldGraph.value) return;
+  const data = selectionFieldGraph.value.toSaveString();
+  clipboard.copy(data);
+}
+
+function pasteClipboard() {
+  try {
+    if (!clipboard.text.value) return;
+    const text = clipboard.text.value;
+    const graph = FieldGraph.from(text, 'snippet');
+    const { columns, rows } = graph.getDimensions();
+    if (columns > 0 && rows > 0) {
+      selectionFieldGraph.value = graph;
+      selectionTranslate.value = [
+        coordMouseX.value - columns / 2,
+        coordMouseY.value - rows / 2,
+      ];
+      selectionStart.value = [0, 0];
+      selectionEnd.value = [columns - 1, rows - 1];
+      selectionIsSnippet.value = true;
+      selectionState.value = 'dragging';
+      toolBoxMode.value = 'select';
+      queueAnimFuncs.add(renderOverlay);
+    }
+  } catch (err) {
+    console.error('Failed to parse clipboard data as field graph', err);
+  }
+}
+
+useEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+    switch (k) {
+      case 'c':
+        copySelectionToClipboard();
+        break;
+      case 'x':
+        cutSelectionToClipboard();
+        break;
+      case 'v': {
+        pasteClipboard();
+        break;
+      }
+    }
+  }
+});
+
 useEventListener(
   document,
   MenuBarActionEvent.eventType,
@@ -944,6 +1017,18 @@ useEventListener(
         history.redo();
         updateDesignScore();
         queueAnimFuncs.add(renderAll);
+        break;
+      case 'edit/cut':
+        cutSelectionToClipboard();
+        break;
+      case 'edit/copy':
+        copySelectionToClipboard();
+        break;
+      case 'edit/paste':
+        pasteClipboard();
+        break;
+      case 'edit/delete':
+        deleteSelection();
         break;
     }
   },
