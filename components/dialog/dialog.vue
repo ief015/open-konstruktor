@@ -11,7 +11,7 @@
           {{ title }}
         </span>
       </slot>
-      <div class="text-xs">
+      <div class="overflow-auto">
         <slot />
       </div>
       <div class="flex flex-row justify-end gap-2">
