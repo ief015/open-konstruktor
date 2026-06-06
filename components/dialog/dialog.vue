@@ -11,10 +11,8 @@
           {{ title }}
         </span>
       </slot>
-      <div class="overflow-auto">
-        <slot />
-      </div>
-      <div class="flex flex-row justify-end gap-2">
+      <slot />
+      <div v-if="!noActions" class="flex flex-row justify-end gap-2">
         <slot name="actions">
           <slot name="prepend-actions" />
           <button v-if="!!btnOk" :disabled="disableOk" @click="onOk">
@@ -45,6 +43,7 @@ const props = withDefaults(
     btnCancel?: boolean | string;
     disableOk?: boolean;
     disableCancel?: boolean;
+    noActions?: boolean;
   }>(),
   {
     btnOk: true,

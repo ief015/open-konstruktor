@@ -4,11 +4,10 @@
     start-open
     title="Welcome to Open-Konstruktor!"
     title-class="font-ttw text-xl text-center"
-    :btn-ok="false"
-    :btn-cancel="false"
+    no-actions
   >
-    <div class="max-w-[500px] flex flex-col gap-4 text-base">
-      <div>
+    <div class="max-w-[500px] flex flex-col gap-4 mb-4">
+      <div class="mb-4">
         Open-Konstruktor is a game about designing and simulating digital
         circuits, based on the Zachtronics game
         <a
