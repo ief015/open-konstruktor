@@ -47,7 +47,15 @@
     >
       <template #append-form>
         <div v-if="showSaveDialogRecord" class="text-xs opacity-50">
-          ID: {{ showSaveDialogRecord.id }}
+          <div>ID: {{ showSaveDialogRecord.id }}</div>
+          <div>
+            Created:
+            {{ new Date(showSaveDialogRecord.createdAt).toLocaleString() }}
+          </div>
+          <div>
+            Updated:
+            {{ new Date(showSaveDialogRecord.updatedAt).toLocaleString() }}
+          </div>
         </div>
       </template>
       <template #prepend-actions>
