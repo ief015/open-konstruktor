@@ -804,7 +804,12 @@ const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
       const [left, top, right, bottom] = selectionBounds.value!;
       const start: Point = [left, top];
       const end: Point = [right, bottom];
+      if (
+        selectionState.value === 'selecting' ||
+        selectionState.value === 'selected'
+      ) {
       field.value.clearRect(start, end, { enforceBounds: true });
+      }
       selectionFieldGraph.value = undefined;
       endSelection();
       queueAnimFuncs.add(renderTiles);
