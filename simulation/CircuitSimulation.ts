@@ -339,7 +339,7 @@ export class CircuitSimulation {
       }
     }
     const ratioAvg = sumRatio / this.outputSequences.size;
-    const gradePercent = Math.trunc(sumGrade / this.outputSequences.size);
+    const gradePercent = Math.trunc(sumGrade / this.outputSequences.size) || 0;
     const passed = gradePercent >= VERIFICATION_PASS_THRESHOLD;
     return {
       ratioAvg,
