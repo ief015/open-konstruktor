@@ -808,7 +808,7 @@ const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
         selectionState.value === 'selecting' ||
         selectionState.value === 'selected'
       ) {
-      field.value.clearRect(start, end, { enforceBounds: true });
+        field.value.clearRect(start, end, { enforceBounds: true });
       }
       selectionFieldGraph.value = undefined;
       endSelection();
@@ -928,7 +928,7 @@ useEventListener('keydown', (e) => {
   }
 });
 
-const clipboard = useClipboard();
+const clipboard = useClipboard({ read: true });
 useEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
   if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
@@ -963,10 +963,6 @@ useEventListener('keydown', (e) => {
           const { columns, rows } = graph.getDimensions();
           if (columns > 0 && rows > 0) {
             selectionFieldGraph.value = graph;
-            const viewX =
-              Math.ceil(selectionFieldView.value[0] / TILE_SIZE) || 0;
-            const viewY =
-              Math.ceil(selectionFieldView.value[1] / TILE_SIZE) || 0;
             selectionTranslate.value = [
               coordMouseX.value - columns / 2,
               coordMouseY.value - rows / 2,
