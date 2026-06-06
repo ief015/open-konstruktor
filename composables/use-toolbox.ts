@@ -69,6 +69,7 @@ const mode = computed<ToolboxMode>({
     _mode.value = value;
   },
 });
+
 const ignoreKeyShortcuts = ref(false);
 
 export default function useToolbox() {
