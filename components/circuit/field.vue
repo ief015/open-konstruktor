@@ -928,7 +928,7 @@ useEventListener('keydown', (e) => {
   }
 });
 
-const clipboard = useClipboard({ read: true });
+const clipboard = useClipboard();
 useEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
   if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
