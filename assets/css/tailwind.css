@@ -40,6 +40,14 @@ button, input, select, textarea, label {
   font-family: "IBM Plex Serif", sans-serif;
 }
 
+label {
+  font-size: 0.875rem /* 14px */;
+}
+
+textarea {
+  font-size: 0.875rem /* 14px */;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
