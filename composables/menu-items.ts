@@ -54,6 +54,11 @@ export function useMenuItems() {
           label: 'Paste',
           disabled: clipboard.copied.value,
         },
+        {
+          id: 'edit/delete',
+          label: 'Delete',
+          disabled: !selection.bounds.value,
+        },
         'divider',
         { id: 'edit/clear', label: 'Clear' },
       ],
