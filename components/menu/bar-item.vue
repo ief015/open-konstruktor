@@ -1,9 +1,10 @@
 <template>
   <div
     @click.stop="onClick"
-    class="relative flex flex-row gap-2 items-center px-2 cursor-pointer"
+    class="relative flex flex-row gap-2 items-center px-2"
     :class="{
       'pointer-events-none opacity-50': props.disabled,
+      'cursor-pointer': !props.disabled,
     }"
     :style="{
       'background-color':
@@ -36,7 +37,7 @@
     </div>
     <MenuBar
       v-if="items && items.length && isOpen"
-      :class="`absolute z-10 ${props.menuDirection === 'down' ? 'top-full left-0' : '-top-2 left-full'}`"
+      :class="`absolute z-10 cursor-auto ${props.menuDirection === 'down' ? 'top-full left-0' : '-top-2 left-full'}`"
       :items="items"
       :theme
       :_root="false"

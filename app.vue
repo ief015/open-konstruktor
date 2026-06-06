@@ -1,10 +1,8 @@
 <template>
   <NuxtLayout class="max-w-screen max-h-screen">
     <template #top>
-      <div class="h-[1.5em] bottom-border flex flex-row">
-        <div class="font-ttw select-none ml-2 mr-3 self-center">
-          open-konstruktor
-        </div>
+      <div class="h-[1.5em] bottom-border flex flex-row select-none">
+        <div class="font-ttw ml-2 mr-3 self-center">open-konstruktor</div>
         <div class="flex-1">
           <MenuBarApp />
         </div>
