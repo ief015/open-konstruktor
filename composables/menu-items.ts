@@ -21,7 +21,7 @@ function mapLoaderToMenuItem(loader: CircuitSimulationFactories): MenuBarItem {
 
 export function useMenuItems() {
   const { loaders } = useCircuitLoaders();
-  const clipboard = useClipboard();
+  const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
   const selection = useSelection();
   const { history } = useFieldGraph();
   const levelItems = computed((): MenuBarItem[] =>
@@ -57,7 +57,7 @@ export function useMenuItems() {
         {
           id: 'edit/paste',
           label: 'Paste',
-          disabled: clipboard.copied.value,
+          disabled: !clipboard || clipboard.text.value.length === 0,
         },
         {
           id: 'edit/delete',

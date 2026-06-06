@@ -63,7 +63,7 @@ const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
 const { load: loadSim, circuitFactory } = useCircuitSimulator();
 const { getLoader } = useCircuitLoaders();
 const { ignoreKeyShortcuts } = useToolbox();
-const clipboard = useClipboard();
+const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
 const importTextArea = ref<HTMLTextAreaElement>();
@@ -162,6 +162,7 @@ const closeAllDialogs = () => {
 };
 
 const onCopyExport = () => {
+  if (!clipboard) return;
   clipboard.copy(exportCode.value);
   exportCopied.value = true;
 };

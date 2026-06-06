@@ -59,6 +59,10 @@
 <script setup lang="ts">
 const config = useRuntimeConfig();
 const status = useStatusBar();
+
+// FIXME: useClipboard does not appear to be reliable when called in many places
+const clipboard = useClipboard();
+provide('clipboard', clipboard);
 </script>
 
 <style scoped>

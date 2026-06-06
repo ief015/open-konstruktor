@@ -56,7 +56,6 @@ const {
   isRunning,
   stepsPerSecond,
   onRender: onCircuitRender,
-  stop: stopSim,
 } = useCircuitSimulator();
 const { mode: toolBoxMode } = useToolbox();
 const images = useImageLoader();
@@ -562,7 +561,7 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
 };
 
 const clear = () => {
-  stopSim();
+  if (isRunning.value) return;
   field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
     enforceBounds: true,
   });
@@ -797,6 +796,7 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
 };
 
 function deleteSelection() {
+  if (isRunning.value) return;
   if (!selectionBounds.value) return;
   const [left, top, right, bottom] = selectionBounds.value!;
   const start: Point = [left, top];
@@ -812,6 +812,20 @@ function deleteSelection() {
   queueAnimFuncs.add(renderTiles);
   queueAnimFuncs.add(renderOverlay);
   history.push();
+}
+
+function undo() {
+  if (isRunning.value) return;
+  history.undo();
+  updateDesignScore();
+  queueAnimFuncs.add(renderAll);
+}
+
+function redo() {
+  if (isRunning.value) return;
+  history.redo();
+  updateDesignScore();
+  queueAnimFuncs.add(renderAll);
 }
 
 const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
@@ -921,21 +935,19 @@ useEventListener('keydown', (e) => {
 useEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 'z' && e.ctrlKey) {
     if (e.shiftKey) {
-      history.redo();
-      updateDesignScore();
-      queueAnimFuncs.add(renderAll);
+      redo();
     } else {
-      history.undo();
-      updateDesignScore();
-      queueAnimFuncs.add(renderAll);
+      undo();
     }
   }
 });
 
-const clipboard = useClipboard();
+const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
 
 function cutSelectionToClipboard() {
+  if (isRunning.value) return;
   if (!selectionFieldGraph.value) return;
+  if (!clipboard) return;
   const data = selectionFieldGraph.value.toSaveString();
   clipboard.copy(data);
   const [left, top, right, bottom] = selectionBounds.value!;
@@ -950,12 +962,16 @@ function cutSelectionToClipboard() {
 
 function copySelectionToClipboard() {
   if (!selectionFieldGraph.value) return;
+  if (!clipboard) return;
   const data = selectionFieldGraph.value.toSaveString();
-  clipboard.copy(data);
+  clipboard.copy(data).then(() => console.log('copied', clipboard.text.value));
 }
 
 function pasteClipboard() {
+  if (isRunning.value) return;
+  if (!clipboard) return;
   try {
+    console.log('paste', clipboard.text.value);
     if (!clipboard.text.value) return;
     const text = clipboard.text.value;
     const graph = FieldGraph.from(text, 'snippet');
@@ -1009,14 +1025,10 @@ useEventListener(
         clear();
         break;
       case 'edit/undo':
-        history.undo();
-        updateDesignScore();
-        queueAnimFuncs.add(renderAll);
+        undo();
         break;
       case 'edit/redo':
-        history.redo();
-        updateDesignScore();
-        queueAnimFuncs.add(renderAll);
+        redo();
         break;
       case 'edit/cut':
         cutSelectionToClipboard();
