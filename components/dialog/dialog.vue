@@ -16,10 +16,18 @@
       </div>
       <div class="flex flex-row justify-end gap-2">
         <slot name="actions">
-          <button v-if="!!btnOk" @click="onOk">{{ btnOkLabel }}</button>
-          <button v-if="!!btnCancel" @click="onCancel">
+          <slot name="prepend-actions" />
+          <button v-if="!!btnOk" :disabled="disableOk" @click="onOk">
+            {{ btnOkLabel }}
+          </button>
+          <button
+            v-if="!!btnCancel"
+            :disabled="disableCancel"
+            @click="onCancel"
+          >
             {{ btnCancelLabel }}
           </button>
+          <slot name="append-actions" />
         </slot>
       </div>
     </div>
@@ -35,6 +43,8 @@ const props = withDefaults(
     titleStyle?: string;
     btnOk?: boolean | string;
     btnCancel?: boolean | string;
+    disableOk?: boolean;
+    disableCancel?: boolean;
   }>(),
   {
     btnOk: true,
