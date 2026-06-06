@@ -1,12 +1,6 @@
 <template>
-  <Dialog
-    ref="dialog"
-    title="Save Snippet"
-    btn-ok="Save"
-    @ok="onSave"
-    @show="onShow"
-  >
-    <form class="flex flex-col gap-2">
+  <Dialog title="Save Snippet" btn-ok="Save" @ok="onSave" @show="onShow">
+    <form class="flex flex-col gap-2 w-[400px]">
       <label for="name">Snippet name</label>
       <input name="name" type="text" v-model="formData!.name" />
       <label for="category">Category</label>
@@ -35,7 +29,6 @@ const formData = ref<SaveSnippetFormData>({
   category: '',
   description: '',
 });
-const dialog = useTemplateRef('dialog');
 
 const reset = () => {
   formData.value = { name: '', category: '', description: '' };

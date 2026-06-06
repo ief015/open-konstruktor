@@ -1,12 +1,6 @@
 <template>
-  <Dialog
-    ref="dialog"
-    title="Save Design"
-    btn-ok="Save"
-    @ok="onSave"
-    @show="onShow"
-  >
-    <form class="flex flex-col gap-2">
+  <Dialog title="Save Design" btn-ok="Save" @ok="onSave" @show="onShow">
+    <form class="flex flex-col gap-2 w-[400px]">
       <label for="name">Design name</label>
       <input name="name" type="text" v-model="formData!.name" />
       <label for="category">Category</label>
@@ -28,6 +22,7 @@ const emit = defineEmits<{
   save: [formData: SaveDesignFormData];
 }>();
 
+const { circuitFactory } = useCircuitSimulator();
 const { categories } = useSavedDesigns();
 
 const formData = ref<SaveDesignFormData>({
@@ -35,10 +30,13 @@ const formData = ref<SaveDesignFormData>({
   category: '',
   description: '',
 });
-const dialog = useTemplateRef('dialog');
 
 const reset = () => {
-  formData.value = { name: '', category: '', description: '' };
+  formData.value = {
+    name: '',
+    category: circuitFactory.value.label || '',
+    description: '',
+  };
 };
 
 const onShow = () => {
