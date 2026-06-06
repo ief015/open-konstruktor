@@ -23,13 +23,33 @@
       </button>
       <button
         class="flex-1 text-xs"
-        @click="onDelete"
-        :disabled="!selected.length"
+        @click="onEdit"
+        :disabled="selected.length != 1"
       >
-        Delete
+        Edit
       </button>
     </div>
-    <DialogDesignsSave v-model="showSaveDialog" @save="onSaveSubmit" />
+    <DialogDesignsSave
+      v-model="showSaveDialog"
+      :data="showSaveDialogInit"
+      @save="onSaveSubmit"
+      :title="`${showSaveDialogID ? 'Edit' : 'New'} Design`"
+    >
+      <template #append-form>
+        <div v-if="showSaveDialogID" class="text-xs opacity-50">
+          ID: {{ showSaveDialogID }}
+        </div>
+      </template>
+      <template #prepend-actions>
+        <button
+          v-if="showSaveDialogID"
+          class="text-xs mr-auto"
+          @click="onDelete"
+        >
+          Delete
+        </button>
+      </template>
+    </DialogDesignsSave>
   </div>
 </template>
 
@@ -51,6 +71,8 @@ const groupsSorted = computed(() => {
 });
 
 const showSaveDialog = ref(false);
+const showSaveDialogID = ref<DesignRecord['id']>();
+const showSaveDialogInit = ref<SaveDesignFormData>();
 
 const loadOption = (opt: DesignRecord) => {
   loadField(opt.data);
@@ -69,6 +91,8 @@ const onSelect = (opt: DesignRecord) => {
 
 const onSave = () => {
   if (!field.value) return;
+  showSaveDialogInit.value = undefined;
+  showSaveDialogID.value = undefined;
   showSaveDialog.value = true;
 };
 
@@ -77,6 +101,7 @@ const onSaveSubmit = async (formData: SaveDesignFormData) => {
   const { columns, rows } = field.value.getDimensions();
   const data = field.value.toSaveString();
   await saveDesign({
+    id: showSaveDialogID.value,
     name: formData.name,
     category: formData.category,
     description: formData.description,
@@ -93,11 +118,25 @@ const onLoad = () => {
   }
 };
 
+const onEdit = () => {
+  const opt = selected.value[0];
+  if (opt) {
+    showSaveDialogID.value = opt.id;
+    showSaveDialogInit.value = {
+      name: opt.name,
+      category: opt.category,
+      description: opt.description || '',
+    };
+    showSaveDialog.value = true;
+  }
+};
+
 const onDelete = async () => {
   const opt = selected.value[0];
   if (opt?.id && confirm(`Are you sure you want to delete "${opt.name}"?`)) {
     await deleteDesign(opt.id);
     selected.value = [];
+    showSaveDialog.value = false;
   }
 };
 </script>

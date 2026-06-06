@@ -1,6 +1,8 @@
+export type SnippetCategoryRecord = string;
+
 export interface SnippetRecord {
-  id?: number;
-  category: string;
+  id?: string;
+  category: SnippetCategoryRecord;
   name: string;
   data: string;
   description?: string;
@@ -8,12 +10,10 @@ export interface SnippetRecord {
   height: number;
 }
 
-export type SnippetCategoryRecord = string;
-
 export interface SnippetGroup {
   label: string;
   options: SnippetRecord[];
-};
+}
 
 const CATEGORY_NONE = 'Uncategorized';
 
@@ -45,24 +45,26 @@ const groups = computed<SnippetGroup[]>(() => {
 
 const loading = ref(true);
 
-const getDB = () => new Promise<IDBDatabase>((resolve, reject) => {
-  if (db.readyState === 'done') {
-    resolve(db.result);
-    return;
-  }
-  db.onsuccess = () => resolve(db.result);
-  db.onerror = () => reject(db.error);
-});
+const getDB = () =>
+  new Promise<IDBDatabase>((resolve, reject) => {
+    if (db.readyState === 'done') {
+      resolve(db.result);
+      return;
+    }
+    db.onsuccess = () => resolve(db.result);
+    db.onerror = () => reject(db.error);
+  });
 
 db.onupgradeneeded = async () => {
   const DB = db.result;
-  DB.createObjectStore('snippets', { keyPath: 'id', autoIncrement: true });
-}
+  DB.createObjectStore('snippets', { keyPath: 'id' });
+  DB.createObjectStore('categories');
+};
 
-const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) => new Promise<T[]>(
-  (resolve, reject) => {
+const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) =>
+  new Promise<T[]>((resolve, reject) => {
     const results: T[] = [];
-    request.onsuccess = (event: any) => {
+    request.onsuccess = (event) => {
       const cursor = request.result;
       if (cursor) {
         results.push(cursor.value);
@@ -70,10 +72,9 @@ const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) => new 
       } else {
         resolve(results);
       }
-    }
+    };
     request.onerror = (event: any) => reject(event);
-  }
-);
+  });
 
 const fetchSnippetRecords = async (): Promise<SnippetRecord[]> => {
   const db = await getDB();
@@ -82,7 +83,7 @@ const fetchSnippetRecords = async (): Promise<SnippetRecord[]> => {
   const request = store.openCursor();
   const results = await cursorGetAll<SnippetRecord>(request);
   return results;
-}
+};
 
 const reload = async () => {
   loading.value = true;
@@ -92,31 +93,37 @@ const reload = async () => {
   } finally {
     loading.value = false;
   }
-}
+};
 
 const saveSnippet = async (snippet: SnippetRecord): Promise<SnippetRecord> => {
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readwrite');
   const store = transaction.objectStore('snippets');
+  snippet.id ??= crypto.randomUUID();
   const request = store.put(snippet);
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {
-      snippet.id = request.result as number;
-      snippets.value.push(snippet);
+      snippet.id = request.result as string;
+      const existing = snippets.value.find((s) => s.id === snippet.id);
+      if (existing) {
+        Object.assign(existing, snippet);
+      } else {
+        snippets.value.push(snippet);
+      }
       resolve(snippet);
     };
     request.onerror = () => reject(request.error);
   });
-}
+};
 
-const deleteSnippet = async (id: number) => {
+const deleteSnippet = async (id: string) => {
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readwrite');
   const store = transaction.objectStore('snippets');
   const request = store.delete(id);
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {
-      const index = snippets.value.findIndex(snippet => snippet.id === id);
+      const index = snippets.value.findIndex((snippet) => snippet.id === id);
       if (index >= 0) {
         snippets.value.splice(index, 1);
       }
@@ -124,7 +131,7 @@ const deleteSnippet = async (id: number) => {
     };
     request.onerror = () => reject(request.error);
   });
-}
+};
 
 reload();
 

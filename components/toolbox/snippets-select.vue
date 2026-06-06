@@ -29,13 +29,33 @@
       </button>
       <button
         class="flex-1 text-xs"
-        @click="onDelete"
+        @click="onEdit"
         :disabled="!selected.length"
       >
-        Delete
+        Edit
       </button>
     </div>
-    <DialogSnippetsSave v-model="showSaveDialog" @save="onSaveSubmit" />
+    <DialogSnippetsSave
+      v-model="showSaveDialog"
+      :data="showSaveDialogInit"
+      @save="onSaveSubmit"
+      :title="`${showSaveDialogID ? 'Edit' : 'New'} Snippet`"
+    >
+      <template #append-form>
+        <div v-if="showSaveDialogID" class="text-xs opacity-50">
+          ID: {{ showSaveDialogID }}
+        </div>
+      </template>
+      <template #prepend-actions>
+        <button
+          v-if="showSaveDialogID"
+          class="text-xs mr-auto"
+          @click="onDelete"
+        >
+          Delete
+        </button>
+      </template>
+    </DialogSnippetsSave>
   </div>
 </template>
 
@@ -66,6 +86,8 @@ const coordMouseY = computed(() => {
 });
 
 const showSaveDialog = ref(false);
+const showSaveDialogID = ref<SnippetRecord['id']>();
+const showSaveDialogInit = ref<SaveSnippetFormData>();
 
 const { groups, snippets, categories, saveSnippet, deleteSnippet } =
   useSavedSnippets();
@@ -109,6 +131,8 @@ const onSelect = (opt: SnippetRecord) => {
 
 const onSave = () => {
   if (!selectionFieldGraph.value) return;
+  showSaveDialogInit.value = undefined;
+  showSaveDialogID.value = undefined;
   showSaveDialog.value = true;
 };
 
@@ -117,6 +141,7 @@ const onSaveSubmit = async (formData: SaveSnippetFormData) => {
   const { columns, rows } = selectionFieldGraph.value.getDimensions();
   const data = selectionFieldGraph.value.toSaveString();
   await saveSnippet({
+    id: showSaveDialogID.value,
     name: formData.name,
     category: formData.category,
     description: formData.description,
@@ -133,6 +158,19 @@ const onLoad = () => {
   }
 };
 
+const onEdit = () => {
+  const opt = selected.value[0];
+  if (opt) {
+    showSaveDialogID.value = opt.id;
+    showSaveDialogInit.value = {
+      name: opt.name,
+      category: opt.category,
+      description: opt.description || '',
+    };
+    showSaveDialog.value = true;
+  }
+};
+
 const onDelete = async () => {
   const opt = selected.value[0];
   if (
@@ -141,6 +179,7 @@ const onDelete = async () => {
   ) {
     await deleteSnippet(opt.id);
     selected.value = [];
+    showSaveDialog.value = false;
   }
 };
 </script>
