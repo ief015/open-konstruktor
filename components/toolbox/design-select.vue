@@ -16,17 +16,19 @@
         </option>
       </optgroup>
     </select>
-    <div class="flex flex-row m-1 gap-1">
-      <button class="flex-1 text-xs" @click="onSave">Save</button>
+    <div class="flex flex-row m-1 items-center gap-1">
+      <button class="flex-1 p-0" @click="onSave">
+        <span>Save</span>
+      </button>
       <button
-        class="flex-1 text-xs"
+        class="flex-1 p-0"
         @click="onLoad"
         :disabled="selected.length != 1"
       >
         Load
       </button>
       <button
-        class="flex-1 text-xs"
+        class="flex-1 p-0"
         @click="onEdit"
         :disabled="selected.length != 1"
       >
@@ -53,11 +55,7 @@
         </div>
       </template>
       <template #prepend-actions>
-        <button
-          v-if="showSaveDialogRecord"
-          class="text-xs mr-auto"
-          @click="onDelete"
-        >
+        <button v-if="showSaveDialogRecord" class="mr-auto" @click="onDelete">
           Delete
         </button>
       </template>
