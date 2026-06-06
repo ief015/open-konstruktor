@@ -12,7 +12,7 @@ and expanding on it.
 
 ✅️ Realtime performance - simulate millions of Hz!  
 ✅️ Import/export designs with KOHCTPYKTOP compatibility  
-✅️ Improved controls such as selection rotating and flipping  
+✅️ Improved controls such as selection rotating and flipping, undo history  
 ✅️ Design debugging tools: Pausing, stepping, looping, pause-on-error  
 ✅️ Original KOHCTPYKTOP level pack  
 ✅️ New tutorial levels  
