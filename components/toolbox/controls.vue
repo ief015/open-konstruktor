@@ -21,7 +21,7 @@
         }"
       >
         <img v-if="item.icon" :src="item.icon" class="w-[12px] h-[12px]" />
-        <span class="text-xs">{{ item.name }}</span>
+        <span>{{ item.name }}</span>
         <span
           class="absolute top-0 right-0.5 text-black text-opacity-50 font-georgia10 text-[10px]"
         >
@@ -70,7 +70,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'Metal',
     mode: 'draw-metal',
-    classes: 'bg-metal text-black font-bold',
+    classes: 'bg-metal text-black font-semibold',
     description:
       'Metal tool. Basic conductor, can connect to pins. Connects to silicon with vias.',
     key: '2',
@@ -78,7 +78,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'P-Type',
     mode: 'draw-p-silicon',
-    classes: 'bg-ptype text-black font-bold',
+    classes: 'bg-ptype text-black font-semibold',
     description:
       'P-Type silicon tool. Connect N-Type silicon with this to create a PNP gate.',
     key: '3',
@@ -86,7 +86,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'N-Type',
     mode: 'draw-n-silicon',
-    classes: 'bg-ntype text-black font-bold',
+    classes: 'bg-ntype text-white font-semibold',
     description:
       'N-Type silicon tool. Connect P-Type silicon with this to create an NPN gate.',
     key: '4',
@@ -95,7 +95,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
     name: 'Via',
     mode: 'draw-via',
     icon: '/tiles/link.png',
-    classes: 'bg-neutral-400 text-black font-bold',
+    classes: 'bg-neutral-400 text-black font-semibold',
     description: 'Via tool. Place on silicon to connect to metal layer.',
     key: '5',
   },

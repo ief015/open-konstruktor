@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+
 /*
 @tailwind base;
 */
@@ -5,7 +7,9 @@
 @tailwind utilities;
 
 :root {
-  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-family: "IBM Plex Serif", Georgia, 'Times New Roman', Times, serif;
+  font-size: 1rem /* 16px */;
+  line-height: 1.5rem /* 24px */;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -33,8 +37,7 @@ body {
 }
 
 button, input, select, textarea, label {
-  font-family: monospace;
-  font-size: inherit;
+  font-family: "IBM Plex Serif", Georgia, 'Times New Roman', Times, serif;
 }
 
 @media (prefers-color-scheme: light) {
@@ -43,7 +46,7 @@ button, input, select, textarea, label {
     background-color: #ffffff;
   }
   a:hover {
-    color: #747bff;
+    color: #ffff90;
   }
 }
 
@@ -65,19 +68,4 @@ button, input, select, textarea, label {
 @font-face {
   font-family: TravelingTypewriter;
   src: url('/ttf/Typewriter_Traveling_Typewriter.ttf') format('truetype');
-}
-
-.georgia10 {
-  font-family: Georgia10;
-  font-size: 10pt;
-}
-
-.georgia12 {
-  font-family: Georgia12;
-  font-size: 12pt;
-}
-
-.courier12 {
-  font-family: Courier12;
-  font-size: 12pt;
 }

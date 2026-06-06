@@ -41,9 +41,7 @@
     </template>
     <template #bottom>
       <div class="h-[1.5em] top-border">
-        <div
-          class="flex flex-row justify-between items-center h-full font-mono text-sm"
-        >
+        <div class="flex flex-row justify-between items-center h-full text-sm">
           <div class="opacity-75 pl-1 text-nowrap overflow-hidden">
             {{ status.text.value }}
           </div>

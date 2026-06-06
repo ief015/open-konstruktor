@@ -7,7 +7,7 @@
         </div>
         <div class="cursor-pointer px-2" @click="close()">🗙</div>
       </div>
-      <div class="font-mono text-sm h-[16em] overflow-auto">
+      <div class="h-[16em] overflow-auto">
         <div v-html="contentHtml" />
       </div>
       <div class="flex flex-row justify-center gap-4">

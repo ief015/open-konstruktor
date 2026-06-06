@@ -1,5 +1,8 @@
 <template>
-  <div class="flex flex-col justify-between" :style="{ 'background-color': COLOR_CHART }">
+  <div
+    class="flex flex-col justify-between"
+    :style="{ 'background-color': COLOR_CHART }"
+  >
     <div
       ref="canvasContainer"
       :class="`m-[8px] overflow-auto max-h-[${maxScopeHeight}px]`"
@@ -16,20 +19,22 @@
       </canvas>
     </div>
     <div class="px-[8px] flex flex-row justify-between items-end text-black">
-      <div
-        class="font-georgia12 text-[12px] uppercase"
-      >
+      <div class="font-georgia12 text-[12px] uppercase">
         <span v-if="isRunning">
           VERIFICATION TEST RUNNING... {{ currentFrame }}
         </span>
         <span v-else-if="!verifyResult">
           VERIFICATION TEST NOT YET COMPLETED
         </span>
-        <span v-else-if="verifyResult.gradePercent >= VERIFY_PASS_THRESHOLD" :style="{ 'color': COLOR_VERIFY_PASS }">
-          VERIFICATION TEST PASSED ({{verifyResult.gradePercent}}%) - FLAGGED AS COMPLETED
+        <span
+          v-else-if="verifyResult.gradePercent >= VERIFY_PASS_THRESHOLD"
+          :style="{ color: COLOR_VERIFY_PASS }"
+        >
+          VERIFICATION TEST PASSED ({{ verifyResult.gradePercent }}%) - FLAGGED
+          AS COMPLETED
         </span>
-        <span v-else :style="{ 'color': COLOR_VERIFY_FAIL }">
-          VERIFICATION TEST FAILED ({{verifyResult.gradePercent}}%) 
+        <span v-else :style="{ color: COLOR_VERIFY_FAIL }">
+          VERIFICATION TEST FAILED ({{ verifyResult.gradePercent }}%)
         </span>
       </div>
       <div class="font-georgia10 text-[10px] min-w-[20em]">
@@ -65,10 +70,17 @@ const canvas = ref<HTMLCanvasElement>();
 const canvasWidth = ref(0);
 const { designScore } = useFieldGraph();
 const {
-  network, sim, isRunning, currentFrame,
-  onRender: onCircuitRender, onComplete,
+  network,
+  sim,
+  isRunning,
+  currentFrame,
+  onRender: onCircuitRender,
+  onComplete,
 } = useCircuitSimulator();
-const { openCompleted: levelInfoOpenCompleted, completedAvailable: hasOpenedCompleted } = useLevelInfo();
+const {
+  openCompleted: levelInfoOpenCompleted,
+  completedAvailable: hasOpenedCompleted,
+} = useLevelInfo();
 const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
 let prevDrawingCoords: Point = [0, 0];
@@ -77,19 +89,22 @@ const filteredPins = computed<PinNode[]>(() => {
   const pins = network.value.getPinNodes();
   // TODO: need a more proper way to filter out VCC (flag on PinNode?)
   return pins.filter((node, idx) => node.label !== 'VCC');
-})
+});
 const maxScopeHeight = computed<number>(() => {
   return filteredPins.value.length * HEIGHT_PX_SCOPE;
 });
 const translateX = computed<number>(() => {
   if (!canvas.value) return 0;
-  const padLength = (WIDTH_PX_LABELS / TICK_WIDTH_PX);
-  const visibleFrameLength = (canvasWidth.value / TICK_WIDTH_PX);
+  const padLength = WIDTH_PX_LABELS / TICK_WIDTH_PX;
+  const visibleFrameLength = canvasWidth.value / TICK_WIDTH_PX;
   const endPos = sim.value.getRunningLength() + padLength;
   if (endPos <= visibleFrameLength) return 0;
   const curPos = currentFrame.value + padLength;
   const center = visibleFrameLength / 2;
-  return Math.max(0, Math.min(endPos - visibleFrameLength + 1, curPos - center)) * TICK_WIDTH_PX;
+  return (
+    Math.max(0, Math.min(endPos - visibleFrameLength + 1, curPos - center)) *
+    TICK_WIDTH_PX
+  );
 });
 
 const renderScope = () => {
@@ -112,7 +127,7 @@ const renderScope = () => {
   ctx.strokeStyle = COLOR_GRID_LINE;
   ctx.save();
   {
-    ctx.setLineDash([ 2, 1 ]);
+    ctx.setLineDash([2, 1]);
     ctx.translate(WIDTH_PX_LABELS, 0);
     ctx.beginPath();
     for (let i = 0; i <= runningLength; i += GRID_LINE_INTERVAL) {
@@ -128,7 +143,7 @@ const renderScope = () => {
   ctx.save();
   ctx.strokeStyle = COLOR_SCOPE_LINE;
   ctx.fillStyle = COLOR_SCOPE_LINE;
-  for (const offset of [ 0, 1 ]) {
+  for (const offset of [0, 1]) {
     const baseline = -(HEIGHT_PX_SCOPE / 4 + 0.5);
     const highLine = baseline - Math.floor(HEIGHT_PX_SCOPE / 2);
     for (let i = offset; i < pins.length; i += 2) {
@@ -153,7 +168,6 @@ const renderScope = () => {
       ctx.save();
       ctx.translate(WIDTH_PX_LABELS, 0);
       if (input) {
-
         ctx.strokeStyle = COLOR_SCOPE_LINE;
         ctx.beginPath();
         ctx.moveTo(0, baseline);
@@ -161,7 +175,7 @@ const renderScope = () => {
         let lastY = baseline;
         for (const state of input) {
           const x = i * TICK_WIDTH_PX;
-          const y = (state ? highLine : baseline);
+          const y = state ? highLine : baseline;
           ctx.lineTo(x, y);
           ctx.lineTo(x + TICK_WIDTH_PX, y);
           i++;
@@ -169,9 +183,7 @@ const renderScope = () => {
         }
         ctx.lineTo(scopeWidth, lastY);
         ctx.stroke();
-
       } else if (output) {
-
         // expected
         ctx.strokeStyle = COLOR_SCOPE_HINT;
         ctx.beginPath();
@@ -180,7 +192,7 @@ const renderScope = () => {
         let lastY = baseline;
         for (const state of output) {
           const x = i * TICK_WIDTH_PX;
-          const y = (state ? highLine : baseline);
+          const y = state ? highLine : baseline;
           ctx.lineTo(x, y);
           ctx.lineTo(x + TICK_WIDTH_PX, y);
           i++;
@@ -199,7 +211,7 @@ const renderScope = () => {
           let lastY = baseline;
           for (const state of rec) {
             const x = i * TICK_WIDTH_PX;
-            const y = (state ? highLine : baseline);
+            const y = state ? highLine : baseline;
             ctx.lineTo(x, y);
             ctx.lineTo(x + TICK_WIDTH_PX, y);
             i++;
@@ -208,8 +220,8 @@ const renderScope = () => {
           ctx.lineTo(currentX, lastY);
           ctx.stroke();
         }
-
-      } else { // N/C
+      } else {
+        // N/C
         ctx.beginPath();
         ctx.moveTo(0, baseline);
         ctx.lineTo(scopeWidth, baseline);
@@ -230,13 +242,13 @@ const renderScope = () => {
   }
 
   ctx.restore();
-}
+};
 
 const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
   if (isRunning.value) return;
   // TODO: implement
   // renderScope();
-}
+};
 
 const mouseToGrid = (mx: number, my: number): Point => {
   const ctx = canvas.value?.getContext('2d');
@@ -245,7 +257,7 @@ const mouseToGrid = (mx: number, my: number): Point => {
   const x = Math.trunc((mx - rect.left) / 12);
   const y = Math.trunc((my - rect.top) / 12);
   return [x, y];
-}
+};
 
 const onMouseMove = (e: MouseEvent) => {
   const ctx = canvas.value?.getContext('2d');
@@ -256,7 +268,7 @@ const onMouseMove = (e: MouseEvent) => {
     draw(drawMode.value, prevDrawingCoords, coords);
     prevDrawingCoords = coords;
   }
-}
+};
 
 const onMouseDown = (e: MouseEvent) => {
   const ctx = canvas.value?.getContext('2d');
@@ -272,14 +284,14 @@ const onMouseDown = (e: MouseEvent) => {
   isDrawing.value = true;
   prevDrawingCoords = mouseToGrid(e.clientX, e.clientY);
   draw(drawMode.value, prevDrawingCoords, prevDrawingCoords);
-}
+};
 
 const onMouseUp = (e: MouseEvent) => {
   const ctx = canvas.value?.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
   if (isRunning.value) return;
   isDrawing.value = false;
-}
+};
 
 const onResize = () => {
   if (!canvas.value) throw new Error('Could not get canvas element');
@@ -289,7 +301,7 @@ const onResize = () => {
   canvasWidth.value = ctx.canvas.width;
   ctx.canvas.height = maxScopeHeight.value;
   renderScope();
-}
+};
 
 onCircuitRender(renderScope);
 
@@ -332,5 +344,4 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', onResize);
 });
-
 </script>
