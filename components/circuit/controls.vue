@@ -77,11 +77,8 @@
         v-model="pauseOnError"
       />
     </div>
-    <div>
-      <select
-        v-model="selectedRate"
-        title="Set the step rate of the simulation."
-      >
+    <div title="Set the step rate of the simulation.">
+      <select v-model="selectedRate">
         <option value="10">10 Hz</option>
         <option value="20">20 Hz</option>
         <option value="40" title="The original step rate of KOHCTPYKTOP.">
@@ -117,12 +114,14 @@
         type="number"
         min="0"
         v-model="customRate"
+        title="Set the target step rate."
       />
       <label for="circuit-controls-custom-rate">Hz</label>
     </div>
     <div
       v-if="selectedRate == 'realtime'"
       class="flex flex-row items-center gap-1"
+      title="Set the target frame rate for real-time mode."
     >
       <input
         id="circuit-controls-realtime-rate"
