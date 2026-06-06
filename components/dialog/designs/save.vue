@@ -44,7 +44,6 @@ const emit = defineEmits<{
   save: [formData: SaveDesignFormData];
 }>();
 
-const { circuitFactory } = useCircuitSimulator();
 const { categories } = useSavedDesigns();
 
 const formData = ref<SaveDesignFormData>();
@@ -54,7 +53,7 @@ watch(
   (newData) => {
     formData.value = {
       name: newData?.name || '',
-      category: newData?.category || circuitFactory.value.label || '',
+      category: newData?.category || '',
       description: newData?.description || '',
     };
   },

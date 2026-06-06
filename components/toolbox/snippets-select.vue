@@ -10,7 +10,7 @@
           v-for="snippet in group.options"
           :value="snippet"
           @dblclick="onSelect(snippet)"
-          :title="snippet.description"
+          :title="snippet.description || snippet.name"
         >
           {{ snippet.name }}
         </option>

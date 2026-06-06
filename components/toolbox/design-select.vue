@@ -10,7 +10,7 @@
           v-for="design in group.options"
           :value="design"
           @dblclick="onSelect(design)"
-          :title="design.description"
+          :title="design.description || design.name"
         >
           {{ design.name }}
         </option>
@@ -71,8 +71,13 @@ import type { DesignRecord } from '@/composables/use-saved-designs';
 
 const { groups, designs, categories, saveDesign, deleteDesign } =
   useSavedDesigns();
-const { load: loadField, field } = useFieldGraph();
-const { load: loadSim } = useCircuitSimulator();
+const {
+  load: loadField,
+  field,
+  verificationResult,
+  designScore,
+} = useFieldGraph();
+const { load: loadSim, circuitFactory } = useCircuitSimulator();
 
 const selected = ref<DesignRecord[]>([]);
 
@@ -82,14 +87,23 @@ const groupsSorted = computed(() => {
   return sorted;
 });
 
+function getAutoName() {
+  const grade = verificationResult.value
+    ? `${verificationResult.value.gradePercent}%`
+    : 'Unverified';
+  const date = new Date().toLocaleString();
+  return `${grade} (${designScore.value}) - ${date}`;
+}
+
 const showSaveDialog = ref(false);
 const showSaveDialogRecord = ref<DesignRecord>();
 const showSaveDialogInit = computed(() => {
-  if (showSaveDialogRecord.value) {
-    const { name, category, description } = showSaveDialogRecord.value;
-    return { name, category, description };
-  }
-  return undefined;
+  const { name, category, description } = showSaveDialogRecord.value ?? {};
+  return {
+    name: name || getAutoName(),
+    category: category || circuitFactory.value.label || '',
+    description: description || '',
+  };
 });
 
 const loadOption = (opt: DesignRecord) => {

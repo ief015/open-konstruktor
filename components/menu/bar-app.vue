@@ -12,7 +12,7 @@
       <div class="flex flex-col gap-2">
         <textarea
           ref="importTextArea"
-          class="max-w-sm w-[50vw] h-32 break-words"
+          class="max-w-sm w-[50vw] h-32 break-words text-sm"
           v-model="importCode"
           @keypress.enter="onImport"
         />
@@ -20,7 +20,7 @@
           <button
             @click="onImport"
             :disabled="!importCode.length"
-            class="font-bold"
+            class="font-medium"
           >
             Import
           </button>
@@ -33,11 +33,11 @@
         <textarea
           readonly
           ref="exportTextArea"
-          class="max-w-sm w-[50vw] h-32 break-words"
+          class="max-w-sm w-[50vw] h-32 break-words text-sm"
           :value="exportCode"
         />
         <div class="flex flex-row gap-2 justify-end">
-          <button @click="onCopyExport" class="font-bold">
+          <button @click="onCopyExport" class="font-medium">
             {{ exportCopied ? 'Copied!' : 'Copy' }}
           </button>
           <button @click="showExportDialog = false">Close</button>
