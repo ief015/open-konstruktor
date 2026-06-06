@@ -56,7 +56,7 @@
       </button>
     </div>
     <div
-      class="flex flex-row items-center"
+      class="flex flex-row items-center text-sm"
       title="Toggle looping. Verification testing will not completed until disabled or stopped."
     >
       <label for="circuit-controls-loop-checkbox">Loop</label>
@@ -67,7 +67,7 @@
       />
     </div>
     <div
-      class="flex flex-row items-center"
+      class="flex flex-row items-center text-sm"
       title="Verification testing will pause when an error is detected."
     >
       <label for="circuit-controls-error-pause-checkbox">Pause on Error</label>
@@ -81,7 +81,6 @@
       <select
         v-model="selectedRate"
         title="Set the step rate of the simulation."
-        class="text-xs"
       >
         <option value="10">10 Hz</option>
         <option value="20">20 Hz</option>
@@ -109,7 +108,7 @@
     </div>
     <div
       v-if="selectedRate == 'custom'"
-      class="flex flex-row items-center gap-1 text-xs"
+      class="flex flex-row items-center gap-1"
     >
       <input
         id="circuit-controls-custom-rate"
@@ -123,7 +122,7 @@
     </div>
     <div
       v-if="selectedRate == 'realtime'"
-      class="flex flex-row items-center gap-1 text-xs"
+      class="flex flex-row items-center gap-1"
     >
       <input
         id="circuit-controls-realtime-rate"
