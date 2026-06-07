@@ -58,6 +58,20 @@
         <button v-if="saveDialog.record" class="mr-auto" @click="onDelete">
           Delete
         </button>
+        <div
+          v-if="!saveDialog.record"
+          title="Fit dimensions to the snippet's content by trimming any excess space around it"
+        >
+          <input
+            id="snippets-select-bTrim"
+            name="bTrim"
+            type="checkbox"
+            v-model="saveDialog.trim"
+          />
+          <label for="snippets-select-bTrim" class="text-sm mr-1">
+            Trim empty space
+          </label>
+        </div>
       </template>
     </DialogSnippetsSave>
   </div>
@@ -66,6 +80,7 @@
 <script setup lang="ts">
 import type { SaveSnippetFormData } from '@/components/dialog/snippets/save.vue';
 import type { SnippetRecord } from '@/composables/use-saved-snippets';
+import { DesignData } from '@/serialization';
 import { FieldGraph } from '@/simulation';
 
 const fieldCanvas = ref();
@@ -93,6 +108,7 @@ const saveDialog = reactive({
   isOpen: false,
   record: null as SnippetRecord | null,
   init: undefined as SaveSnippetFormData | undefined,
+  trim: true,
   open(record: SnippetRecord | null = null) {
     this.record = record;
     this.init = {
@@ -100,6 +116,7 @@ const saveDialog = reactive({
       category: record?.category || '',
       description: record?.description || '',
     };
+    this.trim = !record; // default true for new snippets
     this.isOpen = true;
   },
   close() {
@@ -157,28 +174,29 @@ const onSelect = (opt: SnippetRecord) => {
 
 const onSave = () => {
   if (!selectionFieldGraph.value) return;
+  if (selectionFieldGraph.value.isEmpty()) return;
   saveDialog.open();
 };
 
 const onSaveSubmit = async (formData: SaveSnippetFormData) => {
   if (!selectionFieldGraph.value) return;
-  const { columns, rows } = selectionFieldGraph.value.getDimensions();
-  const data =
-    saveDialog.record?.data ?? selectionFieldGraph.value.toSaveString();
-  const width = saveDialog.record?.width ?? columns;
-  const height = saveDialog.record?.height ?? rows;
-  const createdAt = saveDialog.record?.createdAt ?? new Date().toISOString();
-  const updatedAt = new Date().toISOString();
+  const field =
+    saveDialog.trim && !saveDialog.record
+      ? new FieldGraph(selectionFieldGraph.value.getData().trim())
+      : selectionFieldGraph.value;
+  const { columns, rows } = saveDialog.record
+    ? { columns: saveDialog.record.width, rows: saveDialog.record.height }
+    : field.getDimensions();
   await saveSnippet({
     id: saveDialog.record?.id,
     name: formData.name,
     category: formData.category,
     description: formData.description,
-    data,
-    width,
-    height,
-    createdAt,
-    updatedAt,
+    data: saveDialog.record?.data ?? field.toSaveString(),
+    width: columns,
+    height: rows,
+    createdAt: saveDialog.record?.createdAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 };
 

@@ -141,22 +141,19 @@ const onSave = () => {
 
 const onSaveSubmit = async (formData: SaveDesignFormData) => {
   if (!field.value) return;
-  const { columns, rows } = field.value.getDimensions();
-  const data = saveDialog.record?.data ?? field.value.toSaveString();
-  const width = saveDialog.record?.width ?? columns;
-  const height = saveDialog.record?.height ?? rows;
-  const createdAt = saveDialog.record?.createdAt ?? new Date().toISOString();
-  const updatedAt = new Date().toISOString();
+  const { columns, rows } = saveDialog.record
+    ? { columns: saveDialog.record.width, rows: saveDialog.record.height }
+    : field.value.getDimensions();
   await saveDesign({
     id: saveDialog.record?.id,
     name: formData.name,
     category: formData.category,
     description: formData.description,
-    data,
-    width,
-    height,
-    createdAt,
-    updatedAt,
+    data: saveDialog.record?.data ?? field.value.toSaveString(),
+    width: columns,
+    height: rows,
+    createdAt: saveDialog.record?.createdAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 };
 
