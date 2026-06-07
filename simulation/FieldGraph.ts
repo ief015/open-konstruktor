@@ -126,6 +126,18 @@ export default class FieldGraph {
     return this.data.getDesignScore();
   }
 
+  public isEmpty(drawnAreaOnly = false): boolean {
+    const bounds = drawnAreaOnly
+      ? {
+          minCol: this.minDrawColumn,
+          maxCol: this.maxDrawColumn,
+          minRow: 0,
+          maxRow: this.data.getDimensions().rows - 1,
+        }
+      : undefined;
+    return this.data.getIsEmpty(bounds);
+  }
+
   public isValidGateSpot(point: Point, direction: Direction): boolean {
     const { data } = this;
     const [x, y] = point;
@@ -1030,9 +1042,9 @@ export default class FieldGraph {
     saveString: string,
     designType: 'circuit' | 'snippet',
   ): FieldGraph;
-  public static from(saveData: DesignData): FieldGraph;
+  public static from(saveData: Readonly<DesignData>): FieldGraph;
   public static from(
-    saveData: string | DesignData,
+    saveData: string | Readonly<DesignData>,
     designType?: 'circuit' | 'snippet',
   ): FieldGraph {
     if (typeof saveData === 'string') {
@@ -1049,6 +1061,7 @@ export default class FieldGraph {
           break;
       }
     }
-    return new FieldGraph(saveData);
+    const copy = new DesignData(saveData as DesignData);
+    return new FieldGraph(copy);
   }
 }
