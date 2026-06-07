@@ -138,18 +138,9 @@ const onSaveDesign = () => {
     levelKey: levelKey,
     data: field.value.toSaveString(),
   };
-  const dataStr =
-    'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data));
-  const downloadAnchorNode = document.createElement('a');
-  downloadAnchorNode.setAttribute('href', dataStr);
   const date = new Date().toISOString().replace(/[^a-z0-9]/gi, '');
-  downloadAnchorNode.setAttribute(
-    'download',
-    `${levelKey ?? 'design'}-${date}.json`,
-  );
-  document.body.appendChild(downloadAnchorNode); // required for firefox
-  downloadAnchorNode.click();
-  downloadAnchorNode.remove();
+  const filename = `${levelKey ?? 'design'}-${date}.json`;
+  downloadJSON(data, filename);
 };
 
 const onLoadDesign = () => {
