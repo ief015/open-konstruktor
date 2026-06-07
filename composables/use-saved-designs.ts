@@ -17,6 +17,51 @@ export interface DesignGroup {
   options: DesignRecord[];
 }
 
+function isDesignRecord(obj: any): obj is DesignRecord {
+  if (typeof obj !== 'object' || obj === null) {
+    return false;
+  }
+  const {
+    id,
+    category,
+    name,
+    data,
+    description,
+    width,
+    height,
+    createdAt,
+    updatedAt,
+  } = obj;
+  if (id !== undefined && typeof id !== 'string') {
+    return false;
+  }
+  if (typeof category !== 'string') {
+    return false;
+  }
+  if (typeof name !== 'string') {
+    return false;
+  }
+  if (typeof data !== 'string') {
+    return false;
+  }
+  if (description !== undefined && typeof description !== 'string') {
+    return false;
+  }
+  if (typeof width !== 'number') {
+    return false;
+  }
+  if (typeof height !== 'number') {
+    return false;
+  }
+  if (typeof createdAt !== 'string') {
+    return false;
+  }
+  if (typeof updatedAt !== 'string') {
+    return false;
+  }
+  return true;
+}
+
 const CATEGORY_NONE = 'Uncategorized';
 
 const db = indexedDB.open('ok-designs');
@@ -68,27 +113,12 @@ db.onupgradeneeded = async () => {
   DB.createObjectStore('categories');
 };
 
-const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) =>
-  new Promise<T[]>((resolve, reject) => {
-    const results: T[] = [];
-    request.onsuccess = (event: any) => {
-      const cursor = request.result;
-      if (cursor) {
-        results.push(cursor.value);
-        cursor.continue();
-      } else {
-        resolve(results);
-      }
-    };
-    request.onerror = (event: any) => reject(event);
-  });
-
 const fetchDesignRecords = async (): Promise<DesignRecord[]> => {
   const db = await getDB();
   const transaction = db.transaction('designs', 'readonly');
   const store = transaction.objectStore('designs');
   const request = store.openCursor();
-  const results = await cursorGetAll<DesignRecord>(request);
+  const results = await idbCursorGetAll<DesignRecord>(request);
   return results;
 };
 
@@ -103,6 +133,9 @@ const reload = async () => {
 };
 
 const saveDesign = async (design: DesignRecord): Promise<DesignRecord> => {
+  if (!isDesignRecord(design)) {
+    throw new Error('Invalid design record');
+  }
   const db = await getDB();
   const transaction = db.transaction('designs', 'readwrite');
   const store = transaction.objectStore('designs');
@@ -140,6 +173,64 @@ const deleteDesign = async (id: string) => {
   });
 };
 
+export interface SavedDesignsExport {
+  version: number;
+  designs: DesignRecord[];
+}
+
+const importDesignRecords = async (designs: DesignRecord[]) => {
+  const invalids = designs.filter((design) => !isDesignRecord(design));
+  if (invalids.length > 0) {
+    throw new Error(
+      `Invalid design records: ${invalids.length} record(s) failed validation`,
+    );
+  }
+  const db = await getDB();
+  const transaction = db.transaction('designs', 'readwrite');
+  const store = transaction.objectStore('designs');
+  console.log(`Importing ${designs.length} design(s)...`);
+  const results = await Promise.allSettled(
+    designs.map((design) => {
+      design.id ??= crypto.randomUUID();
+      return idbRequestToPromise(store.put(design));
+    }),
+  );
+  console.log('Import results:', results);
+  await reload();
+  console.log('Designs reloaded after import');
+  return results;
+};
+
+const importDesigns = async (data: SavedDesignsExport) => {
+  if (!data.version || data.version !== 1) {
+    throw new Error('Unsupported designs export version');
+  }
+  if (!data.designs || !Array.isArray(data.designs)) {
+    throw new Error('Invalid designs export format');
+  }
+  return importDesignRecords(data.designs);
+};
+
+export interface ExportDesignsOptions {
+  download?: boolean;
+  downloadFilename?: string;
+}
+
+const exportDesigns = async (
+  opts: ExportDesignsOptions = {},
+): Promise<SavedDesignsExport> => {
+  const { download = false, downloadFilename = 'exported-designs.json' } = opts;
+  const records = await fetchDesignRecords();
+  const data: SavedDesignsExport = {
+    version: 1,
+    designs: records,
+  };
+  if (download) {
+    downloadJSON(data, downloadFilename, true);
+  }
+  return data;
+};
+
 reload();
 
 export default function useSavedDesigns() {
@@ -151,5 +242,7 @@ export default function useSavedDesigns() {
     reload,
     saveDesign,
     deleteDesign,
+    importDesigns,
+    exportDesigns,
   };
 }

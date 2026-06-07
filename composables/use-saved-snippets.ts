@@ -17,6 +17,51 @@ export interface SnippetGroup {
   options: SnippetRecord[];
 }
 
+function isSnippetRecord(obj: any): obj is SnippetRecord {
+  if (typeof obj !== 'object' || obj === null) {
+    return false;
+  }
+  const {
+    id,
+    category,
+    name,
+    data,
+    description,
+    width,
+    height,
+    createdAt,
+    updatedAt,
+  } = obj;
+  if (id !== undefined && typeof id !== 'string') {
+    return false;
+  }
+  if (typeof category !== 'string') {
+    return false;
+  }
+  if (typeof name !== 'string') {
+    return false;
+  }
+  if (typeof data !== 'string') {
+    return false;
+  }
+  if (description !== undefined && typeof description !== 'string') {
+    return false;
+  }
+  if (typeof width !== 'number') {
+    return false;
+  }
+  if (typeof height !== 'number') {
+    return false;
+  }
+  if (typeof createdAt !== 'string') {
+    return false;
+  }
+  if (typeof updatedAt !== 'string') {
+    return false;
+  }
+  return true;
+}
+
 const CATEGORY_NONE = 'Uncategorized';
 
 const db = indexedDB.open('ok-snippets');
@@ -68,27 +113,12 @@ db.onupgradeneeded = async () => {
   DB.createObjectStore('categories');
 };
 
-const cursorGetAll = <T>(request: IDBRequest<IDBCursorWithValue | null>) =>
-  new Promise<T[]>((resolve, reject) => {
-    const results: T[] = [];
-    request.onsuccess = (event) => {
-      const cursor = request.result;
-      if (cursor) {
-        results.push(cursor.value);
-        cursor.continue();
-      } else {
-        resolve(results);
-      }
-    };
-    request.onerror = (event: any) => reject(event);
-  });
-
 const fetchSnippetRecords = async (): Promise<SnippetRecord[]> => {
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readonly');
   const store = transaction.objectStore('snippets');
   const request = store.openCursor();
-  const results = await cursorGetAll<SnippetRecord>(request);
+  const results = await idbCursorGetAll<SnippetRecord>(request);
   return results;
 };
 
@@ -103,6 +133,9 @@ const reload = async () => {
 };
 
 const saveSnippet = async (snippet: SnippetRecord): Promise<SnippetRecord> => {
+  if (!isSnippetRecord(snippet)) {
+    throw new Error('Invalid snippet record');
+  }
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readwrite');
   const store = transaction.objectStore('snippets');
@@ -140,6 +173,62 @@ const deleteSnippet = async (id: string) => {
   });
 };
 
+export interface SavedSnippetsExport {
+  version: number;
+  snippets: SnippetRecord[];
+}
+
+const importSnippetRecords = async (snippets: SnippetRecord[]) => {
+  const invalids = snippets.filter((snippet) => !isSnippetRecord(snippet));
+  if (invalids.length > 0) {
+    throw new Error(
+      `Invalid snippet records: ${invalids.length} record(s) failed validation`,
+    );
+  }
+  const db = await getDB();
+  const transaction = db.transaction('snippets', 'readwrite');
+  const store = transaction.objectStore('snippets');
+  const results = await Promise.allSettled(
+    snippets.map((snippet) => {
+      snippet.id ??= crypto.randomUUID();
+      return idbRequestToPromise(store.put(snippet));
+    }),
+  );
+  await reload();
+  return results;
+};
+
+const importSnippets = async (data: SavedSnippetsExport) => {
+  if (!data.version || data.version !== 1) {
+    throw new Error('Unsupported snippets export version');
+  }
+  if (!data.snippets || !Array.isArray(data.snippets)) {
+    throw new Error('Invalid snippets export format');
+  }
+  return importSnippetRecords(data.snippets);
+};
+
+export interface ExportSnippetsOptions {
+  download?: boolean;
+  downloadFilename?: string;
+}
+
+const exportSnippets = async (
+  opts: ExportSnippetsOptions = {},
+): Promise<SavedSnippetsExport> => {
+  const { download = false, downloadFilename = 'exported-snippets.json' } =
+    opts;
+  const records = await fetchSnippetRecords();
+  const data: SavedSnippetsExport = {
+    version: 1,
+    snippets: records,
+  };
+  if (download) {
+    downloadJSON(data, downloadFilename, true);
+  }
+  return data;
+};
+
 reload();
 
 export default function useSavedSnippets() {
@@ -151,5 +240,7 @@ export default function useSavedSnippets() {
     reload,
     saveSnippet,
     deleteSnippet,
+    importSnippets,
+    exportSnippets,
   };
 }

@@ -18,6 +18,7 @@ export default defineNuxtConfig({
     public: {
       dev: process.env.NODE_ENV === 'development',
       appVersion: process.env.npm_package_version,
+      appHomepage: 'https://github.com/ief015/open-konstruktor',
     },
   },
   ssr: false,

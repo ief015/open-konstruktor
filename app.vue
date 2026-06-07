@@ -45,8 +45,13 @@
           <div class="opacity-75 pl-1 text-nowrap overflow-hidden">
             {{ status.text.value }}
           </div>
-          <div class="opacity-30 pr-1 select-none">
-            {{ config.public.appVersion }}
+          <div class="opacity-30 pr-1">
+            <a
+              :href="config.public.appHomepage"
+              target="_blank"
+              rel="noopener noreferrer"
+              >{{ config.public.appVersion }}</a
+            >
           </div>
         </div>
       </div>
