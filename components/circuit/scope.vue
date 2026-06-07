@@ -125,7 +125,7 @@ const translateX = computed<number>(() => {
 
 const verificationMessage = computed<string>(() => {
   if (isRunning.value) {
-    return `Verification test is running... (step ${currentFrame.value})`;
+    return `Verification test is running... ${currentFrame.value}`;
   } else if (!verifyResult.value) {
     return 'Verification test not yet completed';
   } else if (verifyResult.value.passed) {
