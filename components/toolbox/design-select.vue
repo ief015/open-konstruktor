@@ -36,26 +36,26 @@
       </button>
     </div>
     <DialogDesignsSave
-      v-model="showSaveDialog"
-      :data="showSaveDialogInit"
+      v-model="saveDialog.isOpen"
+      :data="saveDialog.init"
       @save="onSaveSubmit"
-      :title="`${showSaveDialogRecord ? 'Edit' : 'New'} Design`"
+      :title="`${saveDialog.record ? 'Edit' : 'New'} Design`"
     >
       <template #append-form>
-        <div v-if="showSaveDialogRecord" class="text-xs opacity-50">
-          <div>ID: {{ showSaveDialogRecord.id }}</div>
+        <div v-if="saveDialog.record" class="text-xs opacity-50">
+          <div>ID: {{ saveDialog.record.id }}</div>
           <div>
             Created:
-            {{ new Date(showSaveDialogRecord.createdAt).toLocaleString() }}
+            {{ new Date(saveDialog.record.createdAt).toLocaleString() }}
           </div>
           <div>
             Updated:
-            {{ new Date(showSaveDialogRecord.updatedAt).toLocaleString() }}
+            {{ new Date(saveDialog.record.updatedAt).toLocaleString() }}
           </div>
         </div>
       </template>
       <template #prepend-actions>
-        <button v-if="showSaveDialogRecord" class="mr-auto" @click="onDelete">
+        <button v-if="saveDialog.record" class="mr-auto" @click="onDelete">
           Delete
         </button>
       </template>
@@ -101,15 +101,22 @@ function getTooltip(design: DesignRecord) {
   return name;
 }
 
-const showSaveDialog = ref(false);
-const showSaveDialogRecord = ref<DesignRecord>();
-const showSaveDialogInit = computed(() => {
-  const { name, category, description } = showSaveDialogRecord.value ?? {};
-  return {
-    name: name || getAutoName(),
-    category: category || circuitFactory.value.label || '',
-    description: description || '',
-  };
+const saveDialog = reactive({
+  isOpen: false,
+  record: null as DesignRecord | null,
+  init: undefined as SaveDesignFormData | undefined,
+  open(record: DesignRecord | null = null) {
+    this.record = record;
+    this.init = {
+      name: record?.name || getAutoName(),
+      category: record?.category || circuitFactory.value?.label || '',
+      description: record?.description || '',
+    };
+    this.isOpen = true;
+  },
+  close() {
+    this.isOpen = false;
+  },
 });
 
 const loadOption = (opt: DesignRecord) => {
@@ -129,29 +136,24 @@ const onSelect = (opt: DesignRecord) => {
 
 const onSave = () => {
   if (!field.value) return;
-  showSaveDialogRecord.value = undefined;
-  showSaveDialog.value = true;
+  saveDialog.open();
 };
 
 const onSaveSubmit = async (formData: SaveDesignFormData) => {
   if (!field.value) return;
-  const { columns, rows } = field.value.getDimensions();
-  const data = showSaveDialogRecord.value?.data ?? field.value.toSaveString();
-  const width = showSaveDialogRecord.value?.width ?? columns;
-  const height = showSaveDialogRecord.value?.height ?? rows;
-  const createdAt =
-    showSaveDialogRecord.value?.createdAt ?? new Date().toISOString();
-  const updatedAt = new Date().toISOString();
+  const { columns, rows } = saveDialog.record
+    ? { columns: saveDialog.record.width, rows: saveDialog.record.height }
+    : field.value.getDimensions();
   await saveDesign({
-    id: showSaveDialogRecord.value?.id,
+    id: saveDialog.record?.id,
     name: formData.name,
     category: formData.category,
     description: formData.description,
-    data,
-    width,
-    height,
-    createdAt,
-    updatedAt,
+    data: saveDialog.record?.data ?? field.value.toSaveString(),
+    width: columns,
+    height: rows,
+    createdAt: saveDialog.record?.createdAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 };
 
@@ -165,8 +167,7 @@ const onLoad = () => {
 const onEdit = () => {
   const opt = selected.value[0];
   if (opt) {
-    showSaveDialogRecord.value = opt;
-    showSaveDialog.value = true;
+    saveDialog.open(opt);
   }
 };
 
@@ -175,7 +176,7 @@ const onDelete = async () => {
   if (opt?.id && confirm(`Are you sure you want to delete "${opt.name}"?`)) {
     await deleteDesign(opt.id);
     selected.value = [];
-    showSaveDialog.value = false;
+    saveDialog.close();
   }
 };
 </script>

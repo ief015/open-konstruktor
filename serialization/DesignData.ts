@@ -117,12 +117,74 @@ export class DesignData {
   public getDesignScore(): number {
     let score = 0;
     for (let x = 0; x < this.dimensions.columns; x++) {
+      const metalColumn = this.layers[Layer.Metal][x];
+      const siliconColumn = this.layers[Layer.Silicon][x];
       for (let y = 0; y < this.dimensions.rows; y++) {
-        this.layers[Layer.Metal][x][y] === MetalValue.Metal && score++;
-        this.layers[Layer.Silicon][x][y] !== SiliconValue.None && score++;
+        metalColumn[y] === MetalValue.Metal && score++;
+        siliconColumn[y] !== SiliconValue.None && score++;
       }
     }
     return score;
+  }
+
+  public getIsEmpty(bounds?: {
+    minCol: number;
+    maxCol: number;
+    minRow: number;
+    maxRow: number;
+  }): boolean {
+    const minCol = bounds?.minCol ?? 0;
+    const maxCol = bounds?.maxCol ?? this.dimensions.columns - 1;
+    const minRow = bounds?.minRow ?? 0;
+    const maxRow = bounds?.maxRow ?? this.dimensions.rows - 1;
+    for (let x = minCol; x <= maxCol; x++) {
+      const metalColumn = this.layers[Layer.Metal][x];
+      const siliconColumn = this.layers[Layer.Silicon][x];
+      for (let y = minRow; y <= maxRow; y++) {
+        if (metalColumn[y] === MetalValue.Metal) return false;
+        if (siliconColumn[y] !== SiliconValue.None) return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Trims outer empty rows and columns to minimize the design.
+   * @returns New trimmed DesignData instance
+   */
+  public trim(): DesignData {
+    let minCol = this.dimensions.columns;
+    let maxCol = 0;
+    let minRow = this.dimensions.rows;
+    let maxRow = 0;
+    for (let x = 0; x < this.dimensions.columns; x++) {
+      for (let y = 0; y < this.dimensions.rows; y++) {
+        if (this.layers[Layer.Metal][x][y] === MetalValue.Metal) {
+          minCol = Math.min(minCol, x);
+          maxCol = Math.max(maxCol, x);
+          minRow = Math.min(minRow, y);
+          maxRow = Math.max(maxRow, y);
+        } else if (this.layers[Layer.Silicon][x][y] !== SiliconValue.None) {
+          minCol = Math.min(minCol, x);
+          maxCol = Math.max(maxCol, x);
+          minRow = Math.min(minRow, y);
+          maxRow = Math.max(maxRow, y);
+        }
+      }
+    }
+    if (minCol > maxCol || minRow > maxRow) {
+      return new DesignData(0, 0);
+    }
+    const trimmed = new DesignData(maxCol - minCol + 1, maxRow - minRow + 1);
+    for (let x = minCol; x <= maxCol; x++) {
+      for (let y = minRow; y <= maxRow; y++) {
+        for (let layer = 0; layer < Layer.COUNT; layer++) {
+          trimmed.set(layer, x - minCol, y - minRow, this.get(layer, x, y));
+        }
+      }
+    }
+    trimmed.extraData = structuredClone(this.extraData);
+    return trimmed;
   }
 
   public static from(data: Uint8Array): DesignData {

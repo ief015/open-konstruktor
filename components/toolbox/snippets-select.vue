@@ -36,28 +36,42 @@
       </button>
     </div>
     <DialogSnippetsSave
-      v-model="showSaveDialog"
-      :data="showSaveDialogInit"
+      v-model="saveDialog.isOpen"
+      :data="saveDialog.init"
       @save="onSaveSubmit"
-      :title="`${showSaveDialogRecord ? 'Edit' : 'New'} Snippet`"
+      :title="`${saveDialog.record ? 'Edit' : 'New'} Snippet`"
     >
       <template #append-form>
-        <div v-if="showSaveDialogRecord" class="text-xs opacity-50">
-          <div>ID: {{ showSaveDialogRecord.id }}</div>
+        <div v-if="saveDialog.record" class="text-xs opacity-50">
+          <div>ID: {{ saveDialog.record.id }}</div>
           <div>
             Created:
-            {{ new Date(showSaveDialogRecord.createdAt).toLocaleString() }}
+            {{ new Date(saveDialog.record.createdAt ?? '').toLocaleString() }}
           </div>
           <div>
             Updated:
-            {{ new Date(showSaveDialogRecord.updatedAt).toLocaleString() }}
+            {{ new Date(saveDialog.record.updatedAt ?? '').toLocaleString() }}
           </div>
         </div>
       </template>
       <template #prepend-actions>
-        <button v-if="showSaveDialogRecord" class="mr-auto" @click="onDelete">
+        <button v-if="saveDialog.record" class="mr-auto" @click="onDelete">
           Delete
         </button>
+        <div
+          v-if="!saveDialog.record"
+          title="Fit dimensions to the snippet's content by trimming any excess space around it"
+        >
+          <input
+            id="snippets-select-bTrim"
+            name="bTrim"
+            type="checkbox"
+            v-model="saveDialog.trim"
+          />
+          <label for="snippets-select-bTrim" class="text-sm mr-1">
+            Trim empty space
+          </label>
+        </div>
       </template>
     </DialogSnippetsSave>
   </div>
@@ -66,6 +80,7 @@
 <script setup lang="ts">
 import type { SaveSnippetFormData } from '@/components/dialog/snippets/save.vue';
 import type { SnippetRecord } from '@/composables/use-saved-snippets';
+import { DesignData } from '@/serialization';
 import { FieldGraph } from '@/simulation';
 
 const fieldCanvas = ref();
@@ -89,14 +104,24 @@ const coordMouseY = computed(() => {
   return Math.floor(canvasMouseY.value / TILE_SIZE);
 });
 
-const showSaveDialog = ref(false);
-const showSaveDialogRecord = ref<SnippetRecord>();
-const showSaveDialogInit = computed(() => {
-  if (showSaveDialogRecord.value) {
-    const { name, category, description } = showSaveDialogRecord.value;
-    return { name, category, description };
-  }
-  return undefined;
+const saveDialog = reactive({
+  isOpen: false,
+  record: null as SnippetRecord | null,
+  init: undefined as SaveSnippetFormData | undefined,
+  trim: true,
+  open(record: SnippetRecord | null = null) {
+    this.record = record;
+    this.init = {
+      name: record?.name || '',
+      category: record?.category || '',
+      description: record?.description || '',
+    };
+    this.trim = !record; // default true for new snippets
+    this.isOpen = true;
+  },
+  close() {
+    this.isOpen = false;
+  },
 });
 
 const { groups, snippets, categories, saveSnippet, deleteSnippet } =
@@ -149,31 +174,29 @@ const onSelect = (opt: SnippetRecord) => {
 
 const onSave = () => {
   if (!selectionFieldGraph.value) return;
-  showSaveDialogRecord.value = undefined;
-  showSaveDialog.value = true;
+  if (selectionFieldGraph.value.isEmpty()) return;
+  saveDialog.open();
 };
 
 const onSaveSubmit = async (formData: SaveSnippetFormData) => {
   if (!selectionFieldGraph.value) return;
-  const { columns, rows } = selectionFieldGraph.value.getDimensions();
-  const data =
-    showSaveDialogRecord.value?.data ??
-    selectionFieldGraph.value.toSaveString();
-  const width = showSaveDialogRecord.value?.width ?? columns;
-  const height = showSaveDialogRecord.value?.height ?? rows;
-  const createdAt =
-    showSaveDialogRecord.value?.createdAt ?? new Date().toISOString();
-  const updatedAt = new Date().toISOString();
+  const field =
+    saveDialog.trim && !saveDialog.record
+      ? new FieldGraph(selectionFieldGraph.value.getData().trim())
+      : selectionFieldGraph.value;
+  const { columns, rows } = saveDialog.record
+    ? { columns: saveDialog.record.width, rows: saveDialog.record.height }
+    : field.getDimensions();
   await saveSnippet({
-    id: showSaveDialogRecord.value?.id,
+    id: saveDialog.record?.id,
     name: formData.name,
     category: formData.category,
     description: formData.description,
-    data,
-    width,
-    height,
-    createdAt,
-    updatedAt,
+    data: saveDialog.record?.data ?? field.toSaveString(),
+    width: columns,
+    height: rows,
+    createdAt: saveDialog.record?.createdAt ?? new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 };
 
@@ -187,8 +210,7 @@ const onLoad = () => {
 const onEdit = () => {
   const opt = selected.value[0];
   if (opt) {
-    showSaveDialogRecord.value = opt;
-    showSaveDialog.value = true;
+    saveDialog.open(opt);
   }
 };
 
@@ -200,7 +222,7 @@ const onDelete = async () => {
   ) {
     await deleteSnippet(opt.id);
     selected.value = [];
-    showSaveDialog.value = false;
+    saveDialog.close();
   }
 };
 </script>
