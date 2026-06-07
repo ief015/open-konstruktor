@@ -46,9 +46,15 @@
     </DialogModal>
     <input
       type="file"
-      ref="fileInputLoad"
+      ref="fileInputImportDesigns"
       class="hidden"
-      @change="onFileSelectedLoad"
+      @change="onFileSelectedDesigns"
+    />
+    <input
+      type="file"
+      ref="fileInputImportSnippets"
+      class="hidden"
+      @change="onFileSelectedSnippets"
     />
   </div>
 </template>
@@ -57,18 +63,22 @@
 import { useMenuItems } from '@/composables/menu-items';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
+import type { SavedDesignsExport } from '@/composables/use-saved-designs';
 
 const { items: menuItems } = useMenuItems();
 const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
 const { load: loadSim, circuitFactory } = useCircuitSimulator();
 const { getLoader } = useCircuitLoaders();
 const { ignoreKeyShortcuts } = useToolbox();
+const designs = useSavedDesigns();
+const snippets = useSavedSnippets();
 const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
 const showImportDialog = ref(false);
 const showExportDialog = ref(false);
-const importTextArea = ref<HTMLTextAreaElement>();
-const exportTextArea = ref<HTMLTextAreaElement>();
-const fileInputLoad = ref<HTMLInputElement>();
+const importTextArea = useTemplateRef('importTextArea');
+const exportTextArea = useTemplateRef('exportTextArea');
+const fileInputImportDesigns = useTemplateRef('fileInputImportDesigns');
+const fileInputImportSnippets = useTemplateRef('fileInputImportSnippets');
 const exportCode = ref('');
 const exportCopied = ref(false);
 const importCode = ref('');
@@ -101,52 +111,6 @@ const onShowExportDialog = () => {
   });
 };
 
-const onFileSelectedLoad = () => {
-  if (!fileInputLoad.value?.files?.[0]) return;
-  const file = fileInputLoad.value.files[0];
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const text = e.target?.result;
-    if (typeof text === 'string') {
-      try {
-        const { data, levelKey, version } = JSON.parse(text);
-        if (version !== 0) {
-          throw new Error(`Unsupported design file version '${version}'`);
-        }
-        if (!data) {
-          throw new Error(
-            "Invalid design file format: missing 'data' property",
-          );
-        }
-        if (levelKey && circuitFactory.value?.key !== levelKey) {
-          loadLevel(levelKey);
-        }
-        loadDesign(data);
-        loadSim(field.value);
-      } catch (e: any) {
-        alert(`Failed to load:\n${e.message ?? e}`);
-      }
-    }
-  };
-  reader.readAsText(file);
-};
-
-const onSaveDesign = () => {
-  const levelKey = circuitFactory.value?.key || null;
-  const data = {
-    version: 0,
-    levelKey: levelKey,
-    data: field.value.toSaveString(),
-  };
-  const date = new Date().toISOString().replace(/[^a-z0-9]/gi, '');
-  const filename = `${levelKey ?? 'design'}-${date}.json`;
-  downloadJSON(data, filename);
-};
-
-const onLoadDesign = () => {
-  fileInputLoad.value?.click();
-};
-
 const closeAllDialogs = () => {
   showImportDialog.value = false;
   showExportDialog.value = false;
@@ -169,22 +133,78 @@ const onImport = () => {
   }
 };
 
-const onSelected = (id?: string) => {
+const onFileSelectedDesigns = async (ev: Event) => {
+  const input = ev.target as HTMLInputElement;
+  if (!input.files?.[0]) return;
+  const file = input.files[0];
+  const data = await readFileJSON<SavedDesignsExport>(file);
+  const imported = await designs.importDesigns(data).catch((e) => {
+    alert(`Failed to import designs:\n${e.message ?? e}`);
+    throw e;
+  });
+  if (imported.some((result) => result.status === 'rejected')) {
+    alert(
+      'Some designs failed to import. Please check the console for details.',
+    );
+    console.error('Import designs results:', imported);
+  } else {
+    alert('Designs imported successfully!');
+  }
+  fileInputImportDesigns.value!.value = '';
+};
+
+const onFileSelectedSnippets = async (ev: Event) => {
+  const input = ev.target as HTMLInputElement;
+  if (!input.files?.[0]) return;
+  const file = input.files[0];
+  const data = await readFileJSON<SavedSnippetsExport>(file);
+  const imported = await snippets.importSnippets(data).catch((e) => {
+    alert(`Failed to import snippets:\n${e.message ?? e}`);
+    throw e;
+  });
+  if (imported.some((result) => result.status === 'rejected')) {
+    alert(
+      'Some snippets failed to import. Please check the console for details.',
+    );
+    console.error('Import snippets results:', imported);
+  } else {
+    alert('Snippets imported successfully!');
+  }
+  fileInputImportSnippets.value!.value = '';
+};
+
+const onSelected = async (id?: string) => {
   if (!id) return;
   document.dispatchEvent(new MenuBarActionEvent(id));
   switch (id) {
-    case 'file/load-design':
-      onLoadDesign();
-      return;
-    case 'file/save-design':
-      onSaveDesign();
-      return;
     case 'file/import':
       onShowImportDialog();
       return;
     case 'file/export':
       onShowExportDialog();
       return;
+    case 'file/import-designs':
+      fileInputImportDesigns.value?.click();
+      return;
+    case 'file/export-designs': {
+      const date = new Date().toISOString().replace(/[^a-z0-9]/gi, '');
+      await designs.exportDesigns({
+        download: true,
+        downloadFilename: `exported-designs-${date}.json`,
+      });
+      return;
+    }
+    case 'file/import-snippets':
+      fileInputImportSnippets.value?.click();
+      return;
+    case 'file/export-snippets': {
+      const date = new Date().toISOString().replace(/[^a-z0-9]/gi, '');
+      await snippets.exportSnippets({
+        download: true,
+        downloadFilename: `exported-snippets-${date}.json`,
+      });
+      return;
+    }
   }
   if (id.startsWith('level/')) {
     const loaderKey = id.slice('level/'.length);

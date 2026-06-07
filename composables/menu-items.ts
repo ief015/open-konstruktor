@@ -33,11 +33,23 @@ export function useMenuItems() {
       id: 'file',
       label: 'File',
       items: [
-        { id: 'file/load-design', label: 'Load Design' },
-        { id: 'file/save-design', label: 'Save Design' },
-        'divider',
         { id: 'file/import', label: 'Import' },
         { id: 'file/export', label: 'Export' },
+        'divider',
+        {
+          label: 'Saved Designs',
+          items: [
+            { id: 'file/import-designs', label: 'Import Designs' },
+            { id: 'file/export-designs', label: 'Export Designs' },
+          ],
+        },
+        {
+          label: 'Snippets',
+          items: [
+            { id: 'file/import-snippets', label: 'Import Snippets' },
+            { id: 'file/export-snippets', label: 'Export Snippets' },
+          ],
+        },
         'divider',
         { id: 'file/welcome', label: 'Welcome' },
       ],
