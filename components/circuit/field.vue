@@ -36,7 +36,7 @@ import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 const TILE_SIZE = 13;
 const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);
 
-const canvas = ref<HTMLCanvasElement>();
+const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);
 const canvasLayers = {
   background: document.createElement('canvas'),

@@ -70,8 +70,8 @@ const SCOPE_LABEL_WIDTH_PX = 52; // Minimum width for labels
 const GRID_LINE_INTERVAL = 5; // Grid line every 5 ticks
 const FONT = '10px Georgia10';
 
-const canvasContainer = ref<HTMLDivElement>();
-const canvas = ref<HTMLCanvasElement>();
+const canvasContainer = useTemplateRef('canvasContainer');
+const canvas = useTemplateRef('canvas');
 const canvasWidth = ref(0);
 const {
   designScore,
