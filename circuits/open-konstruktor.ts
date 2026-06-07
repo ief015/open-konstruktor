@@ -204,7 +204,7 @@ const openkonstruktor: CircuitSimulationFactories = {
             ] = network.getPinNodes();
             pinA.label = 'A';
             pinB.label = 'B';
-            pinY.label = 'Y';
+            pinY.label = '/Y';
             assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
             const sim = new CircuitSimulation(network, 280);
             const seqA = new Sequence()
@@ -245,7 +245,7 @@ const openkonstruktor: CircuitSimulationFactories = {
             ] = network.getPinNodes();
             pinA.label = 'A';
             pinB.label = 'B';
-            pinY.label = 'Y';
+            pinY.label = 'X';
             assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
             const sim = new CircuitSimulation(network, 280);
             const seqA = new Sequence()
@@ -328,8 +328,8 @@ const openkonstruktor: CircuitSimulationFactories = {
             ] = network.getPinNodes();
             pinA.label = 'A';
             pinB.label = 'B';
-            pinY.label = 'Y';
-            pinYN.label = '/Y';
+            pinY.label = 'X';
+            pinYN.label = '/X';
             assignVCC(pinVCC0, pinVCC1, pinVCC2, pinVCC3);
             const sim = new CircuitSimulation(network, 280);
             const seqA = new Sequence()
@@ -410,8 +410,8 @@ const openkonstruktor: CircuitSimulationFactories = {
             const [seqX, seqY] = createSequencesFromInputs(
               [seqA, seqB, seqC, seqD],
               ({ inputs: [a, b, c, d] }) => {
-                const x = a && b && c && d;
-                const y = a || b || c || d;
+                const x = a || b || c || d;
+                const y = a && b && c && d;
                 return [x, y];
               },
             );
