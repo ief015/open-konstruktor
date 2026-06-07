@@ -42,6 +42,9 @@ const groups = computed<DesignGroup[]>(() => {
       category.options.push(design);
     }
   }
+  categoriesMap.values().forEach((group) => {
+    group.options.sort((a, b) => a.name.localeCompare(b.name));
+  });
   return Array.from(categoriesMap.values()).sort((a, b) =>
     a.label.localeCompare(b.label),
   );
