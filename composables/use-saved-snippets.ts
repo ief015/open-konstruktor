@@ -42,7 +42,9 @@ const groups = computed<SnippetGroup[]>(() => {
       category.options.push(snippet);
     }
   }
-  return Array.from(categoriesMap.values());
+  return Array.from(categoriesMap.values()).sort((a, b) =>
+    a.label.localeCompare(b.label),
+  );
 });
 
 const loading = ref(true);
