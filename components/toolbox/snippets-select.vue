@@ -36,26 +36,26 @@
       </button>
     </div>
     <DialogSnippetsSave
-      v-model="showSaveDialog"
-      :data="showSaveDialogInit"
+      v-model="saveDialog.isOpen"
+      :data="saveDialog.init"
       @save="onSaveSubmit"
-      :title="`${showSaveDialogRecord ? 'Edit' : 'New'} Snippet`"
+      :title="`${saveDialog.record ? 'Edit' : 'New'} Snippet`"
     >
       <template #append-form>
-        <div v-if="showSaveDialogRecord" class="text-xs opacity-50">
-          <div>ID: {{ showSaveDialogRecord.id }}</div>
+        <div v-if="saveDialog.record" class="text-xs opacity-50">
+          <div>ID: {{ saveDialog.record.id }}</div>
           <div>
             Created:
-            {{ new Date(showSaveDialogRecord.createdAt).toLocaleString() }}
+            {{ new Date(saveDialog.record.createdAt ?? '').toLocaleString() }}
           </div>
           <div>
             Updated:
-            {{ new Date(showSaveDialogRecord.updatedAt).toLocaleString() }}
+            {{ new Date(saveDialog.record.updatedAt ?? '').toLocaleString() }}
           </div>
         </div>
       </template>
       <template #prepend-actions>
-        <button v-if="showSaveDialogRecord" class="mr-auto" @click="onDelete">
+        <button v-if="saveDialog.record" class="mr-auto" @click="onDelete">
           Delete
         </button>
       </template>
@@ -89,14 +89,22 @@ const coordMouseY = computed(() => {
   return Math.floor(canvasMouseY.value / TILE_SIZE);
 });
 
-const showSaveDialog = ref(false);
-const showSaveDialogRecord = ref<SnippetRecord>();
-const showSaveDialogInit = computed(() => {
-  if (showSaveDialogRecord.value) {
-    const { name, category, description } = showSaveDialogRecord.value;
-    return { name, category, description };
-  }
-  return undefined;
+const saveDialog = reactive({
+  isOpen: false,
+  record: null as SnippetRecord | null,
+  init: undefined as SaveSnippetFormData | undefined,
+  open(record: SnippetRecord | null = null) {
+    this.record = record;
+    this.init = {
+      name: record?.name || '',
+      category: record?.category || '',
+      description: record?.description || '',
+    };
+    this.isOpen = true;
+  },
+  close() {
+    this.isOpen = false;
+  },
 });
 
 const { groups, snippets, categories, saveSnippet, deleteSnippet } =
@@ -149,23 +157,20 @@ const onSelect = (opt: SnippetRecord) => {
 
 const onSave = () => {
   if (!selectionFieldGraph.value) return;
-  showSaveDialogRecord.value = undefined;
-  showSaveDialog.value = true;
+  saveDialog.open();
 };
 
 const onSaveSubmit = async (formData: SaveSnippetFormData) => {
   if (!selectionFieldGraph.value) return;
   const { columns, rows } = selectionFieldGraph.value.getDimensions();
   const data =
-    showSaveDialogRecord.value?.data ??
-    selectionFieldGraph.value.toSaveString();
-  const width = showSaveDialogRecord.value?.width ?? columns;
-  const height = showSaveDialogRecord.value?.height ?? rows;
-  const createdAt =
-    showSaveDialogRecord.value?.createdAt ?? new Date().toISOString();
+    saveDialog.record?.data ?? selectionFieldGraph.value.toSaveString();
+  const width = saveDialog.record?.width ?? columns;
+  const height = saveDialog.record?.height ?? rows;
+  const createdAt = saveDialog.record?.createdAt ?? new Date().toISOString();
   const updatedAt = new Date().toISOString();
   await saveSnippet({
-    id: showSaveDialogRecord.value?.id,
+    id: saveDialog.record?.id,
     name: formData.name,
     category: formData.category,
     description: formData.description,
@@ -187,8 +192,7 @@ const onLoad = () => {
 const onEdit = () => {
   const opt = selected.value[0];
   if (opt) {
-    showSaveDialogRecord.value = opt;
-    showSaveDialog.value = true;
+    saveDialog.open(opt);
   }
 };
 
@@ -200,7 +204,7 @@ const onDelete = async () => {
   ) {
     await deleteSnippet(opt.id);
     selected.value = [];
-    showSaveDialog.value = false;
+    saveDialog.close();
   }
 };
 </script>
