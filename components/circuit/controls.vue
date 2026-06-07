@@ -57,7 +57,7 @@
     </div>
     <div
       class="flex flex-row items-center text-sm"
-      title="Toggle looping. Verification testing will not completed until disabled or stopped."
+      title="Toggle looping. Verification testing will not be completed until disabled or stopped."
     >
       <label for="circuit-controls-loop-checkbox">Loop</label>
       <input
