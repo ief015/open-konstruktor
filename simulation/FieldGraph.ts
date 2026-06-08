@@ -1061,7 +1061,6 @@ export default class FieldGraph {
           break;
       }
     }
-    const copy = new DesignData(saveData as DesignData);
-    return new FieldGraph(copy);
+    return new FieldGraph(saveData as DesignData);
   }
 }
