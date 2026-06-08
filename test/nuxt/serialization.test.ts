@@ -229,7 +229,6 @@ test('4-input-and-or-gate with extra data', () => {
   emptyDesign.extraData = { foo: 'bar' };
   const save = empty.toSaveString();
   assertEqual(save, target);
-
   const loaded = FieldGraph.from(save, 'circuit');
   const extraData = loaded.getData().extraData;
   if (extraData && typeof extraData === 'object') {

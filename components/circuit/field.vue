@@ -782,6 +782,11 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
         } else {
           selectionFieldGraph.value.rotateCW();
         }
+        const { columns, rows } = selectionFieldGraph.value.getDimensions();
+        selectionEnd.value = [
+          selectionStart.value![0] + columns - 1,
+          selectionStart.value![1] + rows - 1,
+        ];
         queueAnimFuncs.add(renderOverlay);
       } else {
         modified = false;
