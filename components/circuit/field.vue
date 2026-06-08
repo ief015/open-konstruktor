@@ -751,6 +751,7 @@ const endSelection = () => {
             selectionTranslate.value = [0, 0];
           }
         }
+        history.push();
         queueAnimFuncs.add(renderTiles);
       } else {
         clearSelection();
