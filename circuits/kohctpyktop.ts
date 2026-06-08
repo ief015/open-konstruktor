@@ -29,7 +29,7 @@ const kohctpyktop: CircuitSimulationFactories = {
   category: 'KOHCTPYKTOP',
   children: [
     {
-      category: '01 - 06',
+      category: '01 - 06 Basic',
       items: [
         {
           key: '01 KT411I QUAD INVERTER GATE',
@@ -398,7 +398,7 @@ const kohctpyktop: CircuitSimulationFactories = {
       ],
     },
     {
-      category: '07 - 11',
+      category: '07 - 11 Intermediate',
       items: [
         {
           key: '07 KL2T1 DUAL TOGGLE LATCH',
@@ -712,7 +712,7 @@ const kohctpyktop: CircuitSimulationFactories = {
       ],
     },
     {
-      category: '12 - 16',
+      category: '12 - 16 Advanced',
       items: [
         {
           key: '12 KM141P 4-TO-1 MULTIPLEXER',
@@ -1172,7 +1172,7 @@ const kohctpyktop: CircuitSimulationFactories = {
       ],
     },
     {
-      category: '17 - 19',
+      category: '17 - 19 Confidential',
       items: [
         {
           key: '17 X901 RADIO MESSAGE STREAM DECODER',
