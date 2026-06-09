@@ -216,7 +216,7 @@ export default class Sequence implements Iterable<boolean> {
     } = options;
     let diff = 0;
     let max = 0;
-    // TODO: refactor this to iterate through states manually instead of probing
+    // TODO: refactor this to iterate through states manually instead of probing every step
     switch (method) {
       case 'strict':
         for (let i = 0; i < length; i++) {
