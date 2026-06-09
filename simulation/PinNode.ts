@@ -1,9 +1,10 @@
 import PathNode from '@/simulation/PathNode';
 
-export class PinNode {
+export default class PinNode {
   public active: boolean;
   public label: string;
   public path: PathNode;
+  public isVCC: boolean = false;
 
   constructor(path: PathNode, label?: string);
   constructor(path: PathNode, active: boolean);
@@ -23,26 +24,13 @@ export class PinNode {
   }
 }
 
-export class VCCPinNode extends PinNode {
-  public isVCC: true = true;
-
-  constructor(path: PathNode) {
-    super(path, 'VCC', true);
-  }
-}
-
 /**
- * Convert pins to VCC pins in-place.
+ * Assign a pin as VCC: Sets label to 'VCC' and always stays active.
  */
-export function assignVCC(...pins: PinNode[]): VCCPinNode[] {
-  return pins.map((pin) => {
+export function assignVCC(...pins: PinNode[]) {
+  for (const pin of pins) {
     pin.label = 'VCC';
     pin.active = true;
-    (pin as VCCPinNode).isVCC = true;
-    return pin as VCCPinNode;
-  });
-}
-
-export function isVCCPinNode(pin: PinNode): pin is VCCPinNode {
-  return (pin as VCCPinNode).isVCC === true;
+    pin.isVCC = true;
+  }
 }

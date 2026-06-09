@@ -1,4 +1,4 @@
-import { CircuitSimulation, Network, PinNode } from '@/simulation';
+import { CircuitSimulation, Network } from '@/simulation';
 
 export interface LevelInfoPage {
   contentHtml: string;

@@ -2,7 +2,6 @@ import FieldGraph from '@/simulation/FieldGraph';
 import type { QueryResult } from '@/simulation/FieldGraph';
 import { GateNode, PathNode, PinNode } from '@/simulation';
 import type { NetworkNode, Point } from '@/simulation';
-import { isVCCPinNode } from '@/simulation/PinNode';
 
 type FoundGate = {
   query: QueryResult;

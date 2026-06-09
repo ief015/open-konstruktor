@@ -1,5 +1,5 @@
 import { type CircuitSimulationFactories } from '@/circuits';
-import { PinNode, CircuitSimulation, Sequence } from '@/simulation';
+import { CircuitSimulation, Sequence } from '@/simulation';
 import { assignVCC } from '@/simulation/PinNode';
 import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
 

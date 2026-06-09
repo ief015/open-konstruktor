@@ -52,9 +52,8 @@
 </template>
 
 <script setup lang="ts">
-import { PinNode } from '@/simulation';
+import type { PinNode } from '@/simulation';
 import type { Point, VerificationResult } from '@/simulation';
-import { isVCCPinNode } from '@/simulation/PinNode';
 
 type DrawMode = 'high' | 'low';
 
@@ -98,7 +97,7 @@ let prevDrawingCoords: Point = [0, 0];
 const verifyResult = ref<VerificationResult>();
 const filteredPins = computed<PinNode[]>(() => {
   const pins = network.value.getPinNodes();
-  return pins.filter((node) => !isVCCPinNode(node));
+  return pins.filter((node) => !node.isVCC);
 });
 const scopeHeight = computed<number>(() => {
   return filteredPins.value.length * SCOPE_ROW_HEIGHT_PX;
