@@ -160,6 +160,7 @@ export class CircuitSimulation {
         const newPin = newPins[i];
         newPin.label = oldPin.label;
         newPin.active = oldPin.active;
+        newPin.isVCC = oldPin.isVCC;
       }
     }
   }
