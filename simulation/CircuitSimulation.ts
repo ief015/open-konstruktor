@@ -1,5 +1,5 @@
 import Network from '@/simulation/Network';
-import PinNode from '@/simulation/PinNode';
+import { assignVCC, isVCCPinNode, PinNode } from '@/simulation/PinNode';
 import Sequence from '@/simulation/Sequence';
 import type { DifferenceMethod } from '@/simulation/Sequence';
 
@@ -158,8 +158,12 @@ export class CircuitSimulation {
       for (let i = 0; i < oldPins.length; i++) {
         const oldPin = oldPins[i];
         const newPin = newPins[i];
-        newPin.label = oldPin.label;
-        newPin.active = oldPin.active;
+        if (isVCCPinNode(oldPin)) {
+          assignVCC(newPin);
+        } else {
+          newPin.label = oldPin.label;
+          newPin.active = oldPin.active;
+        }
       }
     }
   }
