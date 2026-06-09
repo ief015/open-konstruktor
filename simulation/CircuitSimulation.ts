@@ -372,8 +372,8 @@ export class CircuitSimulation {
               errors.push({
                 pin,
                 frame,
-                expected: !!expectedState,
-                actual: !!actualState,
+                expected: expectedState,
+                actual: actualState,
               });
             }
             break;
@@ -392,8 +392,8 @@ export class CircuitSimulation {
                   errors.push({
                     pin,
                     frame,
-                    expected: !!expectedState,
-                    actual: !!actualState,
+                    expected: expectedState,
+                    actual: actualState,
                   });
                 }
               }

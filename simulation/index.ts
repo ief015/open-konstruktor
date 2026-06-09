@@ -1,6 +1,4 @@
-import {
-  CircuitSimulation,
-} from "@/simulation/CircuitSimulation";
+import { CircuitSimulation } from '@/simulation/CircuitSimulation';
 import type {
   VerificationResult,
   VerificationResultOutput,
@@ -11,8 +9,8 @@ import type {
   PrintRecordingOptions,
   RecordingMap,
   SequenceMap,
-} from "@/simulation/CircuitSimulation";
-import FieldGraph from "@/simulation/FieldGraph";
+} from '@/simulation/CircuitSimulation';
+import FieldGraph from '@/simulation/FieldGraph';
 import type {
   Direction,
   DrawType,
@@ -21,21 +19,21 @@ import type {
   QueryResult,
   QuerySiliconResult,
   SiliconType,
-} from "@/simulation/FieldGraph";
-import GateNode from "@/simulation/GateNode";
-import Network from "@/simulation/Network";
-import type { GraphLayer } from "@/simulation/Network";
-import PathNode from "@/simulation/PathNode";
-import PinNode from "@/simulation/PinNode";
-import Sequence from "@/simulation/Sequence";
+} from '@/simulation/FieldGraph';
+import GateNode from '@/simulation/GateNode';
+import Network from '@/simulation/Network';
+import type { GraphLayer } from '@/simulation/Network';
+import PathNode from '@/simulation/PathNode';
+import PinNode from '@/simulation/PinNode';
+import Sequence from '@/simulation/Sequence';
 import type {
   DifferenceMethod,
   DifferenceOptions,
   DifferenceResult,
   SequenceFrames,
-} from "@/simulation/Sequence";
+} from '@/simulation/Sequence';
 
-export type Point = [ number, number ];
+export type Point = [number, number];
 export type NetworkNode = PinNode | PathNode | GateNode;
 
 export {

@@ -18,13 +18,28 @@ export interface DifferenceResult {
  * A sequence is a record of frames with signal edges to represent a digital signal.
  */
 export default class Sequence implements Iterable<boolean> {
-
-  private frames: SequenceFrames = [];
+  protected frames: SequenceFrames = [];
+  protected frameIndexCache: Readonly<Array<keyof SequenceFrames>> | null =
+    null;
 
   constructor(frames?: SequenceFrames) {
     if (frames) {
       this.applyFrames(frames);
     }
+  }
+
+  public getFrameIndices(): Readonly<Array<keyof SequenceFrames>> {
+    if (this.frameIndexCache) {
+      return this.frameIndexCache;
+    }
+    this.frameIndexCache = Object.freeze(
+      Object.keys(this.frames) as Array<keyof SequenceFrames>,
+    );
+    return this.frameIndexCache;
+  }
+
+  protected invalidateFrameIndexCache() {
+    this.frameIndexCache = null;
   }
 
   public [Symbol.iterator](): Iterator<boolean, any, undefined> {
@@ -41,7 +56,7 @@ export default class Sequence implements Iterable<boolean> {
         }
         frame++;
         return { done: false, value: state };
-      }
+      },
     };
   }
 
@@ -78,40 +93,55 @@ export default class Sequence implements Iterable<boolean> {
   }
 
   /**
+   * Get the closest frame index before or at the given index that has a state change.
+   * @param fromIdx
+   */
+  protected getClosestFrameIndex(fromIdx: number): number {
+    fromIdx = Math.max(0, Math.min(fromIdx, this.frames.length - 1));
+    if (this.frames[fromIdx] !== undefined) {
+      return fromIdx;
+    }
+    const indices = this.getFrameIndices();
+    let left = 0;
+    let right = indices.length - 1;
+    let idx: keyof SequenceFrames | undefined = undefined;
+    while (left <= right) {
+      const mid = (left + right) >> 1;
+      // for performance, just assert as number. comparison should still work as expected
+      if ((indices[mid] as number) <= fromIdx) {
+        idx = indices[mid];
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+    return idx !== undefined ? Number(idx) : 0;
+  }
+
+  /**
    * Search for the state of the sequence at a given frame.
    */
   public probe(frame: number): boolean {
-    if (frame >= this.frames.length) {
-      return this.getBack();
-    }
-    const state = this.frames[frame];
-    if (state !== undefined) {
-      return state;
-    }
-    let idx = -1;
-    for (const i in this.frames) {
-      const n = Number(i);
-      if (n > frame) {
-        break;
-      }
-      idx = n;
-    }
+    const idx = this.getClosestFrameIndex(frame);
     return this.frames[idx] ?? false;
   }
 
   public setFrame(frame: number, state: boolean): Sequence {
     this.frames[frame] = state;
+    this.invalidateFrameIndexCache();
     return this;
   }
 
   public applyFrames(frames: SequenceFrames): Sequence {
     Object.assign(this.frames, frames);
+    this.invalidateFrameIndexCache();
     return this;
   }
 
   public addPulseRange(start: number, end: number): Sequence {
-    this.setFrame(start, true);
-    this.setFrame(end, false);
+    this.frames[start] = true;
+    this.frames[end] = false;
+    this.invalidateFrameIndexCache();
     return this;
   }
 
@@ -123,9 +153,10 @@ export default class Sequence implements Iterable<boolean> {
   public addTogglePoints(...frames: number[]): Sequence {
     let state = true;
     for (const frame of frames) {
-      this.setFrame(frame, state);
+      this.frames[frame] = state;
       state = !state;
     }
+    this.invalidateFrameIndexCache();
     return this;
   }
 
@@ -133,16 +164,17 @@ export default class Sequence implements Iterable<boolean> {
     start: number,
     repeat: number,
     padEnd: number,
-    frameOffsets: number[]
+    frameOffsets: number[],
   ): Sequence {
     let state = true;
     for (let l = 0; l < repeat; l++) {
       for (const offset of frameOffsets) {
-        this.setFrame(start + offset, state);
+        this.frames[start + offset] = state;
         state = !state;
       }
       start += frameOffsets[frameOffsets.length - 1] + padEnd;
     }
+    this.invalidateFrameIndexCache();
     return this;
   }
 
@@ -150,7 +182,7 @@ export default class Sequence implements Iterable<boolean> {
     frame: number,
     numPulses: number,
     highDuration: number,
-    lowDuration: number
+    lowDuration: number,
   ): Sequence {
     for (let i = 0; i < numPulses; i++) {
       this.addPulse(frame + i * (highDuration + lowDuration), highDuration);
@@ -172,16 +204,19 @@ export default class Sequence implements Iterable<boolean> {
    * @returns The number of frames that are different, and the ratio. If the ratio is 1, then
    * the sequences are identical. If the ratio is 0, then the sequences are completely different.
    */
-  public getDifference(other: Sequence, options: DifferenceOptions = {}): DifferenceResult {
+  public getDifference(
+    other: Sequence,
+    options: DifferenceOptions = {},
+  ): DifferenceResult {
     const {
       offsetThis = 0,
       offsetOther = 0,
       length = this.frames.length,
-      method = 'kohctpyktop'
+      method = 'kohctpyktop',
     } = options;
     let diff = 0;
     let max = 0;
-    // TODO: probe is slow. refactor this to iterate through states manually.
+    // TODO: refactor this to iterate through states manually instead of probing
     switch (method) {
       case 'strict':
         for (let i = 0; i < length; i++) {
@@ -208,8 +243,7 @@ export default class Sequence implements Iterable<boolean> {
         }
         break;
     }
-
-    return { differences: diff, ratio: 1 - (diff / max) };
+    return { differences: diff, ratio: 1 - diff / max };
   }
 
   public toString(len: number = this.frames.length): string {
@@ -231,17 +265,14 @@ export default class Sequence implements Iterable<boolean> {
    */
   public static from(states: boolean[]): Sequence {
     const seq = new Sequence();
-    let last: boolean|undefined = undefined;
+    let last: boolean | undefined = undefined;
     for (const frame in states) {
       const state = states[frame];
-      //if (state !== undefined) { // Shouldn't be necessary if ts does it's job.
-        if (state !== last) {
-          seq.frames[frame] = state;
-          last = state;
-        }
-      //}
+      if (state !== last) {
+        seq.frames[frame] = state;
+        last = state;
+      }
     }
     return seq;
   }
-
 }
