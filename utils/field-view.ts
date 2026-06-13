@@ -2,7 +2,7 @@ import type { Point } from '@/simulation';
 
 export const TILE_SIZE = 13;
 
-export const MIN_VIEW_SCALE = 0.5;
+export const MIN_VIEW_SCALE = 0.35;
 export const DEFAULT_VIEW_SCALE = 1;
 export const MAX_VIEW_SCALE = 3.5;
 export const VIEW_SCALE_STEP = 1.15;
