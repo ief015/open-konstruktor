@@ -93,7 +93,13 @@ export function useMenuItems() {
     {
       id: 'view',
       label: 'View',
-      items: [{ id: 'view/reset', label: 'Center' }],
+      items: [
+        { id: 'view/reset', label: 'Center' },
+        'divider',
+        { id: 'view/zoom-in', label: 'Zoom In' },
+        { id: 'view/zoom-out', label: 'Zoom Out' },
+        { id: 'view/zoom-reset', label: 'Reset Zoom' },
+      ],
     },
     {
       id: 'levels',
