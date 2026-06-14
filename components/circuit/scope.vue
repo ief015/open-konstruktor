@@ -2,7 +2,7 @@
   <div :style="{ 'background-color': COLOR_CHART }">
     <div
       ref="canvasContainer"
-      class="p-[8px] overflow-auto"
+      class="p-[8px] overflow-auto relative"
       :style="{
         minHeight: `${minScopeHeight}px`,
         maxHeight: `${maxScopeHeight}px`,
@@ -21,6 +21,14 @@
       >
         Your browser must support the canvas tag.
       </canvas>
+      <div
+        class="absolute top-0 right-0 flex flex-row items-center"
+        title="Edit verification graph. Left click = draw, Right click = erase"
+        v-if="!isRunning"
+      >
+        <label for="chk-scope-edit" class="text-xs text-black"> Edit </label>
+        <input type="checkbox" id="chk-scope-edit" v-model="editable" />
+      </div>
     </div>
     <div class="mx-[8px] flex flex-row justify-between items-end text-black">
       <div
@@ -93,6 +101,7 @@ const {
 } = useLevelInfo();
 const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
+const editable = ref(false);
 let prevDrawingCoords: Point = [0, 0];
 const verifyResult = ref<VerificationResult>();
 const filteredPins = computed<PinNode[]>(() => {
@@ -120,6 +129,10 @@ const translateX = computed<number>(() => {
     Math.max(0, Math.min(endPos - visibleFrameLength + 1, curPos - center)) *
     SCOPE_SCALE_X
   );
+});
+
+const canEdit = computed(() => {
+  return !isRunning.value && editable.value;
 });
 
 const verificationMessage = computed<string>(() => {
@@ -296,7 +309,7 @@ const addPulse = (
   end: number,
   state: boolean,
 ) => {
-  if (isRunning.value) return;
+  if (!canEdit.value) return;
   const len = sim.value.getRunningLength();
   if (end < len && seq.probe(end) !== state) {
     seq.setFrame(end, !state);
@@ -307,7 +320,7 @@ const addPulse = (
 };
 
 const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
-  if (isRunning.value) return;
+  if (!canEdit.value) return;
   const minX = Math.min(coordA[0], coordB[0]);
   const maxX = Math.max(coordA[0], coordB[0]);
   const minY = Math.min(coordA[1], coordB[1]);
@@ -316,7 +329,6 @@ const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
   const len = sim.value.getRunningLength();
   for (let y = Math.max(minY, 0); y <= Math.min(maxY, numPins - 1); y++) {
     const pin = filteredPins.value[rowToPinIndex(y)];
-
     if (!pin) continue;
     const { input, output } = sim.value.getSequence(pin);
     const seq = input || output;
