@@ -207,33 +207,34 @@ const connectionTiles = {
   },
 };
 
+export function getConnectionDirectionX(
+  layerH: DesignDataLayer,
+  x: number,
+  y: number,
+): TileRenderDirection {
+  const cx = layerH[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
+  const cxp = layerH[x - 1]?.[y] === ConnectionValue.Connected ? 1 : 0;
+  return cx === 0 && cxp === 0 ? null : cx - cxp;
+}
+
+export function getConnectionDirectionY(
+  layerV: DesignDataLayer,
+  x: number,
+  y: number,
+): TileRenderDirection {
+  const cy = layerV[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
+  const cyp = layerV[x]?.[y - 1] === ConnectionValue.Connected ? 1 : 0;
+  return cy === 0 && cyp === 0 ? null : cy - cyp;
+}
+
+const preloaded = ref(false);
+
 export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
   const tileSize = 12;
 
-  const getDirectionX = (
-    layerH: DesignDataLayer,
-    x: number,
-    y: number,
-  ): TileRenderDirection => {
-    const cx = layerH[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
-    const cxp = layerH[x - 1]?.[y] === ConnectionValue.Connected ? 1 : 0;
-    return cx === 0 && cxp === 0 ? null : cx - cxp;
-  };
-
-  const getDirectionY = (
-    layerV: DesignDataLayer,
-    x: number,
-    y: number,
-  ): TileRenderDirection => {
-    const cy = layerV[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
-    const cyp = layerV[x]?.[y - 1] === ConnectionValue.Connected ? 1 : 0;
-    return cy === 0 && cyp === 0 ? null : cy - cyp;
-  };
-
-  let preloaded = false;
   const preloadImages = () => {
-    if (preloaded) return Promise.resolve();
-    preloaded = true;
+    if (preloaded.value) return Promise.resolve();
+    preloaded.value = true;
     const images = Object.values(sprites).map((src) => loader.findImage(src));
     return Promise.all(
       images.map(
@@ -315,8 +316,6 @@ export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
   };
 
   return {
-    getDirectionX,
-    getDirectionY,
     preloadImages,
     renderTile,
   };

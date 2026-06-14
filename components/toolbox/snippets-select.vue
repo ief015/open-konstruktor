@@ -82,6 +82,7 @@ import type { SaveSnippetFormData } from '@/components/dialog/snippets/save.vue'
 import type { SnippetRecord } from '@/composables/use-saved-snippets';
 import { DesignData } from '@/serialization';
 import { FieldGraph } from '@/simulation';
+import { TILE_SIZE } from '@/utils/field-view';
 
 const fieldCanvas = ref();
 const updateFieldCanvas = () => {
@@ -93,7 +94,6 @@ const updateFieldCanvas = () => {
 };
 updateFieldCanvas();
 
-const TILE_SIZE = 13; // TODO: this needs to be shared with field.vue
 const { elementX: canvasMouseX, elementY: canvasMouseY } =
   useMouseInElement(fieldCanvas);
 

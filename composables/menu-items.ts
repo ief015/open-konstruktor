@@ -99,6 +99,8 @@ export function useMenuItems() {
         { id: 'view/zoom-in', label: 'Zoom In' },
         { id: 'view/zoom-out', label: 'Zoom Out' },
         { id: 'view/zoom-reset', label: 'Reset Zoom' },
+        'divider',
+        { id: 'view/toggle-debug', label: 'Toggle Debug' },
       ],
     },
     {
