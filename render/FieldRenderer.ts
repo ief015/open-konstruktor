@@ -7,6 +7,7 @@ import {
   ViaValue,
 } from '@/serialization';
 import { GateNode, PathNode, FieldGraph, Network } from '@/simulation';
+import { TILE_SIZE } from '@/utils/field-view';
 
 export type TileBounds = [
   left: number,
@@ -23,8 +24,6 @@ type FieldRendererCanvasProvider = {
 };
 
 export class FieldRenderer implements IDrawable {
-  public static readonly TILE_SIZE = 13;
-
   protected field: FieldGraph | null;
   protected network: Network | null;
   protected canvases = {
@@ -166,15 +165,10 @@ export class FieldRenderer implements IDrawable {
     }
     if (bounds) {
       const [left, top, right, bottom] = bounds;
-      const width = (right - left + 1) * FieldRenderer.TILE_SIZE;
-      const height = (bottom - top + 1) * FieldRenderer.TILE_SIZE;
+      const width = (right - left + 1) * TILE_SIZE;
+      const height = (bottom - top + 1) * TILE_SIZE;
       for (const ctx of contexts) {
-        ctx.clearRect(
-          left * FieldRenderer.TILE_SIZE + 1,
-          top * FieldRenderer.TILE_SIZE + 1,
-          width,
-          height,
-        );
+        ctx.clearRect(left * TILE_SIZE + 1, top * TILE_SIZE + 1, width, height);
       }
     } else {
       for (const ctx of contexts) {
@@ -234,10 +228,7 @@ export class FieldRenderer implements IDrawable {
       const viaLayer = data.getLayer(Layer.Vias);
       const viaImage = images.findImage('/tiles/link.png');
       ctx.save();
-      ctx.translate(
-        left * FieldRenderer.TILE_SIZE + 1,
-        top * FieldRenderer.TILE_SIZE + 1,
-      );
+      ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
       // Silicon layer + vias
       for (let col = left; col <= right; col++) {
         ctx.save();
@@ -267,10 +258,10 @@ export class FieldRenderer implements IDrawable {
           if (viaLayer[col][row] === ViaValue.Via) {
             ctx.drawImage(viaImage, 0, 0);
           }
-          ctx.translate(0, FieldRenderer.TILE_SIZE);
+          ctx.translate(0, TILE_SIZE);
         }
         ctx.restore();
-        ctx.translate(FieldRenderer.TILE_SIZE, 0);
+        ctx.translate(TILE_SIZE, 0);
       }
       ctx.restore();
     }
@@ -281,10 +272,7 @@ export class FieldRenderer implements IDrawable {
       const metalConnHLayer = data.getLayer(Layer.MetalConnectionsH);
       const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
       ctx.save();
-      ctx.translate(
-        left * FieldRenderer.TILE_SIZE + 1,
-        top * FieldRenderer.TILE_SIZE + 1,
-      );
+      ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
       for (let col = left; col <= right; col++) {
         ctx.save();
         for (let row = top; row <= bottom; row++) {
@@ -293,10 +281,10 @@ export class FieldRenderer implements IDrawable {
             const ydir = getConnectionDirectionY(metalConnVLayer, col, row);
             renderTile(TileType.Metal, xdir, ydir);
           }
-          ctx.translate(0, FieldRenderer.TILE_SIZE);
+          ctx.translate(0, TILE_SIZE);
         }
         ctx.restore();
-        ctx.translate(FieldRenderer.TILE_SIZE, 0);
+        ctx.translate(TILE_SIZE, 0);
       }
       ctx.restore();
     }
@@ -342,9 +330,9 @@ export class FieldRenderer implements IDrawable {
     ctxMetalHot.translate(1, 1);
     ctxSiliconHot.translate(1, 1);
     for (let col = left; col <= right; col++) {
-      const x = col * FieldRenderer.TILE_SIZE;
+      const x = col * TILE_SIZE;
       for (let row = top; row <= bottom; row++) {
-        const y = row * FieldRenderer.TILE_SIZE;
+        const y = row * TILE_SIZE;
         if (silicon) {
           const nodes = net.getNodesAt([col, row], 'silicon');
           const hot = nodes.some((n) => {

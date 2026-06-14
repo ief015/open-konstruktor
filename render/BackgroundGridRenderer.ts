@@ -6,6 +6,7 @@ import {
   SiliconValue,
   ViaValue,
 } from '@/serialization';
+import { TILE_SIZE } from '@/utils/field-view';
 
 export type GridDefinition = {
   columns: number;
@@ -32,7 +33,6 @@ export type GridViewport = {
 };
 
 export class BackgroundGridRenderer implements IDrawable {
-  protected static readonly TILE_SIZE = 13;
   protected canvas: HTMLCanvasElement | null = null;
   protected definition: GridDefinition;
   protected theme: GridTheme;
@@ -122,7 +122,6 @@ export class BackgroundGridRenderer implements IDrawable {
       right: columns - 1,
       bottom: rows - 1,
     };
-    const TILE_SIZE = BackgroundGridRenderer.TILE_SIZE;
     // Outer background colour
     ctx.save();
     ctx.resetTransform();

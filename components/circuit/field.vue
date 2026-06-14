@@ -5,6 +5,7 @@
       id="field-canvas"
       class="absolute w-full h-full"
       @mousedown="onMouseDown"
+      @wheel="onWheel"
       oncontextmenu="return false;"
     >
       Your browser must support the canvas tag.
@@ -27,6 +28,20 @@ import type { ToolboxMode } from '@/composables/use-toolbox';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { BackgroundGridRenderer } from '@/render/BackgroundGridRenderer';
 import { FieldRenderer, type TileBounds } from '@/render/FieldRenderer';
+import {
+  TILE_SIZE,
+  DEFAULT_VIEW_SCALE,
+  applyFieldViewTransform,
+  canvasPointerPosition,
+  clampViewPosition,
+  computeResetViewPosition,
+  computeTileViewport,
+  computeViewBounds,
+  mouseToGrid as mouseToGridCoord,
+  scaleFromWheelDelta,
+  stepViewScale,
+  zoomAtPoint,
+} from '@/utils/field-view';
 
 const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);
@@ -49,8 +64,6 @@ const fieldRenderer = new FieldRenderer().applyCanvases({
 const selectionFieldRenderer = new FieldRenderer().setCanvas(
   canvasLayers['overlay'],
 );
-
-const { TILE_SIZE } = FieldRenderer;
 
 const {
   field,
@@ -77,37 +90,57 @@ const fieldHeight = computed(() => dimensions.rows * TILE_SIZE);
 
 const viewX = ref(0);
 const viewY = ref(0);
-const viewBounds = computed(() => {
-  const minX = Math.min(
-    fieldWidth.value - canvasWidth.value + 1,
-    Math.trunc(fieldWidth.value / 2),
-    0,
-  );
-  const minY = Math.min(
-    fieldHeight.value - canvasHeight.value + 1,
-    Math.trunc(fieldHeight.value / 2),
-    0,
-  );
-  const maxX = Math.max(fieldWidth.value - canvasWidth.value + 1, 0);
-  const maxY = Math.max(fieldHeight.value - canvasHeight.value + 1, 0);
-  return {
-    minX,
-    minY,
-    maxX,
-    maxY,
-  };
-});
-
-const {
-  elementX: canvasMouseX,
-  elementY: canvasMouseY,
-  isOutside: canvasMouseOutside,
-} = useMouseInElement(canvas);
-const coordMouseX = computed(() =>
-  Math.floor((canvasMouseX.value + viewX.value) / TILE_SIZE),
+const viewScale = ref(DEFAULT_VIEW_SCALE);
+const viewBounds = computed(() =>
+  computeViewBounds(
+    fieldWidth.value,
+    fieldHeight.value,
+    canvasWidth.value,
+    canvasHeight.value,
+    viewScale.value,
+  ),
 );
-const coordMouseY = computed(() =>
-  Math.floor((canvasMouseY.value + viewY.value) / TILE_SIZE),
+
+const canvasMouseX = ref(0);
+const canvasMouseY = ref(0);
+const canvasMouseOutside = ref(true);
+
+const updateCanvasPointer = (clientX: number, clientY: number) => {
+  if (!canvas.value) return;
+  const [x, y] = canvasPointerPosition(canvas.value, clientX, clientY);
+  canvasMouseX.value = x;
+  canvasMouseY.value = y;
+  canvasMouseOutside.value = false;
+};
+
+useEventListener(canvas, 'mousemove', (e) =>
+  updateCanvasPointer(e.clientX, e.clientY),
+);
+useEventListener(canvas, 'mouseenter', (e) =>
+  updateCanvasPointer(e.clientX, e.clientY),
+);
+useEventListener(canvas, 'mouseleave', () => {
+  canvasMouseOutside.value = true;
+});
+const coordMouseX = computed(
+  () =>
+    mouseToGridCoord(
+      canvasMouseX.value,
+      canvasMouseY.value,
+      viewX.value,
+      viewY.value,
+      viewScale.value,
+    )[0],
+);
+const coordMouseY = computed(
+  () =>
+    mouseToGridCoord(
+      canvasMouseX.value,
+      canvasMouseY.value,
+      viewX.value,
+      viewY.value,
+      viewScale.value,
+    )[1],
 );
 const isDrawing = ref(false);
 const isPanning = ref(false);
@@ -193,17 +226,15 @@ const getTileViewport = (): {
   bottom: number;
 } => {
   const { columns, rows } = dimensions;
-  const left = Math.max(0, Math.floor(viewX.value / TILE_SIZE));
-  const top = Math.max(0, Math.floor(viewY.value / TILE_SIZE));
-  const right =
-    Math.min(
-      columns,
-      Math.ceil((viewX.value + canvasWidth.value) / TILE_SIZE),
-    ) - 1;
-  const bottom =
-    Math.min(rows, Math.ceil((viewY.value + canvasHeight.value) / TILE_SIZE)) -
-    1;
-  return { left, top, right, bottom };
+  return computeTileViewport(
+    viewX.value,
+    viewY.value,
+    canvasWidth.value,
+    canvasHeight.value,
+    viewScale.value,
+    columns,
+    rows,
+  );
 };
 
 const renderBackground = () => {
@@ -216,7 +247,7 @@ const renderBackground = () => {
     boundaryRight: dimensions.columns - maxCol,
   });
   ctx.save();
-  ctx.translate(-viewX.value, -viewY.value);
+  applyFieldViewTransform(ctx, viewX.value, viewY.value, viewScale.value);
   gridRenderer.render(getTileViewport());
   ctx.restore();
   canvasDirty.value = true;
@@ -227,8 +258,13 @@ const renderField = (bounds?: TileBounds) => {
   const ctxMetal = fieldRenderer.getContext('metal');
   ctxSilicon.save();
   ctxMetal.save();
-  ctxSilicon.translate(-viewX.value, -viewY.value);
-  ctxMetal.translate(-viewX.value, -viewY.value);
+  applyFieldViewTransform(
+    ctxSilicon,
+    viewX.value,
+    viewY.value,
+    viewScale.value,
+  );
+  applyFieldViewTransform(ctxMetal, viewX.value, viewY.value, viewScale.value);
   fieldRenderer.render({
     field: field.value,
     metal: true,
@@ -245,8 +281,13 @@ const renderHot = () => {
   const ctxMetal = fieldRenderer.getContext('metalHot');
   ctxSilicon.save();
   ctxMetal.save();
-  ctxSilicon.translate(-viewX.value, -viewY.value);
-  ctxMetal.translate(-viewX.value, -viewY.value);
+  applyFieldViewTransform(
+    ctxSilicon,
+    viewX.value,
+    viewY.value,
+    viewScale.value,
+  );
+  applyFieldViewTransform(ctxMetal, viewX.value, viewY.value, viewScale.value);
   fieldRenderer.render({
     field: field.value,
     network: network.value,
@@ -264,7 +305,7 @@ const renderOverlay = () => {
   const net = network.value;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.save();
-  ctx.translate(-viewX.value, -viewY.value);
+  applyFieldViewTransform(ctx, viewX.value, viewY.value, viewScale.value);
   if (!isRunning.value) {
     // Draw selection box
     if (selectionStart.value && selectionEnd.value) {
@@ -387,36 +428,67 @@ const clear = () => {
 };
 
 const panView = (dx: number, dy: number) => {
-  const { minX, minY, maxX, maxY } = viewBounds.value;
-  viewX.value = Math.max(minX, Math.min(maxX, viewX.value + dx));
-  viewY.value = Math.max(minY, Math.min(maxY, viewY.value + dy));
-  // TODO: Draw only the parts that need to be drawn for performance on large fields+screens.
+  const [x, y] = clampViewPosition(
+    viewX.value + dx,
+    viewY.value + dy,
+    viewBounds.value,
+  );
+  viewX.value = x;
+  viewY.value = y;
   queueAnimFuncs.add(renderAll);
 };
 
 const resetView = () => {
-  const { columns, rows } = dimensions;
-  const { minX, minY, maxX, maxY } = viewBounds.value;
-  viewX.value =
-    fieldWidth.value < canvasWidth.value
-      ? Math.max(
-          minX,
-          Math.min(
-            maxX,
-            -Math.trunc((canvasWidth.value - columns * TILE_SIZE) / 2),
-          ),
-        )
-      : 0;
-  viewY.value =
-    fieldHeight.value < canvasHeight.value
-      ? Math.max(
-          minY,
-          Math.min(
-            maxY,
-            -Math.trunc((canvasHeight.value - rows * TILE_SIZE) / 2),
-          ),
-        )
-      : 0;
+  const [x, y] = computeResetViewPosition(
+    fieldWidth.value,
+    fieldHeight.value,
+    canvasWidth.value,
+    canvasHeight.value,
+    viewScale.value,
+    viewBounds.value,
+  );
+  viewX.value = x;
+  viewY.value = y;
+};
+
+const resetViewZoom = () => {
+  viewScale.value = DEFAULT_VIEW_SCALE;
+  resetView();
+};
+
+const zoomView = (newScale: number, anchorX: number, anchorY: number) => {
+  const zoomed = zoomAtPoint(
+    viewX.value,
+    viewY.value,
+    viewScale.value,
+    anchorX,
+    anchorY,
+    newScale,
+  );
+  if (
+    zoomed.viewScale === viewScale.value &&
+    zoomed.viewX === viewX.value &&
+    zoomed.viewY === viewY.value
+  ) {
+    return;
+  }
+  viewScale.value = zoomed.viewScale;
+  const [x, y] = clampViewPosition(
+    zoomed.viewX,
+    zoomed.viewY,
+    viewBounds.value,
+  );
+  viewX.value = x;
+  viewY.value = y;
+  queueAnimFuncs.add(renderAll);
+};
+
+const onWheel = (e: WheelEvent) => {
+  e.preventDefault();
+  if (!canvas.value) return;
+  const [mx, my] = canvasPointerPosition(canvas.value, e.clientX, e.clientY);
+  updateCanvasPointer(e.clientX, e.clientY);
+  zoomView(scaleFromWheelDelta(viewScale.value, e.deltaY, e.deltaMode), mx, my);
 };
 
 const updateCanvasSizes = () => {
@@ -435,9 +507,7 @@ const updateCanvasSizes = () => {
 
 const mouseToGrid = (mx: number, my: number): Point => {
   if (!canvas.value) return [0, 0];
-  const x = Math.floor((mx + viewX.value) / TILE_SIZE);
-  const y = Math.floor((my + viewY.value) / TILE_SIZE);
-  return [x, y];
+  return mouseToGridCoord(mx, my, viewX.value, viewY.value, viewScale.value);
 };
 
 const clampCoords = (coord: Point): Point => {
@@ -447,8 +517,14 @@ const clampCoords = (coord: Point): Point => {
   return [Math.max(min, Math.min(max, x)), Math.max(0, Math.min(rows - 1, y))];
 };
 
+const pointerCoords = (e: { clientX: number; clientY: number }): Point => {
+  if (!canvas.value) return [0, 0];
+  return canvasPointerPosition(canvas.value, e.clientX, e.clientY);
+};
+
 const startDraw = (e: MouseEvent) => {
-  const mouseCoords = mouseToGrid(e.offsetX, e.offsetY);
+  const [px, py] = pointerCoords(e);
+  const mouseCoords = mouseToGrid(px, py);
   isDrawing.value = true;
   prevDrawingCoords = mouseCoords;
   draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
@@ -474,7 +550,7 @@ const startSelection = (e: MouseEvent) => {
     selectionState.value === 'dragging-duplicate'
   )
     return;
-  const mouseCoords = mouseToGrid(e.offsetX, e.offsetY);
+  const mouseCoords = mouseToGrid(...pointerCoords(e));
   if (coordInSelection(mouseCoords)) {
     const [left, top, right, bottom] = selectionBounds.value!;
     const start: Point = [left, top];
@@ -697,14 +773,14 @@ watch([canvasMouseX, canvasMouseY], ([x, y], [oldX, oldY]) => {
       prevDrawingCoords = coords;
     }
   } else if (isPanning.value) {
-    panView(-dx, -dy);
+    panView(-dx / viewScale.value, -dy / viewScale.value);
   } else if (selectionState.value) {
     switch (selectionState.value) {
       case 'dragging':
       case 'dragging-duplicate':
         if (selectionTranslate.value) {
-          selectionTranslate.value[0] += dx / TILE_SIZE;
-          selectionTranslate.value[1] += dy / TILE_SIZE;
+          selectionTranslate.value[0] += dx / (TILE_SIZE * viewScale.value);
+          selectionTranslate.value[1] += dy / (TILE_SIZE * viewScale.value);
         }
         break;
       case 'selecting':
@@ -764,6 +840,38 @@ useEventListener('keydown', (e) => {
       redo();
     } else {
       undo();
+    }
+  }
+});
+
+useEventListener('keydown', (e) => {
+  if (ignoreKeyShortcuts.value) return;
+  if (e.ctrlKey && !e.altKey && !e.metaKey) {
+    switch (e.key) {
+      case '=':
+      case '+':
+        e.preventDefault();
+        zoomView(
+          stepViewScale(viewScale.value, 'in'),
+          canvasWidth.value / 2,
+          canvasHeight.value / 2,
+        );
+        break;
+      case '-':
+        e.preventDefault();
+        zoomView(
+          stepViewScale(viewScale.value, 'out'),
+          canvasWidth.value / 2,
+          canvasHeight.value / 2,
+        );
+        break;
+      case '0':
+        if (!e.shiftKey) {
+          e.preventDefault();
+          resetViewZoom();
+          queueAnimFuncs.add(renderAll);
+        }
+        break;
     }
   }
 });
@@ -850,6 +958,23 @@ useEventListener(
         break;
       case 'view/toggle-debug':
         debugFlags.enabled = !debugFlags.enabled;
+      case 'view/zoom-in':
+        zoomView(
+          stepViewScale(viewScale.value, 'in'),
+          canvasWidth.value / 2,
+          canvasHeight.value / 2,
+        );
+        break;
+      case 'view/zoom-out':
+        zoomView(
+          stepViewScale(viewScale.value, 'out'),
+          canvasWidth.value / 2,
+          canvasHeight.value / 2,
+        );
+        break;
+      case 'view/zoom-reset':
+        resetViewZoom();
+        queueAnimFuncs.add(renderAll);
         break;
       case 'edit/clear':
         clear();
@@ -911,7 +1036,7 @@ watch([sim, circuitFactory], async ([sim, factory], [oldSim, oldFactory]) => {
   await nextTick(); // Wait for resize observer to update canvas size
   if (factory !== oldFactory) {
     updateCanvasSizes();
-    resetView();
+    resetViewZoom();
   }
   queueAnimFuncs.add(renderAll);
 });
@@ -921,7 +1046,7 @@ watch(canvas, (canvas) => {
   if (!ctx) return;
   ctx.imageSmoothingEnabled = false;
   updateCanvasSizes();
-  resetView();
+  resetViewZoom();
   queueAnimFuncs.add(renderAll);
 });
 </script>
