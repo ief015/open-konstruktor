@@ -21,14 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Layer,
-  MetalValue,
-  SiliconValue,
-  ViaValue,
-  GateValue,
-} from '@/serialization';
-import { FieldGraph, GateNode, PathNode } from '@/simulation';
+import { FieldGraph } from '@/simulation';
 import type { Point } from '@/simulation';
 import type { ToolboxMode } from '@/composables/use-toolbox';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
@@ -76,7 +69,6 @@ const {
   onRender: onCircuitRender,
 } = useCircuitSimulator();
 const { mode: toolBoxMode, ignoreKeyShortcuts } = useToolbox();
-const images = useImageLoader();
 
 const canvasWidth = ref(0);
 const canvasHeight = ref(0);
