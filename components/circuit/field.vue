@@ -32,9 +32,8 @@ import { FieldGraph, GateNode, PathNode } from '@/simulation';
 import type { Point } from '@/simulation';
 import type { ToolboxMode } from '@/composables/use-toolbox';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
-
-const TILE_SIZE = 13;
-const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);
+import { BackgroundGridRenderer } from '@/render/BackgroundGridRenderer';
+import { FieldRenderer, type TileBounds } from '@/render/FieldRenderer';
 
 const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);
@@ -46,6 +45,19 @@ const canvasLayers = {
   'metal-hot': document.createElement('canvas'),
   overlay: document.createElement('canvas'),
 };
+
+const gridRenderer = new BackgroundGridRenderer(canvasLayers['background']);
+const fieldRenderer = new FieldRenderer().applyCanvases({
+  metal: canvasLayers['metal-tiles'],
+  silicon: canvasLayers['silicon-tiles'],
+  metalHot: canvasLayers['metal-hot'],
+  siliconHot: canvasLayers['silicon-hot'],
+});
+const selectionFieldRenderer = new FieldRenderer().setCanvas(
+  canvasLayers['overlay'],
+);
+
+const { TILE_SIZE } = FieldRenderer;
 
 const {
   field,
@@ -175,292 +187,66 @@ const getTileViewport = (): {
 };
 
 const renderBackground = () => {
-  const ctx = canvasLayers['background']?.getContext('2d');
-  if (!ctx) throw new Error('Could not get background canvas context');
-  canvasDirty.value = true;
-  const { columns, rows } = dimensions;
+  const ctx = gridRenderer.getContext();
   const [minCol, maxCol] = field.value.getMinMaxColumns();
-  const { left, top, right, bottom } = getTileViewport();
-  // Background colour
-  ctx.fillStyle = '#959595';
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  gridRenderer.applyDefinition({
+    columns: dimensions.columns,
+    rows: dimensions.rows,
+    boundaryLeft: minCol,
+    boundaryRight: dimensions.columns - maxCol,
+  });
   ctx.save();
   ctx.translate(-viewX.value, -viewY.value);
-  // Draw grid lines
-  ctx.save();
-  ctx.translate(0.5, 0.5);
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#818181';
-  ctx.beginPath();
-  for (let x = left; x <= right; x++) {
-    ctx.moveTo(x * TILE_SIZE, 0);
-    ctx.lineTo(x * TILE_SIZE, rows * TILE_SIZE);
-  }
-  for (let y = top; y <= bottom; y++) {
-    ctx.moveTo(0, y * TILE_SIZE);
-    ctx.lineTo(columns * TILE_SIZE, y * TILE_SIZE);
-  }
-  ctx.stroke();
+  gridRenderer.render(getTileViewport());
   ctx.restore();
-  // Draw pin column boundaries
-  ctx.fillStyle = 'rgba(0,0,0,calc(20/255))';
-  ctx.fillRect(0, 0, minCol * TILE_SIZE + 1, rows * TILE_SIZE + 1);
-  ctx.fillRect(
-    (maxCol + 1) * TILE_SIZE,
-    0,
-    (columns - maxCol - 1) * TILE_SIZE,
-    rows * TILE_SIZE,
-  );
-  // Draw border
-  ctx.strokeStyle = '#000';
-  ctx.strokeRect(0.5, 0.5, columns * TILE_SIZE, rows * TILE_SIZE);
-  ctx.restore();
-};
-
-const renderTiles = (
-  options: {
-    metal?: boolean; // Render metal layer
-    silicon?: boolean; // Render silicon layer
-    context2d?: CanvasRenderingContext2D; // Override context to render to
-    field?: FieldGraph; // Override field to render
-    bounds?: number[]; // Rendering bounds
-    noTranslate?: boolean; // Disables view translation
-  } = {},
-) => {
-  const contextSiliconTiles =
-    options.context2d ?? canvasLayers['silicon-tiles']?.getContext('2d');
-  const contextMetalTiles =
-    options.context2d ?? canvasLayers['metal-tiles']?.getContext('2d');
-  if (!contextSiliconTiles)
-    throw new Error('Could not get silicon-tiles canvas context');
-  if (!contextMetalTiles)
-    throw new Error('Could not get metal-tiles canvas context');
   canvasDirty.value = true;
-  const data = (options.field ?? field.value).getData();
-  const { columns, rows } = options.field?.getDimensions() ?? dimensions;
-  const {
-    metal: showMetal,
-    silicon: showSilicon,
-    bounds,
-    noTranslate,
-  } = Object.assign({ metal: true, silicon: true }, options);
-  const tileViewport = getTileViewport();
-  let [left, top, right, bottom] = bounds ?? [
-    tileViewport.left,
-    tileViewport.top,
-    tileViewport.right,
-    tileViewport.bottom,
-  ];
-  left = Math.max(0, left - 2);
-  top = Math.max(0, top - 2);
-  right = Math.min(columns - 1, right + 2);
-  bottom = Math.min(rows - 1, bottom + 2);
-  if (!options.context2d) {
-    if (bounds) {
-      contextSiliconTiles.clearRect(
-        -viewX.value + left * TILE_SIZE + 1,
-        -viewY.value + top * TILE_SIZE + 1,
-        (right - left + 1) * TILE_SIZE,
-        (bottom - top + 1) * TILE_SIZE,
-      );
-      contextMetalTiles.clearRect(
-        -viewX.value + left * TILE_SIZE + 1,
-        -viewY.value + top * TILE_SIZE + 1,
-        (right - left + 1) * TILE_SIZE,
-        (bottom - top + 1) * TILE_SIZE,
-      );
-    } else {
-      contextSiliconTiles.clearRect(
-        0,
-        0,
-        contextSiliconTiles.canvas.width,
-        contextSiliconTiles.canvas.height,
-      );
-      contextMetalTiles.clearRect(
-        0,
-        0,
-        contextMetalTiles.canvas.width,
-        contextMetalTiles.canvas.height,
-      );
-    }
-  }
-  if (showSilicon) {
-    const ctx = contextSiliconTiles;
-    const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
-    const siliconLayer = data.getLayer(Layer.Silicon);
-    const siliconConnHLayer = data.getLayer(Layer.SiliconConnectionsH);
-    const siliconConnVLayer = data.getLayer(Layer.SiliconConnectionsV);
-    const gatesHLayer = data.getLayer(Layer.GatesH);
-    const gatesVLayer = data.getLayer(Layer.GatesV);
-    const viaLayer = data.getLayer(Layer.Vias);
-    const viaImage = images.findImage('/tiles/link.png');
-    ctx.save();
-    !noTranslate && ctx.translate(-viewX.value, -viewY.value);
-    !noTranslate && ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
-    ctx.strokeStyle = '#060000';
-    // Silicon layer + vias
-    for (let x = left; x <= right; x++) {
-      ctx.save();
-      for (let y = top; y <= bottom; y++) {
-        const st = siliconLayer[x][y];
-        if (st === SiliconValue.PSilicon) {
-          const xdir = getDirectionX(siliconConnHLayer, x, y);
-          const ydir = getDirectionY(siliconConnVLayer, x, y);
-          if (gatesHLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.PGateH, xdir, ydir);
-          } else if (gatesVLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.PGateV, xdir, ydir);
-          } else {
-            renderTile(TileType.PSilicon, xdir, ydir);
-          }
-        } else if (st === SiliconValue.NSilicon) {
-          const xdir = getDirectionX(siliconConnHLayer, x, y);
-          const ydir = getDirectionY(siliconConnVLayer, x, y);
-          if (gatesHLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.NGateH, xdir, ydir);
-          } else if (gatesVLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.NGateV, xdir, ydir);
-          } else {
-            renderTile(TileType.NSilicon, xdir, ydir);
-          }
-        }
-        if (viaLayer[x][y] === ViaValue.Via) {
-          //ctx.beginPath();
-          //ctx.roundRect(TILE_SIZE_HALF - 2.5, TILE_SIZE_HALF - 2.5, 5, 5, 1.5);
-          //ctx.stroke();
-          //ctx.closePath();
-          ctx.drawImage(viaImage, 0, 0);
-        }
-        ctx.translate(0, TILE_SIZE);
-      }
-      ctx.restore();
-      ctx.translate(TILE_SIZE, 0);
-    }
-    ctx.restore();
-  }
-  // Metal layer
-  if (showMetal) {
-    const ctx = contextMetalTiles;
-    const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
-    const metalLayer = data.getLayer(Layer.Metal);
-    const metalConnHLayer = data.getLayer(Layer.MetalConnectionsH);
-    const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
-    ctx.save();
-    !noTranslate && ctx.translate(-viewX.value, -viewY.value);
-    !noTranslate && ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
-    for (let x = left; x <= right; x++) {
-      ctx.save();
-      for (let y = top; y <= bottom; y++) {
-        if (metalLayer[x][y] === MetalValue.Metal) {
-          const xdir = getDirectionX(metalConnHLayer, x, y);
-          const ydir = getDirectionY(metalConnVLayer, x, y);
-          renderTile(TileType.Metal, xdir, ydir);
-        }
-        ctx.translate(0, TILE_SIZE);
-      }
-      ctx.restore();
-      ctx.translate(TILE_SIZE, 0);
-    }
-    ctx.restore();
-  }
 };
 
-const renderHot = (
-  options: { metal?: boolean; silicon?: boolean } = {
+const renderField = (bounds?: TileBounds) => {
+  const ctxSilicon = fieldRenderer.getContext('silicon');
+  const ctxMetal = fieldRenderer.getContext('metal');
+  ctxSilicon.save();
+  ctxMetal.save();
+  ctxSilicon.translate(-viewX.value, -viewY.value);
+  ctxMetal.translate(-viewX.value, -viewY.value);
+  fieldRenderer.render({
+    field: field.value,
     metal: true,
     silicon: true,
-  },
-) => {
-  const net = network.value;
-  const ctxMetalHot = canvasLayers['metal-hot']?.getContext('2d');
-  const ctxSiliconHot = canvasLayers['silicon-hot']?.getContext('2d');
-  if (!ctxMetalHot) throw new Error('Could not get metal-hot canvas context');
-  if (!ctxSiliconHot)
-    throw new Error('Could not get silicon-hot canvas context');
+    bounds: bounds,
+  });
+  ctxSilicon.restore();
+  ctxMetal.restore();
   canvasDirty.value = true;
-  const { metal: showMetal, silicon: showSilicon } = Object.assign(
-    { metal: false, silicon: false },
-    options,
-  );
-  const { left, top, right, bottom } = getTileViewport();
-  ctxMetalHot.clearRect(
-    0,
-    0,
-    ctxMetalHot.canvas.width,
-    ctxMetalHot.canvas.height,
-  );
-  ctxSiliconHot.clearRect(
-    0,
-    0,
-    ctxSiliconHot.canvas.width,
-    ctxSiliconHot.canvas.height,
-  );
-  ctxMetalHot.save();
-  ctxSiliconHot.save();
-  ctxMetalHot.translate(-viewX.value, -viewY.value);
-  ctxSiliconHot.translate(-viewX.value, -viewY.value);
-  ctxMetalHot.translate(1, 1);
-  ctxSiliconHot.translate(1, 1);
-  // Draw current
-  if (isRunning.value) {
-    const hotImage = images.findImage('/tiles/hot.png');
-    for (let x = left; x <= right; x++) {
-      for (let y = top; y <= bottom; y++) {
-        if (showSilicon) {
-          const nodes = net.getNodesAt([x, y], 'silicon');
-          const hot = nodes.some((n) => {
-            if (n instanceof PathNode) {
-              return n.state;
-            } else if (n instanceof GateNode) {
-              const open = n.isNPN ? n.active : !n.active;
-              return open && n.gatedPaths.some((p) => p.state);
-            }
-            return false;
-          });
-          if (hot) {
-            ctxSiliconHot.drawImage(hotImage, x * TILE_SIZE, y * TILE_SIZE);
-          }
-        }
-        if (showMetal) {
-          const nodes = net.getNodesAt([x, y], 'metal');
-          const hot = nodes.some((n) => {
-            if (n instanceof PathNode) {
-              return n.state;
-            }
-            return false;
-          });
-          if (hot) {
-            ctxMetalHot.drawImage(hotImage, x * TILE_SIZE, y * TILE_SIZE);
-          }
-        }
-      }
-    }
-  }
-  ctxMetalHot.restore();
-  ctxSiliconHot.restore();
+};
+
+const renderHot = () => {
+  const ctxSilicon = fieldRenderer.getContext('siliconHot');
+  const ctxMetal = fieldRenderer.getContext('metalHot');
+  ctxSilicon.save();
+  ctxMetal.save();
+  ctxSilicon.translate(-viewX.value, -viewY.value);
+  ctxMetal.translate(-viewX.value, -viewY.value);
+  fieldRenderer.render({
+    field: field.value,
+    network: network.value,
+    metalHot: true,
+    siliconHot: true,
+  });
+  ctxSilicon.restore();
+  ctxMetal.restore();
+  canvasDirty.value = true;
 };
 
 const renderOverlay = () => {
   const ctx = canvasLayers['overlay'].getContext('2d');
   if (!ctx) throw new Error('Could not get overlay canvas context');
   const net = network.value;
-  canvasDirty.value = true;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.save();
   ctx.translate(-viewX.value, -viewY.value);
-  /*
-  // Draw mouse cursor
-  ctx.save();
-  ctx.translate(0.5, 0.5);
-  if (!canvasMouseOutside.value) {
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255, 255, 255, calc(2/3))';
-    ctx.strokeRect(Math.floor(canvasMouseX.value / TILE_SIZE) * TILE_SIZE, Math.floor(canvasMouseY.value / TILE_SIZE) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-  }
-  ctx.restore();
-  */
-  // Draw selection
   if (!isRunning.value) {
+    // Draw selection box
     if (selectionStart.value && selectionEnd.value) {
       ctx.save();
       ctx.translate(0.5, 0.5);
@@ -477,6 +263,7 @@ const renderOverlay = () => {
       ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
       ctx.restore();
     }
+    // Draw selection field tiles
     if (
       selectionFieldGraph.value &&
       (selectionState.value === 'dragging' ||
@@ -490,10 +277,10 @@ const renderOverlay = () => {
         Math.floor((left + tx) * TILE_SIZE),
         Math.floor((top + ty) * TILE_SIZE),
       );
-      renderTiles({
-        context2d: ctx,
+      selectionFieldRenderer.render({
         field: selectionFieldGraph.value,
-        noTranslate: true,
+        metal: true,
+        silicon: true,
       });
       ctx.restore();
     }
@@ -512,13 +299,14 @@ const renderOverlay = () => {
     ctx.fillText(label, tx, ty, tw);
   }
   ctx.restore();
+  canvasDirty.value = true;
 };
 
 const tilePreloader = useTileRenderer();
 const renderAll = async () => {
   await tilePreloader.preloadImages();
   renderBackground();
-  renderTiles();
+  renderField();
   renderHot();
   renderOverlay();
 };
@@ -558,13 +346,13 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   }
   updateDesignScoreThrottle();
   resetVerificationResult();
-  const bounds = [
+  const bounds: TileBounds = [
     Math.min(coordA[0], coordB[0]),
     Math.min(coordA[1], coordB[1]),
     Math.max(coordA[0], coordB[0]),
     Math.max(coordA[1], coordB[1]),
   ];
-  queueAnimFuncs.add(() => renderTiles({ bounds }));
+  queueAnimFuncs.add(() => renderField(bounds));
 };
 
 const clear = () => {
@@ -611,7 +399,7 @@ const resetView = () => {
       : 0;
 };
 
-const invalidateCanvasSizes = () => {
+const updateCanvasSizes = () => {
   if (!canvas.value) return;
   const { clientWidth, clientHeight } = canvas.value;
   canvasWidth.value = Math.trunc(clientWidth);
@@ -677,7 +465,7 @@ const startSelection = (e: MouseEvent) => {
     } else {
       selectionState.value = 'dragging-duplicate';
     }
-    queueAnimFuncs.add(renderTiles);
+    queueAnimFuncs.add(renderField);
     queueAnimFuncs.add(renderOverlay);
   } else {
     selectionStart.value = clampCoords(mouseCoords);
@@ -752,7 +540,7 @@ const endSelection = () => {
           }
         }
         history.push();
-        queueAnimFuncs.add(renderTiles);
+        queueAnimFuncs.add(renderField);
       } else {
         clearSelection();
       }
@@ -804,7 +592,7 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
     const end: Point = [right, bottom];
     field.value.clearRect(start, end, { enforceBounds: true });
     field.value.paste(start, selectionFieldGraph.value);
-    queueAnimFuncs.add(renderTiles);
+    queueAnimFuncs.add(renderField);
     history.push();
   }
 };
@@ -823,7 +611,7 @@ function deleteSelection() {
   }
   selectionFieldGraph.value = undefined;
   endSelection();
-  queueAnimFuncs.add(renderTiles);
+  queueAnimFuncs.add(renderField);
   queueAnimFuncs.add(renderOverlay);
   history.push();
 }
@@ -973,7 +761,7 @@ function cutSelectionToClipboard() {
   const end: Point = [right, bottom];
   field.value.clearRect(start, end, { enforceBounds: true });
   endSelection();
-  queueAnimFuncs.add(renderTiles);
+  queueAnimFuncs.add(renderField);
   queueAnimFuncs.add(renderOverlay);
   history.push();
 }
@@ -1066,7 +854,7 @@ useEventListener(
 );
 
 useResizeObserver(canvas, (entries, obs) => {
-  invalidateCanvasSizes();
+  updateCanvasSizes();
   queueAnimFuncs.add(renderAll);
 });
 
@@ -1099,7 +887,7 @@ watch(isRunning, (isRunning) => {
 watch([sim, circuitFactory], async ([sim, factory], [oldSim, oldFactory]) => {
   await nextTick(); // Wait for resize observer to update canvas size
   if (factory !== oldFactory) {
-    invalidateCanvasSizes();
+    updateCanvasSizes();
     resetView();
   }
   queueAnimFuncs.add(renderAll);
@@ -1109,7 +897,7 @@ watch(canvas, (canvas) => {
   const ctx = canvas?.getContext('2d');
   if (!ctx) return;
   ctx.imageSmoothingEnabled = false;
-  invalidateCanvasSizes();
+  updateCanvasSizes();
   resetView();
   queueAnimFuncs.add(renderAll);
 });

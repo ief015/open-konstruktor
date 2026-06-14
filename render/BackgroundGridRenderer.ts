@@ -160,7 +160,7 @@ export class BackgroundGridRenderer implements IDrawable {
       rows * TILE_SIZE,
     );
     /*
-    // Draw pin row boundaries
+    // TODO: Draw pin row boundaries
     ctx.fillRect(0, 0, columns * TILE_SIZE + 1, boundaryTop * TILE_SIZE + 1);
     ctx.fillRect(
       0,

@@ -207,6 +207,8 @@ const connectionTiles = {
   },
 };
 
+const preloaded = ref(false);
+
 export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
   const tileSize = 12;
 
@@ -230,10 +232,9 @@ export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
     return cy === 0 && cyp === 0 ? null : cy - cyp;
   };
 
-  let preloaded = false;
   const preloadImages = () => {
-    if (preloaded) return Promise.resolve();
-    preloaded = true;
+    if (preloaded.value) return Promise.resolve();
+    preloaded.value = true;
     const images = Object.values(sprites).map((src) => loader.findImage(src));
     return Promise.all(
       images.map(
