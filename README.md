@@ -20,6 +20,8 @@ and expanding on it.
 
 ## Work in progress
 
+[Roadmap - Trello](https://trello.com/b/uPShETta)
+
 The following features are planned:
 
 ### ✅️ Milestone 1
