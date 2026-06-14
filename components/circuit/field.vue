@@ -145,9 +145,9 @@ const debugMsg = computed(() => {
       if (layers) {
         const layersInfo = layers.map(
           (layer, idx) =>
-            `${idx}:${layer[coordMouseX.value]?.[coordMouseY.value] ?? ' '}`,
+            `${idx}:${layer[coordMouseX.value]?.[coordMouseY.value] ?? '?'}`,
         );
-        dbg.push(`Layers: ${layersInfo.join('  ')}`);
+        dbg.push(`Layers: ${layersInfo.join(' ')}`);
       }
     }
   }
@@ -847,6 +847,9 @@ useEventListener(
       case 'view/reset':
         resetView();
         queueAnimFuncs.add(renderAll);
+        break;
+      case 'view/toggle-debug':
+        debugFlags.enabled = !debugFlags.enabled;
         break;
       case 'edit/clear':
         clear();

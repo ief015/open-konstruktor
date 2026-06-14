@@ -93,7 +93,11 @@ export function useMenuItems() {
     {
       id: 'view',
       label: 'View',
-      items: [{ id: 'view/reset', label: 'Center' }],
+      items: [
+        { id: 'view/reset', label: 'Center' },
+        'divider',
+        { id: 'view/toggle-debug', label: 'Toggle Debug' },
+      ],
     },
     {
       id: 'levels',
