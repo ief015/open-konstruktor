@@ -26,8 +26,13 @@
         title="Edit verification graph. Left click = draw, Right click = erase"
         v-if="!isRunning"
       >
-        <label for="chk-scope-edit" class="text-xs text-black"> Edit </label>
-        <input type="checkbox" id="chk-scope-edit" v-model="editable" />
+        <label
+          for="scope-edit-checkbox"
+          class="font-georgia12 text-[12px] text-black"
+        >
+          Edit
+        </label>
+        <input type="checkbox" id="scope-edit-checkbox" v-model="editable" />
       </div>
     </div>
     <div class="mx-[8px] flex flex-row justify-between items-end text-black">
