@@ -211,10 +211,7 @@ export class CircuitSimulation {
 
   public setInputSequence(pin: PinNode | number, sequence: Sequence) {
     if (typeof pin === 'number') {
-      pin = this.network.getPinNodes()[pin];
-      if (!pin) {
-        throw new Error(`Pin ${pin} does not exist`);
-      }
+      pin = this.network.getPinNode(pin);
     }
     this.inputSequences.set(pin, sequence);
     this.updateSequenceLength();
@@ -222,10 +219,7 @@ export class CircuitSimulation {
 
   public removeInputSequence(pin: PinNode | number) {
     if (typeof pin === 'number') {
-      pin = this.network.getPinNodes()[pin];
-      if (!pin) {
-        throw new Error(`Pin ${pin} does not exist`);
-      }
+      pin = this.network.getPinNode(pin);
     }
     this.inputSequences.delete(pin);
     this.updateSequenceLength();
@@ -238,10 +232,7 @@ export class CircuitSimulation {
 
   public setOutputSequence(pin: PinNode | number, sequence: Sequence) {
     if (typeof pin === 'number') {
-      pin = this.network.getPinNodes()[pin];
-      if (!pin) {
-        throw new Error(`Pin ${pin} does not exist`);
-      }
+      pin = this.network.getPinNode(pin);
     }
     this.outputSequences.set(pin, sequence);
     this.updateSequenceLength();
@@ -249,10 +240,7 @@ export class CircuitSimulation {
 
   public removeOutputSequence(pin: PinNode | number) {
     if (typeof pin === 'number') {
-      pin = this.network.getPinNodes()[pin];
-      if (!pin) {
-        throw new Error(`Pin ${pin} does not exist`);
-      }
+      pin = this.network.getPinNode(pin);
     }
     this.outputSequences.delete(pin);
     this.updateSequenceLength();
@@ -268,10 +256,7 @@ export class CircuitSimulation {
     output?: Readonly<Sequence>;
   } {
     if (typeof pin === 'number') {
-      pin = this.network.getPinNodes()[pin];
-      if (!pin) {
-        throw new Error(`Pin ${pin} does not exist`);
-      }
+      pin = this.network.getPinNode(pin);
     }
     return {
       input: this.inputSequences.get(pin),
