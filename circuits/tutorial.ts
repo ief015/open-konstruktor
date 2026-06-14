@@ -1,5 +1,6 @@
-import { assignVCC, type CircuitSimulationFactories } from '@/circuits';
+import { type CircuitSimulationFactories } from '@/circuits';
 import { CircuitSimulation, Sequence } from '@/simulation';
+import { assignVCC } from '@/simulation/PinNode';
 import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
 
 const tutorial: CircuitSimulationFactories = {

@@ -1,11 +1,4 @@
-import { CircuitSimulation, Network, PinNode } from '@/simulation';
-
-export function assignVCC(...pins: PinNode[]) {
-  pins.forEach((pin) => {
-    pin.label = 'VCC';
-    pin.active = true;
-  });
-}
+import { CircuitSimulation, Network } from '@/simulation';
 
 export interface LevelInfoPage {
   contentHtml: string;
