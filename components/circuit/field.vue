@@ -146,6 +146,8 @@ const isDrawing = ref(false);
 const isPanning = ref(false);
 let prevDrawingCoords: Point = [0, 0];
 
+const showPinLabels = ref(true);
+
 const perfRenderTime = ref(0);
 const debugFlags = reactive({
   // TODO: UI to toggle debug flags?
@@ -293,6 +295,21 @@ const renderOverlay = () => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.save();
   applyFieldViewTransform(ctx, viewX.value, viewY.value, viewScale.value);
+  // Draw pin labels
+  if (showPinLabels.value) {
+    ctx.fillStyle = '#000';
+    ctx.font = '10px Georgia10';
+    const pinNodes = net.getPinNodes();
+    const textPadX = 3;
+    for (let pid = 0; pid < pinNodes.length; pid++) {
+      const [x, y] = field.value.getPinPoint(pid);
+      const { label } = pinNodes[pid];
+      const tx = x * TILE_SIZE + textPadX;
+      const ty = y * TILE_SIZE + 10;
+      const tw = TILE_SIZE * 3 - textPadX;
+      ctx.fillText(label, tx, ty, tw);
+    }
+  }
   if (!isRunning.value) {
     // Draw selection box
     if (selectionStart.value && selectionEnd.value) {
@@ -333,19 +350,6 @@ const renderOverlay = () => {
       });
       ctx.restore();
     }
-  }
-  // Draw pin labels
-  ctx.fillStyle = '#000';
-  ctx.font = '10px Georgia10';
-  const pinNodes = net.getPinNodes();
-  const textPadX = 3;
-  for (let pid = 0; pid < pinNodes.length; pid++) {
-    const [x, y] = field.value.getPinPoint(pid);
-    const { label } = pinNodes[pid];
-    const tx = x * TILE_SIZE + textPadX;
-    const ty = y * TILE_SIZE + 10;
-    const tw = TILE_SIZE * 3 - textPadX * 2;
-    ctx.fillText(label, tx, ty, tw);
   }
   ctx.restore();
   canvasDirty.value = true;
