@@ -1,13 +1,6 @@
 import type IDrawable from '@/render/IDrawable';
 import type { Transform } from '@/render/Transform';
-import {
-  GateValue,
-  Layer,
-  MetalValue,
-  SiliconValue,
-  ViaValue,
-} from '@/serialization';
-import { TILE_SIZE } from '@/utils/field-view';
+import { TILE_SIZE, applyFieldViewTransform } from '@/utils/field-view';
 
 export type GridDefinition = {
   columns: number;
@@ -33,6 +26,14 @@ export type GridViewport = {
   bottom: number;
 };
 
+const THEME_DEFAULTS: GridTheme = {
+  outerBackgroundColor: '#959595',
+  innerBackgroundColor: '#959595',
+  boundaryColor: `rgba(0,0,0,${20 / 255})`,
+  borderColor: '#000',
+  gridLineColor: '#818181',
+};
+
 export class BackgroundGridRenderer implements IDrawable {
   protected canvas: HTMLCanvasElement | null = null;
   protected definition: GridDefinition;
@@ -43,11 +44,11 @@ export class BackgroundGridRenderer implements IDrawable {
    * @param network If provided, rendering will include 'hot' layers.
    */
   constructor(
-    canvas: HTMLCanvasElement,
+    canvas?: HTMLCanvasElement,
     definition?: GridDefinition,
     theme?: Partial<GridTheme>,
   ) {
-    this.canvas = canvas;
+    this.canvas = canvas ?? null;
     this.definition = Object.assign(
       {
         columns: 0,
@@ -59,16 +60,7 @@ export class BackgroundGridRenderer implements IDrawable {
       },
       definition,
     );
-    this.theme = Object.assign(
-      {
-        outerBackgroundColor: '#959595',
-        innerBackgroundColor: '#959595',
-        boundaryColor: `rgba(0,0,0,${20 / 255})`,
-        borderColor: '#000',
-        gridLineColor: '#818181',
-      },
-      theme,
-    );
+    this.theme = Object.assign({ ...THEME_DEFAULTS }, theme);
   }
 
   public setCanvas(canvas: HTMLCanvasElement): BackgroundGridRenderer {
@@ -112,8 +104,7 @@ export class BackgroundGridRenderer implements IDrawable {
       transform?: Transform;
     } = {},
   ): void {
-    const ctx = this.canvas?.getContext('2d');
-    if (!ctx) throw new Error('Could not get background canvas context');
+    const ctx = this.getContext();
     const { viewport, transform } = options;
     const {
       columns,
@@ -129,17 +120,17 @@ export class BackgroundGridRenderer implements IDrawable {
       right: columns - 1,
       bottom: rows - 1,
     };
+    if (transform) {
+      const { translateX, translateY, scale } = transform;
+      ctx.save();
+      applyFieldViewTransform(ctx, translateX, translateY, scale);
+    }
     // Outer background colour
     ctx.save();
     ctx.resetTransform();
     ctx.fillStyle = this.theme.outerBackgroundColor;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.restore();
-    if (transform) {
-      const { translateX, translateY, scale } = transform;
-      ctx.save();
-      applyFieldViewTransform(ctx, translateX, translateY, scale);
-    }
     // Inner background colour
     ctx.fillStyle = this.theme.innerBackgroundColor;
     ctx.fillRect(0, 0, columns * TILE_SIZE, rows * TILE_SIZE);

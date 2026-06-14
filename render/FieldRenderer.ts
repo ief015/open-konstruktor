@@ -8,7 +8,7 @@ import {
   ViaValue,
 } from '@/serialization';
 import { GateNode, PathNode, FieldGraph, Network } from '@/simulation';
-import { TILE_SIZE } from '@/utils/field-view';
+import { TILE_SIZE, applyFieldViewTransform } from '@/utils/field-view';
 
 export type TileBounds = [
   left: number,
@@ -153,18 +153,16 @@ export class FieldRenderer implements IDrawable {
       bounds,
     } = options;
     const contexts = [
-      ...(metal ? [this.canvases.metal?.getContext('2d')] : []),
-      ...(silicon ? [this.canvases.silicon?.getContext('2d')] : []),
+      ...(metal && this.canvases.metal ? [this.getContext('metal')] : []),
+      ...(silicon && this.canvases.silicon ? [this.getContext('silicon')] : []),
       ...(metalHot && this.canvases.metalHot
-        ? [this.canvases.metalHot.getContext('2d')]
+        ? [this.getContext('metalHot')]
         : []),
       ...(siliconHot && this.canvases.siliconHot
-        ? [this.canvases.siliconHot.getContext('2d')]
+        ? [this.getContext('siliconHot')]
         : []),
-    ].filter((c): c is CanvasRenderingContext2D => !!c);
-    if (contexts.length === 0) {
-      return;
-    }
+    ];
+    if (contexts.length === 0) return;
     if (bounds) {
       const [left, top, right, bottom] = bounds;
       const width = (right - left + 1) * TILE_SIZE;
@@ -193,10 +191,8 @@ export class FieldRenderer implements IDrawable {
       noClear?: boolean;
     } = {},
   ) {
-    const ctxMetal = this.canvases.metal?.getContext('2d');
-    const ctxSilicon = this.canvases.silicon?.getContext('2d');
-    if (!ctxMetal) throw new Error('Could not get metal canvas context');
-    if (!ctxSilicon) throw new Error('Could not get silicon canvas context');
+    const ctxMetal = this.getContext('metal');
+    const ctxSilicon = this.getContext('silicon');
     const field = options.field ?? this.field;
     if (!field) throw new Error('No field to render');
     const dimensions = field.getDimensions();
@@ -326,11 +322,8 @@ export class FieldRenderer implements IDrawable {
       console.warn('renderHot called with no network provided');
       return;
     }
-    const ctxMetalHot = this.canvases.metalHot?.getContext('2d');
-    const ctxSiliconHot = this.canvases.siliconHot?.getContext('2d');
-    if (!ctxMetalHot) throw new Error('Could not get metal-hot canvas context');
-    if (!ctxSiliconHot)
-      throw new Error('Could not get silicon-hot canvas context');
+    const ctxMetalHot = this.getContext('metalHot');
+    const ctxSiliconHot = this.getContext('siliconHot');
     const field = options.field ?? this.field;
     const dimensions = field?.getDimensions();
     const {
