@@ -225,7 +225,7 @@ export class FieldRenderer implements IDrawable {
     const images = useImageLoader();
     if (silicon) {
       const ctx = ctxSilicon;
-      const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
+      const { renderTile } = useTileRenderer(ctx);
       const siliconLayer = data.getLayer(Layer.Silicon);
       const siliconConnHLayer = data.getLayer(Layer.SiliconConnectionsH);
       const siliconConnVLayer = data.getLayer(Layer.SiliconConnectionsV);
@@ -244,8 +244,8 @@ export class FieldRenderer implements IDrawable {
         for (let row = top; row <= bottom; row++) {
           const st = siliconLayer[col][row];
           if (st === SiliconValue.PSilicon) {
-            const xdir = getDirectionX(siliconConnHLayer, col, row);
-            const ydir = getDirectionY(siliconConnVLayer, col, row);
+            const xdir = getConnectionDirectionX(siliconConnHLayer, col, row);
+            const ydir = getConnectionDirectionY(siliconConnVLayer, col, row);
             if (gatesHLayer[col][row] === GateValue.Gate) {
               renderTile(TileType.PGateH, xdir, ydir);
             } else if (gatesVLayer[col][row] === GateValue.Gate) {
@@ -254,8 +254,8 @@ export class FieldRenderer implements IDrawable {
               renderTile(TileType.PSilicon, xdir, ydir);
             }
           } else if (st === SiliconValue.NSilicon) {
-            const xdir = getDirectionX(siliconConnHLayer, col, row);
-            const ydir = getDirectionY(siliconConnVLayer, col, row);
+            const xdir = getConnectionDirectionX(siliconConnHLayer, col, row);
+            const ydir = getConnectionDirectionY(siliconConnVLayer, col, row);
             if (gatesHLayer[col][row] === GateValue.Gate) {
               renderTile(TileType.NGateH, xdir, ydir);
             } else if (gatesVLayer[col][row] === GateValue.Gate) {
@@ -276,7 +276,7 @@ export class FieldRenderer implements IDrawable {
     }
     if (metal) {
       const ctx = ctxMetal;
-      const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
+      const { renderTile } = useTileRenderer(ctx);
       const metalLayer = data.getLayer(Layer.Metal);
       const metalConnHLayer = data.getLayer(Layer.MetalConnectionsH);
       const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
@@ -289,8 +289,8 @@ export class FieldRenderer implements IDrawable {
         ctx.save();
         for (let row = top; row <= bottom; row++) {
           if (metalLayer[col][row] === MetalValue.Metal) {
-            const xdir = getDirectionX(metalConnHLayer, col, row);
-            const ydir = getDirectionY(metalConnVLayer, col, row);
+            const xdir = getConnectionDirectionX(metalConnHLayer, col, row);
+            const ydir = getConnectionDirectionY(metalConnVLayer, col, row);
             renderTile(TileType.Metal, xdir, ydir);
           }
           ctx.translate(0, FieldRenderer.TILE_SIZE);
