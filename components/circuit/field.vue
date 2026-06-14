@@ -114,33 +114,61 @@ const isPanning = ref(false);
 let prevDrawingCoords: Point = [0, 0];
 
 const perfRenderTime = ref(0);
+const debugFlags = reactive({
+  // TODO: UI to toggle debug flags?
+  enabled: true,
+  showMouseCanvasPosition: false,
+  showMouseGridPosition: true,
+  showLayersDataAtMouse: false,
+  showGridSize: false,
+  showViewPosition: false,
+  showViewBounds: false,
+  showRenderTime: true,
+  showStepsPerSecond: true,
+});
 const debugMsg = computed(() => {
+  if (!debugFlags.enabled) return '';
   const dbg: string[] = [];
   if (!canvasMouseOutside.value) {
-    const mouseX = canvasMouseX.value.toFixed(0);
-    const mouseY = canvasMouseY.value.toFixed(0);
-    const coordX = coordMouseX.value;
-    const coordY = coordMouseY.value;
-    //dbg.push(`Mouse: [${mouseX}, ${mouseY}]`);
-    dbg.push(`Coord: [${coordX}, ${coordY}]`);
-    /*
-    const data = field.value?.getData();
-    if (data) {
-      data.getLayers().forEach((layer, idx) => {
-        dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
-      });
+    if (debugFlags.showMouseCanvasPosition) {
+      const mouseX = canvasMouseX.value.toFixed(0);
+      const mouseY = canvasMouseY.value.toFixed(0);
+      dbg.push(`Mouse: [${mouseX}, ${mouseY}]`);
     }
-    */
+    if (debugFlags.showMouseGridPosition) {
+      const coordX = coordMouseX.value;
+      const coordY = coordMouseY.value;
+      dbg.push(`Coord: [${coordX}, ${coordY}]`);
+    }
+    if (debugFlags.showLayersDataAtMouse) {
+      const layers = field.value?.getData()?.getLayers();
+      if (layers) {
+        const layersInfo = layers.map(
+          (layer, idx) =>
+            `${idx}:${layer[coordMouseX.value]?.[coordMouseY.value] ?? ' '}`,
+        );
+        dbg.push(`Layers: ${layersInfo.join('  ')}`);
+      }
+    }
   }
-  const panX = viewX.value.toFixed(0);
-  const panY = viewY.value.toFixed(0);
-  const { minX, minY, maxX, maxY } = viewBounds.value;
-  const { columns, rows } = dimensions;
-  // dbg.push(`Grid: [${columns}, ${rows}]`);
-  //dbg.push(`View: [${panX}, ${panY}]`);
-  // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
-  dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
-  dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
+  if (debugFlags.showGridSize) {
+    dbg.push(`Grid: [${dimensions.columns}, ${dimensions.rows}]`);
+  }
+  if (debugFlags.showViewPosition) {
+    const panX = viewX.value.toFixed(0);
+    const panY = viewY.value.toFixed(0);
+    dbg.push(`View: [${panX}, ${panY}]`);
+  }
+  if (debugFlags.showViewBounds) {
+    const { minX, minY, maxX, maxY } = viewBounds.value;
+    dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
+  }
+  if (debugFlags.showRenderTime) {
+    dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
+  }
+  if (debugFlags.showStepsPerSecond) {
+    dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
+  }
   return dbg.join('<br/>');
 });
 
