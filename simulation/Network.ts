@@ -36,12 +36,36 @@ export default class Network {
     return this.pins;
   }
 
+  public getPinNode(index: number): PinNode {
+    const pin = this.pins[index];
+    if (!pin) {
+      throw new Error(`Pin at index ${index} does not exist`);
+    }
+    return pin;
+  }
+
   public getPathNodes(): readonly PathNode[] {
     return this.paths;
   }
 
+  public getPathNode(index: number): PathNode {
+    const path = this.paths[index];
+    if (!path) {
+      throw new Error(`Path at index ${index} does not exist`);
+    }
+    return path;
+  }
+
   public getGateNodes(): readonly GateNode[] {
     return this.gates;
+  }
+
+  public getGateNode(index: number): GateNode {
+    const gate = this.gates[index];
+    if (!gate) {
+      throw new Error(`Gate at index ${index} does not exist`);
+    }
+    return gate;
   }
 
   public reset() {
