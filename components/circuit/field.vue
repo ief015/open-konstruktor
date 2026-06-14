@@ -958,6 +958,7 @@ useEventListener(
         break;
       case 'view/toggle-debug':
         debugFlags.enabled = !debugFlags.enabled;
+        break;
       case 'view/zoom-in':
         zoomView(
           stepViewScale(viewScale.value, 'in'),
