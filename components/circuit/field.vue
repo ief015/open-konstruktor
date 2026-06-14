@@ -329,6 +329,7 @@ const renderOverlay = () => {
         field: selectionFieldGraph.value,
         metal: true,
         silicon: true,
+        noClear: true,
       });
       ctx.restore();
     }
