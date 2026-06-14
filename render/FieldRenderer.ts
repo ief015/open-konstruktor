@@ -1,4 +1,5 @@
 import type IDrawable from '@/render/IDrawable';
+import type { Transform } from '@/render/Transform';
 import {
   GateValue,
   Layer,
@@ -141,6 +142,7 @@ export class FieldRenderer implements IDrawable {
       metalHot?: boolean;
       siliconHot?: boolean;
       bounds?: TileBounds;
+      transform?: Transform;
     } = {},
   ) {
     const {
@@ -187,6 +189,7 @@ export class FieldRenderer implements IDrawable {
       metal?: boolean;
       silicon?: boolean;
       bounds?: TileBounds;
+      transform?: Transform;
       noClear?: boolean;
     } = {},
   ) {
@@ -198,7 +201,20 @@ export class FieldRenderer implements IDrawable {
     if (!field) throw new Error('No field to render');
     const dimensions = field.getDimensions();
     const data = field.getData();
-    const { metal = false, silicon = false, bounds, noClear = false } = options;
+    const {
+      metal = false,
+      silicon = false,
+      bounds,
+      transform,
+      noClear = false,
+    } = options;
+    if (transform) {
+      const { translateX, translateY, scale } = transform;
+      ctxMetal.save();
+      ctxSilicon.save();
+      applyFieldViewTransform(ctxMetal, translateX, translateY, scale);
+      applyFieldViewTransform(ctxSilicon, translateX, translateY, scale);
+    }
     let [left, top, right, bottom] = bounds ?? [
       0,
       0,
@@ -288,6 +304,10 @@ export class FieldRenderer implements IDrawable {
       }
       ctx.restore();
     }
+    if (transform) {
+      ctxMetal.restore();
+      ctxSilicon.restore();
+    }
   }
 
   protected renderHot(
@@ -297,6 +317,7 @@ export class FieldRenderer implements IDrawable {
       metal?: boolean;
       silicon?: boolean;
       bounds?: TileBounds;
+      transform?: Transform;
       noClear?: boolean;
     } = {},
   ) {
@@ -312,8 +333,21 @@ export class FieldRenderer implements IDrawable {
       throw new Error('Could not get silicon-hot canvas context');
     const field = options.field ?? this.field;
     const dimensions = field?.getDimensions();
-    const { metal = false, silicon = false, bounds, noClear = false } = options;
+    const {
+      metal = false,
+      silicon = false,
+      bounds,
+      transform,
+      noClear = false,
+    } = options;
     if (!metal && !silicon) return;
+    if (transform) {
+      const { translateX, translateY, scale } = transform;
+      ctxMetalHot.save();
+      ctxSiliconHot.save();
+      applyFieldViewTransform(ctxMetalHot, translateX, translateY, scale);
+      applyFieldViewTransform(ctxSiliconHot, translateX, translateY, scale);
+    }
     const [left, top, right, bottom] = bounds ?? [
       0,
       0,
@@ -364,6 +398,10 @@ export class FieldRenderer implements IDrawable {
     }
     ctxMetalHot.restore();
     ctxSiliconHot.restore();
+    if (transform) {
+      ctxMetalHot.restore();
+      ctxSiliconHot.restore();
+    }
   }
 
   public render(
@@ -375,6 +413,7 @@ export class FieldRenderer implements IDrawable {
       metalHot?: boolean;
       siliconHot?: boolean;
       bounds?: TileBounds;
+      transform?: Transform;
       noClear?: boolean;
     } = {},
   ) {
@@ -385,11 +424,12 @@ export class FieldRenderer implements IDrawable {
       silicon = false,
       metalHot = false,
       siliconHot = false,
+      transform,
       bounds,
       noClear = false,
     } = options;
     if (metal || silicon) {
-      this.renderBase({ field, metal, silicon, bounds, noClear });
+      this.renderBase({ field, metal, silicon, bounds, noClear, transform });
     }
     if (metalHot || siliconHot) {
       this.renderHot({
@@ -399,6 +439,7 @@ export class FieldRenderer implements IDrawable {
         silicon: siliconHot,
         bounds,
         noClear,
+        transform,
       });
     }
   }

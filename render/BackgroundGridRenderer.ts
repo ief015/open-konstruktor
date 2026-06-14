@@ -1,4 +1,5 @@
 import type IDrawable from '@/render/IDrawable';
+import type { Transform } from '@/render/Transform';
 import {
   GateValue,
   Layer,
@@ -105,9 +106,15 @@ export class BackgroundGridRenderer implements IDrawable {
     return this.theme;
   }
 
-  public render(viewport?: GridViewport): void {
+  public render(
+    options: {
+      viewport?: GridViewport;
+      transform?: Transform;
+    } = {},
+  ): void {
     const ctx = this.canvas?.getContext('2d');
     if (!ctx) throw new Error('Could not get background canvas context');
+    const { viewport, transform } = options;
     const {
       columns,
       rows,
@@ -128,6 +135,11 @@ export class BackgroundGridRenderer implements IDrawable {
     ctx.fillStyle = this.theme.outerBackgroundColor;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.restore();
+    if (transform) {
+      const { translateX, translateY, scale } = transform;
+      ctx.save();
+      applyFieldViewTransform(ctx, translateX, translateY, scale);
+    }
     // Inner background colour
     ctx.fillStyle = this.theme.innerBackgroundColor;
     ctx.fillRect(0, 0, columns * TILE_SIZE, rows * TILE_SIZE);
@@ -171,6 +183,9 @@ export class BackgroundGridRenderer implements IDrawable {
     // Draw border
     ctx.strokeStyle = this.theme.borderColor;
     ctx.strokeRect(0.5, 0.5, columns * TILE_SIZE, rows * TILE_SIZE);
+    if (transform) {
+      ctx.restore();
+    }
   }
 
   public draw(ctx: CanvasRenderingContext2D): void {

@@ -238,7 +238,6 @@ const getTileViewport = (): {
 };
 
 const renderBackground = () => {
-  const ctx = gridRenderer.getContext();
   const [minCol, maxCol] = field.value.getMinMaxColumns();
   gridRenderer.applyDefinition({
     columns: dimensions.columns,
@@ -246,56 +245,44 @@ const renderBackground = () => {
     boundaryLeft: minCol,
     boundaryRight: dimensions.columns - maxCol,
   });
-  ctx.save();
-  applyFieldViewTransform(ctx, viewX.value, viewY.value, viewScale.value);
-  gridRenderer.render(getTileViewport());
-  ctx.restore();
+  gridRenderer.render({
+    viewport: getTileViewport(),
+    transform: {
+      translateX: viewX.value,
+      translateY: viewY.value,
+      scale: viewScale.value,
+    },
+  });
   canvasDirty.value = true;
 };
 
 const renderField = (bounds?: TileBounds) => {
-  const ctxSilicon = fieldRenderer.getContext('silicon');
-  const ctxMetal = fieldRenderer.getContext('metal');
-  ctxSilicon.save();
-  ctxMetal.save();
-  applyFieldViewTransform(
-    ctxSilicon,
-    viewX.value,
-    viewY.value,
-    viewScale.value,
-  );
-  applyFieldViewTransform(ctxMetal, viewX.value, viewY.value, viewScale.value);
   fieldRenderer.render({
     field: field.value,
     metal: true,
     silicon: true,
     bounds: bounds,
+    transform: {
+      translateX: viewX.value,
+      translateY: viewY.value,
+      scale: viewScale.value,
+    },
   });
-  ctxSilicon.restore();
-  ctxMetal.restore();
   canvasDirty.value = true;
 };
 
 const renderHot = () => {
-  const ctxSilicon = fieldRenderer.getContext('siliconHot');
-  const ctxMetal = fieldRenderer.getContext('metalHot');
-  ctxSilicon.save();
-  ctxMetal.save();
-  applyFieldViewTransform(
-    ctxSilicon,
-    viewX.value,
-    viewY.value,
-    viewScale.value,
-  );
-  applyFieldViewTransform(ctxMetal, viewX.value, viewY.value, viewScale.value);
   fieldRenderer.render({
     field: field.value,
     network: network.value,
     metalHot: true,
     siliconHot: true,
+    transform: {
+      translateX: viewX.value,
+      translateY: viewY.value,
+      scale: viewScale.value,
+    },
   });
-  ctxSilicon.restore();
-  ctxMetal.restore();
   canvasDirty.value = true;
 };
 
