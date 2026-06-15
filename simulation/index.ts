@@ -24,7 +24,7 @@ import GateNode from '@/simulation/GateNode';
 import Network from '@/simulation/Network';
 import type { GraphLayer } from '@/simulation/Network';
 import PathNode from '@/simulation/PathNode';
-import PinNode from '@/simulation/PinNode';
+import PinNode, { assignVCC } from '@/simulation/PinNode';
 import Sequence from '@/simulation/Sequence';
 import type {
   DifferenceMethod,
@@ -44,6 +44,7 @@ export {
   PinNode,
   PathNode,
   Sequence,
+  assignVCC,
 };
 
 export type {

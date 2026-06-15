@@ -36,12 +36,36 @@ export default class Network {
     return this.pins;
   }
 
+  public getPinNode(index: number): PinNode {
+    const pin = this.pins[index];
+    if (!pin) {
+      throw new Error(`Pin at index ${index} does not exist`);
+    }
+    return pin;
+  }
+
   public getPathNodes(): readonly PathNode[] {
     return this.paths;
   }
 
+  public getPathNode(index: number): PathNode {
+    const path = this.paths[index];
+    if (!path) {
+      throw new Error(`Path at index ${index} does not exist`);
+    }
+    return path;
+  }
+
   public getGateNodes(): readonly GateNode[] {
     return this.gates;
+  }
+
+  public getGateNode(index: number): GateNode {
+    const gate = this.gates[index];
+    if (!gate) {
+      throw new Error(`Gate at index ${index} does not exist`);
+    }
+    return gate;
   }
 
   public reset() {
@@ -166,7 +190,7 @@ export default class Network {
   }
 
   private buildGate(
-    fieldGraph: FieldGraph,
+    field: FieldGraph,
     foundGate: FoundGate,
   ): {
     newGate?: GateNode;
@@ -182,7 +206,7 @@ export default class Network {
     this.setGraphNode(point, 'silicon', gate);
     this.gates.push(gate);
     for (const adjSilicon of query.siliconConnections) {
-      const adjQuery = fieldGraph.query(adjSilicon.point);
+      const adjQuery = field.query(adjSilicon.point);
       const adjNode = this.getNodesAt(adjSilicon.point, 'silicon');
       if (adjQuery.gate) {
         // There's a gate directly adjacent to this gate, need an intermediate path
@@ -190,7 +214,7 @@ export default class Network {
           const path = new PathNode();
           this.paths.push(path);
           gate.gatedPaths.push(path);
-          const { foundGates: more, newGate } = this.buildGate(fieldGraph, {
+          const { foundGates: more, newGate } = this.buildGate(field, {
             query: adjQuery,
             point: adjSilicon.point,
           });
@@ -214,12 +238,7 @@ export default class Network {
           }
         } else {
           const path = new PathNode();
-          const more = this.buildPath(
-            fieldGraph,
-            adjSilicon.point,
-            'silicon',
-            path,
-          );
+          const more = this.buildPath(field, adjSilicon.point, 'silicon', path);
           if (more) {
             this.paths.push(path);
             foundGates.push(...more);
@@ -236,17 +255,17 @@ export default class Network {
   }
 
   public static from(saveString: string): Network;
-  public static from(graph: FieldGraph): Network;
-  public static from(graph: string | FieldGraph): Network {
-    if (typeof graph === 'string') {
-      graph = FieldGraph.from(graph, 'circuit');
+  public static from(field: FieldGraph): Network;
+  public static from(field: string | FieldGraph): Network {
+    if (typeof field === 'string') {
+      field = FieldGraph.from(field, 'circuit');
     }
     const network = new Network([]);
-    const pins = graph.getPinCount();
+    const pins = field.getPinCount();
     const gates: FoundGate[] = [];
     // Build starting paths starting from each pin
     for (let i = 0; i < pins; i++) {
-      const pinPoint = graph.getPinPoint(i);
+      const pinPoint = field.getPinPoint(i);
       const existing = network.getNodesAt(pinPoint, 'metal');
       if (existing.length > 0) {
         for (const node of existing) {
@@ -260,7 +279,7 @@ export default class Network {
         const path = new PathNode();
         const pin = new PinNode(path);
         gates.push(
-          ...(network.buildPath(graph, pinPoint, 'metal', path) ?? []),
+          ...(network.buildPath(field, pinPoint, 'metal', path) ?? []),
         );
         network.paths.push(path);
         network.pins.push(pin);
@@ -269,7 +288,7 @@ export default class Network {
     // Build gates and connected paths until no more new gates are found
     for (let i = 0; i < gates.length; i++) {
       const gate = gates[i];
-      gates.push(...network.buildGate(graph, gate).foundGates);
+      gates.push(...network.buildGate(field, gate).foundGates);
     }
     return network;
   }

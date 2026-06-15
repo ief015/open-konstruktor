@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { PinNode } from '@/simulation';
+import type { PinNode } from '@/simulation';
 import type { Point, VerificationResult } from '@/simulation';
 
 type DrawMode = 'high' | 'low';
@@ -97,8 +97,7 @@ let prevDrawingCoords: Point = [0, 0];
 const verifyResult = ref<VerificationResult>();
 const filteredPins = computed<PinNode[]>(() => {
   const pins = network.value.getPinNodes();
-  // TODO: need a more proper way to filter out VCC (flag on PinNode?)
-  return pins.filter((node, idx) => node.label !== 'VCC');
+  return pins.filter((node) => !node.isVCC);
 });
 const scopeHeight = computed<number>(() => {
   return filteredPins.value.length * SCOPE_ROW_HEIGHT_PX;

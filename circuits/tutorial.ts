@@ -1,5 +1,6 @@
-import { assignVCC, type CircuitSimulationFactories } from '@/circuits';
+import { type CircuitSimulationFactories } from '@/circuits';
 import { CircuitSimulation, Sequence } from '@/simulation';
+import { assignVCC } from '@/simulation/PinNode';
 import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
 
 const tutorial: CircuitSimulationFactories = {
@@ -307,9 +308,8 @@ again.<br/>
           },
           {
             contentHtml: `
-A single NPN gate used as shown previously is not very useful here, but by chaining multiple NPN
-gates we can stop the flow of current unless all inputs are active. This is also called an
-<u><b>AND gate</b></u>:<br/>
+By chaining multiple NPN gates we can stop the flow of current unless all inputs are active.<br/>
+This is also called an <u><b>AND gate</b></u>:<br/>
 <br/>
 <img src="/tutorial/04/00.png" />
 <img src="/tutorial/04/10.png" />
@@ -415,15 +415,15 @@ This means that the output signal will be delayed by 1 cycle if the current need
 <img src="/tutorial/05/step3.png" />
 <img src="/tutorial/05/step4.png" /><br/>
 <br/>
-In the above example, the gate's input signal is high on steps +1 and +2, but the current from VCC
-flows during steps +2 and +3.
+In the above example, the gate's input signal 'A' is high on steps +1 and +2, but the current from
+VCC flows during steps +2 and +3.
 
           `,
           },
           {
             contentHtml: `
 Because of this delay, some circuits may not behave as expected if care is not taken to account for
-it. However, it may also be useful to exploit this delay to create a delay in your circuits.<br/>
+it. However, exploiting it can be useful to create a delay in your circuits.<br/>
 <br/>
 For example, if we wanted to delay a signal for a certain amount of time, we can chain multiple
 NPN gates together. Each gate will add 1 cycle of delay, so we can add as many gates as we

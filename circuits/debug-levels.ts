@@ -1,5 +1,6 @@
-import { assignVCC, type CircuitSimulationFactories } from '@/circuits';
+import { type CircuitSimulationFactories } from '@/circuits';
 import { CircuitSimulation } from '@/simulation';
+import { assignVCC } from '@/simulation/PinNode';
 
 const debugLevels: CircuitSimulationFactories = {
   category: 'Debugging',
