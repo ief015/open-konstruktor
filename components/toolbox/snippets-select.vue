@@ -179,25 +179,34 @@ const onSave = () => {
 };
 
 const onSaveSubmit = async (formData: SaveSnippetFormData) => {
-  if (!selectionFieldGraph.value) return;
-  const field =
-    saveDialog.trim && !saveDialog.record
+  if (saveDialog.record) {
+    // Save existing snippet
+    await saveSnippet({
+      ...saveDialog.record,
+      name: formData.name,
+      category: formData.category,
+      description: formData.description,
+      updatedAt: new Date().toISOString(),
+    });
+  } else {
+    // Save new snippet
+    if (!selectionFieldGraph.value) throw new Error('No selection to save');
+    const field = saveDialog.trim
       ? new FieldGraph(selectionFieldGraph.value.getData().trim())
       : selectionFieldGraph.value;
-  const { columns, rows } = saveDialog.record
-    ? { columns: saveDialog.record.width, rows: saveDialog.record.height }
-    : field.getDimensions();
-  await saveSnippet({
-    id: saveDialog.record?.id,
-    name: formData.name,
-    category: formData.category,
-    description: formData.description,
-    data: saveDialog.record?.data ?? field.toSaveString(),
-    width: columns,
-    height: rows,
-    createdAt: saveDialog.record?.createdAt ?? new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
+    const { columns, rows } = field.getDimensions();
+    const now = new Date().toISOString();
+    await saveSnippet({
+      name: formData.name,
+      category: formData.category,
+      description: formData.description,
+      data: field.toSaveString(),
+      width: columns,
+      height: rows,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
 };
 
 const onLoad = () => {
