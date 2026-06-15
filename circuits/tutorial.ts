@@ -248,7 +248,7 @@ is slightly delayed.<br/>
 <br/>
 This is <u><b>propagation delay</b></u>, which is introduced by the time it takes for
 the gate to transition between opened and closed. This is expected, and the verification test will
-succeed if the output signal matches within a short tolerance. Progagation delay will be explored
+succeed if the output signal matches within a short tolerance. Propagation delay will be explored
 further in a later tutorial level.<br/>
 <br/>
 In the next level, you will be introduced to the counterpart of the PNP gate: the NPN gate. Click
