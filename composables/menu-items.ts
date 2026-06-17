@@ -36,6 +36,8 @@ export function useMenuItems() {
         { id: 'file/import', label: 'Import' },
         { id: 'file/export', label: 'Export' },
         'divider',
+        { id: 'file/copy-url', label: 'Copy URL' },
+        'divider',
         {
           label: 'Saved Designs',
           items: [

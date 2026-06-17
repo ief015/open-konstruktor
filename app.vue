@@ -30,7 +30,7 @@
       </div>
       <div class="absolute inset-x-0 top-0 flex flex-row justify-center">
         <DialogInfoBox class="m-2 w-[1000px]" />
-        <DialogWelcome />
+        <DialogWelcome :start-open="welcomeStartOpened" />
       </div>
     </div>
     <template #right>
@@ -60,12 +60,35 @@
 </template>
 
 <script setup lang="ts">
+import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
+
 const config = useRuntimeConfig();
 const status = useStatusBar();
 
 // FIXME: useClipboard does not appear to be reliable when called in many places
 const clipboard = useClipboard();
 provide('clipboard', clipboard);
+
+const route = useRoute();
+
+const welcomeStartOpened = ref(!route.query.level);
+
+const routeLoader = useRouteLoader();
+useEventListener(
+  document,
+  MenuBarActionEvent.eventType,
+  (event: MenuBarActionEvent) => {
+    switch (event.id) {
+      case 'file/copy-url':
+        const url = routeLoader.getCurrentURL();
+        if (url) {
+          clipboard.copy(url);
+          console.log('Copied URL to clipboard:', url);
+        }
+        break;
+    }
+  },
+);
 </script>
 
 <style scoped>
