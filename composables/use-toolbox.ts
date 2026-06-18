@@ -22,6 +22,7 @@ const modes: Record<ToolboxMode, ToolboxModeConfig> = {
   select: {},
   'draw-metal': {
     ctrlMode: 'erase-metal',
+    shiftMode: 'draw-via',
   },
   'draw-p-silicon': {
     ctrlMode: 'erase-silicon',
