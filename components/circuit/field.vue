@@ -312,14 +312,17 @@ const renderOverlay = () => {
   }
   // Draw probes
   const probes = sim.value?.getProbes() ?? [];
+  ctx.fillStyle = '#ffffffcc';
+  ctx.strokeStyle = '#ff0000cc';
   for (const probe of probes) {
     const [x, y] = probe.layerPosition;
     const tx = x * TILE_SIZE + TILE_SIZE / 2;
     const ty = y * TILE_SIZE + TILE_SIZE / 2;
-    ctx.fillStyle = '#ff0000aa';
-    ctx.strokeStyle = '#800000cc';
     ctx.beginPath();
-    ctx.arc(tx + 0.5, ty + 0.5, 2.5, 0, Math.PI * 2);
+    ctx.moveTo(tx, ty + 3);
+    ctx.lineTo(tx - 3, ty - 3);
+    ctx.lineTo(tx + 3, ty - 3);
+    ctx.closePath();
     ctx.fill();
     ctx.stroke();
   }
@@ -439,6 +442,7 @@ const clear = () => {
   field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
     enforceBounds: true,
   });
+  sim.value?.clearProbes();
   updateDesignScore();
   resetVerificationResult();
   queueAnimFuncs.add(renderAll);
@@ -773,7 +777,7 @@ const onMouseDown = (e: MouseEvent) => {
             startSelection(e);
             break;
           case 'toggle-probe':
-            toggleProbe(mouseToGrid(...pointerCoords(e)), 'metal');
+            toggleProbe(mouseToGrid(...pointerCoords(e)));
             break;
           default:
             startDraw(e);

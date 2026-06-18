@@ -125,8 +125,8 @@ export class CircuitSimulation {
       pin.active = sequence.getFrames()[0] ?? false;
     }
     for (const probe of this.probes) {
-      const node = this.network.getNodesAt(probe.layerPosition, probe.layer);
-      const paths = node.filter((n) => n instanceof PathNode) as PathNode[];
+      const nodes = this.network.getNodesAt(probe.layerPosition, probe.layer);
+      const paths = nodes.filter((n) => n instanceof PathNode) as PathNode[];
       if (paths.length) {
         this.probedNodes.set(probe, paths);
       }
@@ -287,9 +287,16 @@ export class CircuitSimulation {
     if (index !== -1) {
       this.probes.splice(index, 1);
     }
-    const nodes = this.probedNodes.get(probe);
     this.probedNodes.delete(probe);
     this.recording.delete(probe);
+  }
+
+  public clearProbes() {
+    for (const probe of this.probes) {
+      this.recording.delete(probe);
+    }
+    this.probes = [];
+    this.probedNodes.clear();
   }
 
   public getInputSequences(): Readonly<{ pin: PinNode; sequence: Sequence }[]> {
@@ -370,7 +377,7 @@ export class CircuitSimulation {
     for (const pin of pins) {
       this.recording.set(pin, new Sequence());
     }
-    for (const [probe, nodes] of this.probedNodes) {
+    for (const probe of this.probes) {
       this.recording.set(probe, new Sequence());
     }
   }
