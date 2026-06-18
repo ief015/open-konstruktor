@@ -89,7 +89,7 @@ const evenOddPinSort = (pins: PinNode[]) => {
   });
 };
 
-function getNodeState(node: NetworkNode): boolean {
+export function getNodeState(node: NetworkNode): boolean {
   if (node instanceof PathNode) {
     return node.state;
   } else if (node instanceof GateNode) {
