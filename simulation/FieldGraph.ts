@@ -9,7 +9,7 @@ import {
 } from '@/serialization/DesignData';
 import type { LayerDimensions } from '@/serialization/DesignData';
 import { decode, encode } from '@/serialization';
-import type { GraphLayer, Point } from '@/simulation';
+import type { Point } from '@/simulation';
 import { traceLine } from '@/utils/traceLine';
 import { traceRectBorder } from '@/utils/traceRectBorder';
 import CircuitDesignData, {
