@@ -9,7 +9,8 @@ export type ToolboxMode =
   | 'draw-metal'
   | 'draw-p-silicon'
   | 'draw-n-silicon'
-  | 'draw-via';
+  | 'draw-via'
+  | 'toggle-probe';
 
 interface ToolboxModeConfig {
   shiftMode?: ToolboxMode;
@@ -46,6 +47,7 @@ const modes: Record<ToolboxMode, ToolboxModeConfig> = {
   'erase-gate': {
     shiftMode: 'erase',
   },
+  'toggle-probe': {},
 };
 
 const modifiers = reactive({

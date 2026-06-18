@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { FieldGraph } from '@/simulation';
-import type { Point } from '@/simulation';
+import type { GraphLayer, Point } from '@/simulation';
 import type { ToolboxMode } from '@/composables/use-toolbox';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { BackgroundGridRenderer } from '@/render/BackgroundGridRenderer';
@@ -310,6 +310,19 @@ const renderOverlay = () => {
       ctx.fillText(label, tx, ty, tw);
     }
   }
+  // Draw probes
+  const probes = sim.value?.getProbes() ?? [];
+  for (const probe of probes) {
+    const [x, y] = probe.layerPosition;
+    const tx = x * TILE_SIZE + TILE_SIZE / 2;
+    const ty = y * TILE_SIZE + TILE_SIZE / 2;
+    ctx.fillStyle = '#ff0000aa';
+    ctx.strokeStyle = '#800000cc';
+    ctx.beginPath();
+    ctx.arc(tx + 0.5, ty + 0.5, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
   if (!isRunning.value) {
     // Draw selection box
     if (selectionStart.value && selectionEnd.value) {
@@ -406,6 +419,19 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
     Math.max(coordA[1], coordB[1]),
   ];
   queueAnimFuncs.add(() => renderField(bounds));
+};
+
+const toggleProbe = (coord: Point, layer?: GraphLayer) => {
+  if (!field.value.isInBounds(coord)) return;
+  const existing = sim.value?.getProbesAt(coord, layer);
+  if (existing.length) {
+    for (const probe of existing) {
+      sim.value?.removeProbe(probe);
+    }
+  } else {
+    sim.value?.addProbeAt(coord, layer);
+  }
+  queueAnimFuncs.add(renderOverlay);
 };
 
 const clear = () => {
@@ -742,10 +768,16 @@ const onMouseDown = (e: MouseEvent) => {
   switch (e.button) {
     case 0:
       if (!isRunning.value) {
-        if (toolBoxMode.value === 'select') {
-          startSelection(e);
-        } else {
-          startDraw(e);
+        switch (toolBoxMode.value) {
+          case 'select':
+            startSelection(e);
+            break;
+          case 'toggle-probe':
+            toggleProbe(mouseToGrid(...pointerCoords(e)), 'metal');
+            break;
+          default:
+            startDraw(e);
+            break;
         }
       }
       break;
