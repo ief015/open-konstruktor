@@ -134,6 +134,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
   {
     name: 'Probe',
     mode: 'toggle-probe',
+    classes: 'bg-[#9cc] text-black font-semibold',
     description:
       'Probe tool. Place to inspect signals within the circuit. Hold shift to label. Click again to remove.',
     key: 'p',
