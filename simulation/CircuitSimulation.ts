@@ -2,6 +2,7 @@ import Network, { getGraphKey } from '@/simulation/Network';
 import PinNode from '@/simulation/PinNode';
 import Sequence from '@/simulation/Sequence';
 import {
+  GateNode,
   PathNode,
   type GraphLayer,
   type NetworkNode,
@@ -88,6 +89,16 @@ const evenOddPinSort = (pins: PinNode[]) => {
   });
 };
 
+function getNodeState(node: NetworkNode): boolean {
+  if (node instanceof PathNode) {
+    return node.state;
+  } else if (node instanceof GateNode) {
+    return node.active === node.isNPN && node.gatedPaths.some((p) => p.state);
+  } else {
+    return node.active;
+  }
+}
+
 export class CircuitSimulation {
   private network: Network;
 
@@ -97,7 +108,7 @@ export class CircuitSimulation {
   private defaultRuntime?: number;
 
   private probes: ProbeInfo[] = [];
-  private probedNodes: ProbeMap<PathNode> = new Map();
+  private probedNodes: ProbeMap<NetworkNode> = new Map();
 
   private currentFrame: number = 0;
   private recording: RecordingMap = new Map();
@@ -126,10 +137,7 @@ export class CircuitSimulation {
     }
     for (const probe of this.probes) {
       const nodes = this.network.getNodesAt(probe.layerPosition, probe.layer);
-      const paths = nodes.filter((n) => n instanceof PathNode) as PathNode[];
-      if (paths.length) {
-        this.probedNodes.set(probe, paths);
-      }
+      this.probedNodes.set(probe, nodes);
     }
     this.network.reset();
     clearRecordings && this.clearRecordings();
@@ -260,7 +268,7 @@ export class CircuitSimulation {
     );
   }
 
-  public getProbeNodes(probe: ProbeInfo): PathNode[] {
+  public getProbeNodes(probe: ProbeInfo): NetworkNode[] {
     return this.probedNodes.get(probe) ?? [];
   }
 
@@ -393,7 +401,7 @@ export class CircuitSimulation {
       }
     }
     for (const [probe, nodes] of this.probedNodes) {
-      const state = nodes.some((n) => n.state);
+      const state = nodes.some(getNodeState);
       const rec = this.recording.get(probe);
       if (rec && rec.getBack() != state) {
         rec.setFrame(frame, state);
