@@ -1,7 +1,7 @@
 <template>
   <Dialog :title btn-ok="Save" :disable-ok="!formData!.name" @ok="onSave">
     <slot name="before-form" />
-    <form class="flex flex-col gap-2 w-[400px]">
+    <form class="flex flex-col gap-2 w-[400px]" @submit.prevent="onSave">
       <slot name="prepend-form" />
       <label for="name">Name <span class="text-red-500">*</span></label>
       <input name="name" type="text" v-model="formData!.name" />

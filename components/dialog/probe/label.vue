@@ -1,10 +1,14 @@
 <template>
   <Dialog :title btn-ok="Apply" :disable-ok="!model?.label" @ok="onSave">
     <slot name="before-form" />
-    <form class="flex flex-col gap-2 w-[400px]" v-if="model">
+    <form
+      class="flex flex-col gap-2 w-[400px]"
+      v-if="model"
+      @submit.prevent="onSave"
+    >
       <slot name="prepend-form" />
-      <label for="label">Label</label>
-      <input name="label" type="text" v-model="formData.label" />
+      <label>Label</label>
+      <input type="text" maxlength="30" v-model="formData.label" />
       <slot name="append-form" />
     </form>
     <slot name="after-form" />
