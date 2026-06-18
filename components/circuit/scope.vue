@@ -113,8 +113,11 @@ const filteredPins = computed<PinNode[]>(() => {
   const pins = network.value.getPinNodes();
   return pins.filter((node) => !node.isVCC);
 });
+const numRows = computed(() => {
+  return filteredPins.value.length + sim.value.getProbes().length;
+});
 const scopeHeight = computed<number>(() => {
-  return filteredPins.value.length * SCOPE_ROW_HEIGHT_PX;
+  return numRows.value * SCOPE_ROW_HEIGHT_PX;
 });
 const maxScopeHeight = computed<number>(() => {
   return 8 * SCOPE_ROW_HEIGHT_PX;
@@ -202,20 +205,49 @@ const renderScope = () => {
   }
   ctx.restore();
 
+  const baseline = -(SCOPE_ROW_HEIGHT_PX / 4 + 0.5);
+  const highLine = baseline - Math.floor(SCOPE_ROW_HEIGHT_PX / 2);
+
+  const strokeSequenceLine = (
+    seq: Readonly<Sequence> | null,
+    endX: number = scopeWidth,
+  ) => {
+    if (seq) {
+      ctx.beginPath();
+      ctx.moveTo(0, baseline);
+      let i = 0;
+      let lastY = baseline;
+      for (const state of seq) {
+        const x = i * SCOPE_SCALE_X;
+        const y = state ? highLine : baseline;
+        ctx.lineTo(x, y);
+        ctx.lineTo(x + SCOPE_SCALE_X, y);
+        i++;
+        lastY = y;
+      }
+      ctx.lineTo(endX, lastY);
+      ctx.stroke();
+    } else {
+      // N/C
+      ctx.beginPath();
+      ctx.moveTo(0, baseline);
+      ctx.lineTo(scopeWidth, baseline);
+      ctx.stroke();
+    }
+  };
+
   // draw scopes for each pin from top to bottom
   const pins = filteredPins.value;
   ctx.save();
-  ctx.strokeStyle = COLOR_SCOPE_LINE;
   ctx.fillStyle = COLOR_SCOPE_LINE;
   for (const offset of [0, 1]) {
-    const baseline = -(SCOPE_ROW_HEIGHT_PX / 4 + 0.5);
-    const highLine = baseline - Math.floor(SCOPE_ROW_HEIGHT_PX / 2);
     for (let i = offset; i < pins.length; i += 2) {
       const pin = pins[i];
       const { input, output } = vsim.getSequence(pin);
       ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
 
       // draw label
+      ctx.strokeStyle = COLOR_SCOPE_LINE;
       ctx.beginPath();
       ctx.moveTo(0, baseline);
       ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
@@ -232,65 +264,41 @@ const renderScope = () => {
       ctx.save();
       ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
       if (input) {
+        // input signal
         ctx.strokeStyle = COLOR_SCOPE_LINE;
-        ctx.beginPath();
-        ctx.moveTo(0, baseline);
-        let i = 0;
-        let lastY = baseline;
-        for (const state of input) {
-          const x = i * SCOPE_SCALE_X;
-          const y = state ? highLine : baseline;
-          ctx.lineTo(x, y);
-          ctx.lineTo(x + SCOPE_SCALE_X, y);
-          i++;
-          lastY = y;
-        }
-        ctx.lineTo(scopeWidth, lastY);
-        ctx.stroke();
+        strokeSequenceLine(input);
       } else if (output) {
-        // expected
+        // expected output signal
         ctx.strokeStyle = COLOR_SCOPE_HINT;
-        ctx.beginPath();
-        ctx.moveTo(0, baseline);
-        let i = 0;
-        let lastY = baseline;
-        for (const state of output) {
-          const x = i * SCOPE_SCALE_X;
-          const y = state ? highLine : baseline;
-          ctx.lineTo(x, y);
-          ctx.lineTo(x + SCOPE_SCALE_X, y);
-          i++;
-          lastY = y;
-        }
-        ctx.lineTo(scopeWidth, lastY);
-        ctx.stroke();
-
-        // actual
+        strokeSequenceLine(output);
+        // recorded output signal
         const rec = vsim.getRecording(pin);
         if (rec) {
           ctx.strokeStyle = COLOR_SCOPE_LINE;
-          ctx.beginPath();
-          ctx.moveTo(0, baseline);
-          let i = 0;
-          let lastY = baseline;
-          for (const state of rec) {
-            const x = i * SCOPE_SCALE_X;
-            const y = state ? highLine : baseline;
-            ctx.lineTo(x, y);
-            ctx.lineTo(x + SCOPE_SCALE_X, y);
-            i++;
-            lastY = y;
-          }
-          ctx.lineTo(currentX, lastY);
-          ctx.stroke();
+          strokeSequenceLine(rec, currentX);
         }
       } else {
-        // N/C
-        ctx.beginPath();
-        ctx.moveTo(0, baseline);
-        ctx.lineTo(scopeWidth, baseline);
-        ctx.stroke();
+        strokeSequenceLine(null);
       }
+      ctx.restore();
+    }
+  }
+  // draw scopes for probed paths
+  ctx.strokeStyle = COLOR_SCOPE_LINE;
+  for (const probe of vsim.getProbes()) {
+    const rec = vsim.getRecording(probe);
+    if (rec) {
+      ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
+      if (probe.label) {
+        ctx.save();
+        ctx.translate(translateX.value, 0);
+        ctx.font = FONT;
+        ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+        ctx.restore();
+      }
+      ctx.save();
+      ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
+      strokeSequenceLine(rec, currentX);
       ctx.restore();
     }
   }
