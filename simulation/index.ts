@@ -1,4 +1,7 @@
-import { CircuitSimulation } from '@/simulation/CircuitSimulation';
+import {
+  CircuitSimulation,
+  getNodeState,
+} from '@/simulation/CircuitSimulation';
 import type {
   VerificationResult,
   VerificationResultOutput,
@@ -45,6 +48,7 @@ export {
   PathNode,
   Sequence,
   assignVCC,
+  getNodeState,
 };
 
 export type {

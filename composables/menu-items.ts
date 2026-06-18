@@ -87,6 +87,12 @@ export function useMenuItems() {
           disabled: isRunning.value || !selection.bounds.value,
         },
         'divider',
+        {
+          id: 'edit/clear-probes',
+          label: 'Clear All Probes',
+          disabled: isRunning.value,
+        },
+        'divider',
         { id: 'edit/clear', label: 'Clear', disabled: isRunning.value },
       ],
     },

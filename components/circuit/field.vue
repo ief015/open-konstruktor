@@ -18,12 +18,17 @@
         />
       </div>
     </div>
+    <DialogProbeLabel
+      v-if="dialogLabelProbe.probe"
+      v-model="dialogLabelProbe.open"
+      v-model:probe="dialogLabelProbe.probe"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { FieldGraph } from '@/simulation';
-import type { Point } from '@/simulation';
+import type { GraphLayer, Point } from '@/simulation';
 import type { ToolboxMode } from '@/composables/use-toolbox';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { BackgroundGridRenderer } from '@/render/BackgroundGridRenderer';
@@ -42,6 +47,7 @@ import {
   stepViewScale,
   zoomAtPoint,
 } from '@/utils/field-view';
+import type { ProbeInfo } from '@/simulation/CircuitSimulation';
 
 const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);
@@ -64,6 +70,11 @@ const fieldRenderer = new FieldRenderer().applyCanvases({
 const selectionFieldRenderer = new FieldRenderer().setCanvas(
   canvasLayers['overlay'],
 );
+
+const dialogLabelProbe = reactive({
+  probe: null as ProbeInfo | null,
+  open: false,
+});
 
 const {
   field,
@@ -310,6 +321,23 @@ const renderOverlay = () => {
       ctx.fillText(label, tx, ty, tw);
     }
   }
+  // Draw probes
+  const probes = sim.value?.getProbes() ?? [];
+  ctx.fillStyle = '#88ffffee';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  for (const probe of probes) {
+    const [x, y] = probe.layerPosition;
+    const tx = x * TILE_SIZE + TILE_SIZE / 2 + 0.5;
+    const ty = y * TILE_SIZE + TILE_SIZE / 2;
+    ctx.beginPath();
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(tx - 4, ty - 9);
+    ctx.lineTo(tx + 4, ty - 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
   if (!isRunning.value) {
     // Draw selection box
     if (selectionStart.value && selectionEnd.value) {
@@ -408,11 +436,29 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   queueAnimFuncs.add(() => renderField(bounds));
 };
 
+const toggleProbe = (coord: Point, layer?: GraphLayer, named?: boolean) => {
+  if (!field.value.isInBounds(coord)) return;
+  const existing = sim.value?.getProbesAt(coord, layer);
+  if (existing.length) {
+    for (const probe of existing) {
+      sim.value?.removeProbe(probe);
+    }
+  } else {
+    const probe = sim.value?.addProbeAt(coord, layer);
+    if (probe && named) {
+      dialogLabelProbe.probe = probe;
+      dialogLabelProbe.open = true;
+    }
+  }
+  queueAnimFuncs.add(renderOverlay);
+};
+
 const clear = () => {
   if (isRunning.value) return;
   field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
     enforceBounds: true,
   });
+  sim.value?.clearProbes();
   updateDesignScore();
   resetVerificationResult();
   queueAnimFuncs.add(renderAll);
@@ -742,10 +788,19 @@ const onMouseDown = (e: MouseEvent) => {
   switch (e.button) {
     case 0:
       if (!isRunning.value) {
-        if (toolBoxMode.value === 'select') {
-          startSelection(e);
-        } else {
-          startDraw(e);
+        switch (toolBoxMode.value) {
+          case 'select':
+            startSelection(e);
+            break;
+          case 'toggle-probe':
+            toggleProbe(mouseToGrid(...pointerCoords(e)));
+            break;
+          case 'toggle-probe-named':
+            toggleProbe(mouseToGrid(...pointerCoords(e)), undefined, true);
+            break;
+          default:
+            startDraw(e);
+            break;
         }
       }
       break;
@@ -968,6 +1023,10 @@ useEventListener(
       case 'view/zoom-reset':
         resetViewZoom();
         queueAnimFuncs.add(renderAll);
+        break;
+      case 'edit/clear-probes':
+        sim.value?.clearProbes();
+        queueAnimFuncs.add(renderOverlay);
         break;
       case 'edit/clear':
         clear();

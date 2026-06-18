@@ -31,12 +31,13 @@ const stepsPerSecond = computed(() => {
   return (profiler.steps / profiler.elapsed) * 1000;
 });
 const stepInterval = computed(() => {
-  if (stepMode.value == 'realtime') {
+  if (stepMode.value === 'realtime') {
     return 0;
   } else {
     return 1000 / stepRate.value;
   }
 });
+
 const onRenderHandlers: OnRenderHandler[] = [];
 const onCompleteHandlers: OnCompleteHandler[] = [];
 
@@ -79,14 +80,14 @@ const resume = () => {
 const onAnim = (timestamp: number) => {
   if (!isRunning.value) return;
   if (!isPaused.value) {
-    const isRealTime = stepMode.value == 'realtime';
+    const isRealTime = stepMode.value === 'realtime';
     const dt = timestamp - lastFrameTime;
     lastFrameTime = timestamp;
     elapsedTime.value += dt;
     profiler.elapsed += dt;
     if (isRealTime) {
       accumulatedTime += realTimeTargetFrameInterval.value;
-    } else if (stepMode.value == 'vsync') {
+    } else if (stepMode.value === 'vsync') {
       // Always step only once per animation frame
       accumulatedTime = stepInterval.value;
     } else {

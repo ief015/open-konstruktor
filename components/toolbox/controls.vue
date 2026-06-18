@@ -130,6 +130,14 @@ const toolkit: (ToolkitItem | 'divider')[] = [
     description: 'Gate eraser. Disconnects gates without removing silicon.',
     key: '0',
   },
+  'divider',
+  {
+    name: 'Probe',
+    mode: 'toggle-probe',
+    description:
+      'Probe tool. Place to inspect signals within the circuit. Hold shift to label. Click again to remove.',
+    key: 'p',
+  },
 ];
 
 const { mode, modifiers, ignoreKeyShortcuts } = useToolbox();

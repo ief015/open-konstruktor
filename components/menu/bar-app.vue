@@ -36,7 +36,13 @@
           class="max-w-sm w-[50vw] h-32 break-words text-sm"
           :value="exportCode"
         />
-        <div class="flex flex-row gap-2 justify-end">
+        <div class="flex flex-row justify-end items-center gap-2">
+          <div
+            v-if="!exportIsKOHCTPYKTOPCompatible"
+            class="text-xs text-neutral-400 text-right"
+          >
+            KOHCTPYKTOP Incompatible
+          </div>
           <button @click="onCopyExport" class="font-medium">
             {{ exportCopied ? 'Copied!' : 'Copy' }}
           </button>
@@ -64,6 +70,7 @@ import { useMenuItems } from '@/composables/menu-items';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
 import type { SavedDesignsExport } from '@/composables/use-saved-designs';
+import type { CircuitDesignData } from '@/serialization';
 
 const { items: menuItems } = useMenuItems();
 const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
@@ -80,6 +87,7 @@ const exportTextArea = useTemplateRef('exportTextArea');
 const fileInputImportDesigns = useTemplateRef('fileInputImportDesigns');
 const fileInputImportSnippets = useTemplateRef('fileInputImportSnippets');
 const exportCode = ref('');
+const exportIsKOHCTPYKTOPCompatible = ref(false);
 const exportCopied = ref(false);
 const importCode = ref('');
 const menuBar = useTemplateRef('menuBar');
@@ -103,6 +111,9 @@ const onShowImportDialog = () => {
 
 const onShowExportDialog = () => {
   exportCode.value = field.value.toSaveString() ?? '';
+  exportIsKOHCTPYKTOPCompatible.value = !!(
+    field.value.getData() as CircuitDesignData
+  ).isKOHCTPYKTOPCompatible?.();
   showExportDialog.value = true;
   exportCopied.value = false;
   nextTick(() => {
