@@ -323,16 +323,17 @@ const renderOverlay = () => {
   }
   // Draw probes
   const probes = sim.value?.getProbes() ?? [];
-  ctx.fillStyle = '#ffffffcc';
-  ctx.strokeStyle = '#ff0000cc';
+  ctx.fillStyle = '#88ffffee';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
   for (const probe of probes) {
     const [x, y] = probe.layerPosition;
-    const tx = x * TILE_SIZE + TILE_SIZE / 2;
+    const tx = x * TILE_SIZE + TILE_SIZE / 2 + 0.5;
     const ty = y * TILE_SIZE + TILE_SIZE / 2;
     ctx.beginPath();
-    ctx.moveTo(tx, ty + 3);
-    ctx.lineTo(tx - 3, ty - 3);
-    ctx.lineTo(tx + 3, ty - 3);
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(tx - 4, ty - 9);
+    ctx.lineTo(tx + 4, ty - 9);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -1022,6 +1023,10 @@ useEventListener(
       case 'view/zoom-reset':
         resetViewZoom();
         queueAnimFuncs.add(renderAll);
+        break;
+      case 'edit/clear-probes':
+        sim.value?.clearProbes();
+        queueAnimFuncs.add(renderOverlay);
         break;
       case 'edit/clear':
         clear();
