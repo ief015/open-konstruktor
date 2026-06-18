@@ -135,7 +135,7 @@ const toolkit: (ToolkitItem | 'divider')[] = [
     name: 'Probe',
     mode: 'toggle-probe',
     description:
-      'Probe tool. Place to inspect signals within the circuit. Click again to remove.',
+      'Probe tool. Place to inspect signals within the circuit. Hold shift to label. Click again to remove.',
     key: 'p',
   },
 ];

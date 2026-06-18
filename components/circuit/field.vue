@@ -18,6 +18,11 @@
         />
       </div>
     </div>
+    <DialogProbeLabel
+      v-if="dialogLabelProbe.probe"
+      v-model="dialogLabelProbe.open"
+      v-model:probe="dialogLabelProbe.probe"
+    />
   </div>
 </template>
 
@@ -42,6 +47,7 @@ import {
   stepViewScale,
   zoomAtPoint,
 } from '@/utils/field-view';
+import type { ProbeInfo } from '@/simulation/CircuitSimulation';
 
 const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);
@@ -64,6 +70,11 @@ const fieldRenderer = new FieldRenderer().applyCanvases({
 const selectionFieldRenderer = new FieldRenderer().setCanvas(
   canvasLayers['overlay'],
 );
+
+const dialogLabelProbe = reactive({
+  probe: null as ProbeInfo | null,
+  open: false,
+});
 
 const {
   field,
@@ -424,7 +435,7 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   queueAnimFuncs.add(() => renderField(bounds));
 };
 
-const toggleProbe = (coord: Point, layer?: GraphLayer) => {
+const toggleProbe = (coord: Point, layer?: GraphLayer, named?: boolean) => {
   if (!field.value.isInBounds(coord)) return;
   const existing = sim.value?.getProbesAt(coord, layer);
   if (existing.length) {
@@ -432,7 +443,11 @@ const toggleProbe = (coord: Point, layer?: GraphLayer) => {
       sim.value?.removeProbe(probe);
     }
   } else {
-    sim.value?.addProbeAt(coord, layer);
+    const probe = sim.value?.addProbeAt(coord, layer);
+    if (probe && named) {
+      dialogLabelProbe.probe = probe;
+      dialogLabelProbe.open = true;
+    }
   }
   queueAnimFuncs.add(renderOverlay);
 };
@@ -778,6 +793,9 @@ const onMouseDown = (e: MouseEvent) => {
             break;
           case 'toggle-probe':
             toggleProbe(mouseToGrid(...pointerCoords(e)));
+            break;
+          case 'toggle-probe-named':
+            toggleProbe(mouseToGrid(...pointerCoords(e)), undefined, true);
             break;
           default:
             startDraw(e);
