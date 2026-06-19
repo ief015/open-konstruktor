@@ -78,27 +78,27 @@ const btnCancelLabel = computed(() => {
   return 'Cancel';
 });
 
-const show = () => {
+function show() {
   isOpen.value = true;
-};
+}
 
-const hide = () => {
+function hide() {
   isOpen.value = false;
-};
+}
 
-const toggle = () => {
+function toggle() {
   isOpen.value = !isOpen.value;
-};
+}
 
-const onOk = () => {
+function onOk() {
   emit('ok');
   hide();
-};
+}
 
-const onCancel = () => {
+function onCancel() {
   emit('cancel');
   hide();
-};
+}
 
 watch(isOpen, (opened) => {
   if (opened) {

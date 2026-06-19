@@ -75,35 +75,35 @@ const contentHtml = computed<string>(() => {
   return levelInfoPage.value?.contentHtml ?? '';
 });
 
-const goTo = (toPage: number) => {
+function goTo(toPage: number) {
   if (toPage >= 0 && toPage < lengthAvailablePages.value) {
     page.value = toPage;
   }
-};
+}
 
-const next = () => {
+function next() {
   goTo(page.value + 1);
-};
+}
 
-const previous = () => {
+function previous() {
   goTo(page.value - 1);
-};
+}
 
-const close = () => {
+function close() {
   isOpen.value = false;
-};
+}
 
-const open = () => {
+function open() {
   if (page.value < lengthAvailablePages.value) {
     isOpen.value = true;
   }
-};
+}
 
-const openCompleted = () => {
+function openCompleted() {
   completedAvailable.value = true;
   goTo(lengthIntroPages.value);
   open();
-};
+}
 
 export default function useLevelInfo() {
   watch(circuitFactory, () => {

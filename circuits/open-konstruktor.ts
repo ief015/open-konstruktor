@@ -3,12 +3,12 @@ import { CircuitSimulation, Sequence } from '@/simulation';
 import { assignVCC } from '@/simulation/PinNode';
 import { createSequencesFromInputs } from '@/utils/sequence';
 
-const generateRandomSequence = (
+function generateRandomSequence(
   length: number,
   pulseSize: number = 10,
   freq: number = 0.5,
   spacing: number = 0,
-) => {
+) {
   const seq = new Sequence();
   for (let i = 0; i < length; i += pulseSize + spacing) {
     if (Math.random() < freq) {
@@ -16,7 +16,7 @@ const generateRandomSequence = (
     }
   }
   return seq.slice(0, length);
-};
+}
 
 type LevelNames =
   // 01-10 GATES

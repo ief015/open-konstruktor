@@ -93,6 +93,7 @@ const {
   onRender: onCircuitRender,
 } = useCircuitSimulator();
 const { mode: toolBoxMode, ignoreKeyShortcuts } = useToolbox();
+const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
 
 const canvasWidth = ref(0);
 const canvasHeight = ref(0);
@@ -116,13 +117,13 @@ const canvasMouseX = ref(0);
 const canvasMouseY = ref(0);
 const canvasMouseOutside = ref(true);
 
-const updateCanvasPointer = (clientX: number, clientY: number) => {
+function updateCanvasPointer(clientX: number, clientY: number) {
   if (!canvas.value) return;
   const [x, y] = canvasPointerPosition(canvas.value, clientX, clientY);
   canvasMouseX.value = x;
   canvasMouseY.value = y;
   canvasMouseOutside.value = false;
-};
+}
 
 useEventListener(canvas, 'mousemove', (e) =>
   updateCanvasPointer(e.clientX, e.clientY),
@@ -232,12 +233,12 @@ const {
 } = useSelection();
 watch([viewX, viewY], ([x, y]) => (selectionFieldView.value = [x, y])); // TODO: yuck, crappy way of providing viewX and viewY to the selection composable
 
-const getTileViewport = (): {
+function getTileViewport(): {
   left: number;
   top: number;
   right: number;
   bottom: number;
-} => {
+} {
   const { columns, rows } = dimensions;
   return computeTileViewport(
     viewX.value,
@@ -248,9 +249,9 @@ const getTileViewport = (): {
     columns,
     rows,
   );
-};
+}
 
-const renderBackground = () => {
+function renderBackground() {
   const [minCol, maxCol] = field.value.getMinMaxColumns();
   gridRenderer.applyDefinition({
     columns: dimensions.columns,
@@ -267,9 +268,9 @@ const renderBackground = () => {
     },
   });
   canvasDirty.value = true;
-};
+}
 
-const renderField = (bounds?: TileBounds) => {
+function renderField(bounds?: TileBounds) {
   fieldRenderer.render({
     field: field.value,
     metal: true,
@@ -282,9 +283,9 @@ const renderField = (bounds?: TileBounds) => {
     },
   });
   canvasDirty.value = true;
-};
+}
 
-const renderHot = () => {
+function renderHot() {
   fieldRenderer.render({
     field: field.value,
     network: network.value,
@@ -297,9 +298,9 @@ const renderHot = () => {
     },
   });
   canvasDirty.value = true;
-};
+}
 
-const renderOverlay = () => {
+function renderOverlay() {
   const ctx = canvasLayers['overlay'].getContext('2d');
   if (!ctx) throw new Error('Could not get overlay canvas context');
   const net = network.value;
@@ -381,18 +382,18 @@ const renderOverlay = () => {
   }
   ctx.restore();
   canvasDirty.value = true;
-};
+}
 
 const tilePreloader = useTileRenderer();
-const renderAll = async () => {
+async function renderAll() {
   await tilePreloader.preloadImages();
   renderBackground();
   renderField();
   renderHot();
   renderOverlay();
-};
+}
 
-const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
+function draw(mode: ToolboxMode, coordA: Point, coordB: Point) {
   switch (mode) {
     default:
     case 'none':
@@ -434,9 +435,9 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
     Math.max(coordA[1], coordB[1]),
   ];
   queueAnimFuncs.add(() => renderField(bounds));
-};
+}
 
-const toggleProbe = (coord: Point, layer?: GraphLayer, named?: boolean) => {
+function toggleProbe(coord: Point, layer?: GraphLayer, named?: boolean) {
   if (!field.value.isInBounds(coord)) return;
   const existing = sim.value?.getProbesAt(coord, layer);
   if (existing.length) {
@@ -451,9 +452,9 @@ const toggleProbe = (coord: Point, layer?: GraphLayer, named?: boolean) => {
     }
   }
   queueAnimFuncs.add(renderOverlay);
-};
+}
 
-const clear = () => {
+function clear() {
   if (isRunning.value) return;
   field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
     enforceBounds: true,
@@ -463,9 +464,9 @@ const clear = () => {
   resetVerificationResult();
   queueAnimFuncs.add(renderAll);
   history.push();
-};
+}
 
-const panView = (dx: number, dy: number) => {
+function panView(dx: number, dy: number) {
   const [x, y] = clampViewPosition(
     viewX.value + dx,
     viewY.value + dy,
@@ -474,9 +475,9 @@ const panView = (dx: number, dy: number) => {
   viewX.value = x;
   viewY.value = y;
   queueAnimFuncs.add(renderAll);
-};
+}
 
-const resetView = () => {
+function resetView() {
   const [x, y] = computeResetViewPosition(
     fieldWidth.value,
     fieldHeight.value,
@@ -487,14 +488,14 @@ const resetView = () => {
   );
   viewX.value = x;
   viewY.value = y;
-};
+}
 
-const resetViewZoom = () => {
+function resetViewZoom() {
   viewScale.value = DEFAULT_VIEW_SCALE;
   resetView();
-};
+}
 
-const zoomView = (newScale: number, anchorX: number, anchorY: number) => {
+function zoomView(newScale: number, anchorX: number, anchorY: number) {
   const zoomed = zoomAtPoint(
     viewX.value,
     viewY.value,
@@ -519,17 +520,17 @@ const zoomView = (newScale: number, anchorX: number, anchorY: number) => {
   viewX.value = x;
   viewY.value = y;
   queueAnimFuncs.add(renderAll);
-};
+}
 
-const onWheel = (e: WheelEvent) => {
+function onWheel(e: WheelEvent) {
   e.preventDefault();
   if (!canvas.value) return;
   const [mx, my] = canvasPointerPosition(canvas.value, e.clientX, e.clientY);
   updateCanvasPointer(e.clientX, e.clientY);
   zoomView(scaleFromWheelDelta(viewScale.value, e.deltaY, e.deltaMode), mx, my);
-};
+}
 
-const updateCanvasSizes = () => {
+function updateCanvasSizes() {
   if (!canvas.value) return;
   const { clientWidth, clientHeight } = canvas.value;
   canvasWidth.value = Math.trunc(clientWidth);
@@ -541,48 +542,48 @@ const updateCanvasSizes = () => {
     canvas.width = canvasWidth.value;
     canvas.height = canvasHeight.value;
   }
-};
+}
 
-const mouseToGrid = (mx: number, my: number): Point => {
+function mouseToGrid(mx: number, my: number): Point {
   if (!canvas.value) return [0, 0];
   return mouseToGridCoord(mx, my, viewX.value, viewY.value, viewScale.value);
-};
+}
 
-const clampCoords = (coord: Point): Point => {
+function clampCoords(coord: Point): Point {
   const { rows } = dimensions;
   const [min, max] = field.value.getMinMaxColumns();
   const [x, y] = coord;
   return [Math.max(min, Math.min(max, x)), Math.max(0, Math.min(rows - 1, y))];
-};
+}
 
-const pointerCoords = (e: { clientX: number; clientY: number }): Point => {
+function pointerCoords(e: { clientX: number; clientY: number }): Point {
   if (!canvas.value) return [0, 0];
   return canvasPointerPosition(canvas.value, e.clientX, e.clientY);
-};
+}
 
-const startDraw = (e: MouseEvent) => {
+function startDraw(e: MouseEvent) {
   const [px, py] = pointerCoords(e);
   const mouseCoords = mouseToGrid(px, py);
   isDrawing.value = true;
   prevDrawingCoords = mouseCoords;
   draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
-};
+}
 
-const endDraw = (e: MouseEvent) => {
+function endDraw(e: MouseEvent) {
   if (!isDrawing.value) return;
   isDrawing.value = false;
   history.push();
-};
+}
 
-const startPan = (e: MouseEvent) => {
+function startPan(e: MouseEvent) {
   isPanning.value = true;
-};
+}
 
-const endPan = (e: MouseEvent) => {
+function endPan(e: MouseEvent) {
   isPanning.value = false;
-};
+}
 
-const startSelection = (e: MouseEvent) => {
+function startSelection(e: MouseEvent) {
   if (
     selectionState.value === 'dragging' ||
     selectionState.value === 'dragging-duplicate'
@@ -607,18 +608,18 @@ const startSelection = (e: MouseEvent) => {
     selectionTranslate.value = [0, 0];
     selectionState.value = 'selecting';
   }
-};
+}
 
-const clearSelection = () => {
+function clearSelection() {
   selectionStart.value = undefined;
   selectionEnd.value = undefined;
   selectionTranslate.value = undefined;
   selectionFieldGraph.value = undefined;
   selectionIsSnippet.value = false;
   selectionState.value = undefined;
-};
+}
 
-const endSelection = () => {
+function endSelection() {
   switch (selectionState.value) {
     case 'selecting': {
       const [left, top, right, bottom] = selectionBounds.value!;
@@ -681,9 +682,9 @@ const endSelection = () => {
       break;
     }
   }
-};
+}
 
-const onKeyDownModifySelection = (e: KeyboardEvent) => {
+function onKeyDownModifySelection(e: KeyboardEvent) {
   if (!selectionFieldGraph.value) return;
   let modified = true;
   switch (e.key.toLowerCase()) {
@@ -729,7 +730,7 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
     queueAnimFuncs.add(renderField);
     history.push();
   }
-};
+}
 
 function deleteSelection() {
   if (isRunning.value) return;
@@ -766,23 +767,23 @@ function redo() {
   queueAnimFuncs.add(renderAll);
 }
 
-const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
+function onKeyDownDeleteSelection(e: KeyboardEvent) {
   switch (e.key) {
     case 'Delete':
     case 'Backspace':
       deleteSelection();
       break;
   }
-};
+}
 
-const coordInSelection = (coord: Point) => {
+function coordInSelection(coord: Point) {
   const [x, y] = coord;
   if (!selectionBounds.value) return false;
   const [left, top, right, bottom] = selectionBounds.value;
   return x >= left && x <= right && y >= top && y <= bottom;
-};
+}
 
-const onMouseDown = (e: MouseEvent) => {
+function onMouseDown(e: MouseEvent) {
   if (!canvas.value) return;
   e.preventDefault();
   switch (e.button) {
@@ -808,7 +809,57 @@ const onMouseDown = (e: MouseEvent) => {
       startPan(e);
       break;
   }
-};
+}
+
+function cutSelectionToClipboard() {
+  if (isRunning.value) return;
+  if (!selectionFieldGraph.value) return;
+  if (!clipboard) return;
+  const data = selectionFieldGraph.value.toSaveString();
+  clipboard.copy(data);
+  const [left, top, right, bottom] = selectionBounds.value!;
+  const start: Point = [left, top];
+  const end: Point = [right, bottom];
+  field.value.clearRect(start, end, { enforceBounds: true });
+  endSelection();
+  queueAnimFuncs.add(renderField);
+  queueAnimFuncs.add(renderOverlay);
+  history.push();
+}
+
+function copySelectionToClipboard() {
+  if (!selectionFieldGraph.value) return;
+  if (!clipboard) return;
+  const data = selectionFieldGraph.value.toSaveString();
+  clipboard.copy(data).then(() => console.log('copied', clipboard.text.value));
+}
+
+function pasteClipboard() {
+  if (isRunning.value) return;
+  if (!clipboard) return;
+  try {
+    console.log('paste', clipboard.text.value);
+    if (!clipboard.text.value) return;
+    const text = clipboard.text.value;
+    const graph = FieldGraph.from(text, 'snippet');
+    const { columns, rows } = graph.getDimensions();
+    if (columns > 0 && rows > 0) {
+      selectionFieldGraph.value = graph;
+      selectionTranslate.value = [
+        coordMouseX.value - columns / 2,
+        coordMouseY.value - rows / 2,
+      ];
+      selectionStart.value = [0, 0];
+      selectionEnd.value = [columns - 1, rows - 1];
+      selectionIsSnippet.value = true;
+      selectionState.value = 'dragging';
+      toolBoxMode.value = 'select';
+      queueAnimFuncs.add(renderOverlay);
+    }
+  } catch (err) {
+    console.error('Failed to parse clipboard data as field graph', err);
+  }
+}
 
 watch([canvasMouseX, canvasMouseY], ([x, y], [oldX, oldY]) => {
   const dx = x - oldX;
@@ -922,58 +973,6 @@ useEventListener('keydown', (e) => {
     }
   }
 });
-
-const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
-
-function cutSelectionToClipboard() {
-  if (isRunning.value) return;
-  if (!selectionFieldGraph.value) return;
-  if (!clipboard) return;
-  const data = selectionFieldGraph.value.toSaveString();
-  clipboard.copy(data);
-  const [left, top, right, bottom] = selectionBounds.value!;
-  const start: Point = [left, top];
-  const end: Point = [right, bottom];
-  field.value.clearRect(start, end, { enforceBounds: true });
-  endSelection();
-  queueAnimFuncs.add(renderField);
-  queueAnimFuncs.add(renderOverlay);
-  history.push();
-}
-
-function copySelectionToClipboard() {
-  if (!selectionFieldGraph.value) return;
-  if (!clipboard) return;
-  const data = selectionFieldGraph.value.toSaveString();
-  clipboard.copy(data).then(() => console.log('copied', clipboard.text.value));
-}
-
-function pasteClipboard() {
-  if (isRunning.value) return;
-  if (!clipboard) return;
-  try {
-    console.log('paste', clipboard.text.value);
-    if (!clipboard.text.value) return;
-    const text = clipboard.text.value;
-    const graph = FieldGraph.from(text, 'snippet');
-    const { columns, rows } = graph.getDimensions();
-    if (columns > 0 && rows > 0) {
-      selectionFieldGraph.value = graph;
-      selectionTranslate.value = [
-        coordMouseX.value - columns / 2,
-        coordMouseY.value - rows / 2,
-      ];
-      selectionStart.value = [0, 0];
-      selectionEnd.value = [columns - 1, rows - 1];
-      selectionIsSnippet.value = true;
-      selectionState.value = 'dragging';
-      toolBoxMode.value = 'select';
-      queueAnimFuncs.add(renderOverlay);
-    }
-  } catch (err) {
-    console.error('Failed to parse clipboard data as field graph', err);
-  }
-}
 
 useEventListener('keydown', (e) => {
   if (ignoreKeyShortcuts.value) return;

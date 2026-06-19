@@ -47,37 +47,37 @@ const defaultFactory: CircuitSimulationFactory = {
 };
 const currentFactory = shallowRef<CircuitSimulationFactory>(defaultFactory);
 
-const invokeRenderers = () => {
+function invokeRenderers() {
   onRenderHandlers.forEach((handler) => handler());
-};
+}
 
-const invokeCompleteHandlers = (result?: VerificationResult) => {
+function invokeCompleteHandlers(result?: VerificationResult) {
   onCompleteHandlers.forEach((handler) => handler(result));
-};
+}
 
-const resetProfiler = () => {
+function resetProfiler() {
   profiler.steps = 0;
   profiler.elapsed = 0;
-};
+}
 
-const stop = () => {
+function stop() {
   isRunning.value = false;
   isPaused.value = true;
   accumulatedTime = 0;
   currentFrame.value = 0;
   sim.value.reset(false);
-};
+}
 
-const pause = () => {
+function pause() {
   isPaused.value = true;
-};
+}
 
-const resume = () => {
+function resume() {
   isPaused.value = false;
   lastFrameTime = performance.now();
-};
+}
 
-const onAnim = (timestamp: number) => {
+function onAnim(timestamp: number) {
   if (!isRunning.value) return;
   if (!isPaused.value) {
     const isRealTime = stepMode.value === 'realtime';
@@ -114,9 +114,9 @@ const onAnim = (timestamp: number) => {
     }
   }
   requestAnimationFrame(onAnim);
-};
+}
 
-const start = () => {
+function start() {
   sim.value.reset();
   isRunning.value = true;
   isPaused.value = false;
@@ -126,25 +126,25 @@ const start = () => {
   accumulatedTime = 0;
   resetProfiler();
   requestAnimationFrame(onAnim);
-};
+}
 
-const load = (
+function load(
   field: FieldGraph,
   simFactory: CircuitSimulationFactory = currentFactory.value,
-) => {
+) {
   stop();
   const { setup } = (currentFactory.value = simFactory);
   network.value = Network.from(field);
   sim.value = setup(network.value);
-};
+}
 
-const updateField = (field: FieldGraph) => {
+function updateField(field: FieldGraph) {
   stop();
   network.value = Network.from(field);
   sim.value.setNetwork(network.value);
-};
+}
 
-const regenerateSequences = () => {
+function regenerateSequences() {
   const regen = currentFactory.value.setup(network.value);
   const pins = network.value.getPinNodes();
   for (const pin of pins) {
@@ -156,9 +156,9 @@ const regenerateSequences = () => {
       sim.value.setOutputSequence(pin, output.slice(0));
     }
   }
-};
+}
 
-const step = (n = 1, bInvokeRenderers = true) => {
+function step(n = 1, bInvokeRenderers = true) {
   if (!isRunning.value) return true;
   const vsim = sim.value;
   let endReached = false;
@@ -193,40 +193,40 @@ const step = (n = 1, bInvokeRenderers = true) => {
   currentFrame.value = vsim.getCurrentFrame();
   bInvokeRenderers && invokeRenderers();
   return endReached;
-};
+}
 
 export default function useCircuitSimulator() {
   let onRenderHandler: OnRenderHandler | null = null;
   let onCompleteHandler: OnCompleteHandler | null = null;
 
-  const removeRenderHandler = () => {
+  function removeRenderHandler() {
     if (onRenderHandler) {
       onRenderHandlers.splice(onRenderHandlers.indexOf(onRenderHandler), 1);
     }
-  };
+  }
 
-  const removeCompleteHandler = () => {
+  function removeCompleteHandler() {
     if (onCompleteHandler) {
       onCompleteHandlers.splice(
         onCompleteHandlers.indexOf(onCompleteHandler),
         1,
       );
     }
-  };
+  }
 
-  const onRender = (handler: OnRenderHandler): (() => void) => {
+  function onRender(handler: OnRenderHandler): () => void {
     removeRenderHandler();
     onRenderHandler = handler;
     onRenderHandlers.push(handler);
     return removeRenderHandler;
-  };
+  }
 
-  const onComplete = (handler: OnCompleteHandler): (() => void) => {
+  function onComplete(handler: OnCompleteHandler): () => void {
     removeCompleteHandler();
     onCompleteHandler = handler;
     onCompleteHandlers.push(handler);
     return removeCompleteHandler;
-  };
+  }
 
   // TODO: causing warns - use-level-info.ts calls this outside of component
   onUnmounted(stop);

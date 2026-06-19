@@ -232,14 +232,14 @@ const preloaded = ref(false);
 export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
   const tileSize = 12;
 
-  const preloadImages = () => {
-    if (preloaded.value) return Promise.resolve();
+  async function preloadImages() {
+    if (preloaded.value) return Promise.resolve(true);
     preloaded.value = true;
     const images = Object.values(sprites).map((src) => loader.findImage(src));
     return Promise.all(
       images.map(
         (img) =>
-          new Promise((resolve) => {
+          new Promise<boolean>((resolve) => {
             if (img.complete) {
               resolve(true);
             } else {
@@ -249,18 +249,18 @@ export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
           }),
       ),
     );
-  };
+  }
 
   /**
    * Renders a tile depending on its type and connections.
    * If a numerical direction is given, the tile will be rotated accordingly.
    * If a direction is false, the tile will be rendered without connections.
    */
-  const renderTile = (
+  function renderTile(
     tile: TileType,
     xConnectionDir: TileRenderDirection,
     yConnectionDir: TileRenderDirection,
-  ) => {
+  ) {
     if (!ctx) return;
     switch (tile) {
       case TileType.Metal:
@@ -313,7 +313,7 @@ export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
         break;
       }
     }
-  };
+  }
 
   return {
     preloadImages,

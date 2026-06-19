@@ -65,7 +65,7 @@ watch(
   { immediate: true },
 );
 
-const onSave = () => {
+function onSave() {
   emit('save', formData.value!);
-};
+}
 </script>

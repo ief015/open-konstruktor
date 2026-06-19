@@ -92,24 +92,24 @@ const exportCopied = ref(false);
 const importCode = ref('');
 const menuBar = useTemplateRef('menuBar');
 
-const loadLevel = (levelName: string) => {
+function loadLevel(levelName: string) {
   const loader = getLoader(levelName);
   if (!loader) {
     throw new Error(`Unknown loader: ${levelName}`);
   }
   loadBlankDesign(loader.width, loader.height, loader.pinRows);
   loadSim(field.value, loader);
-};
+}
 
-const onShowImportDialog = () => {
+function onShowImportDialog() {
   importCode.value = '';
   showImportDialog.value = true;
   nextTick(() => {
     importTextArea.value?.focus();
   });
-};
+}
 
-const onShowExportDialog = () => {
+function onShowExportDialog() {
   exportCode.value = field.value.toSaveString() ?? '';
   exportIsKOHCTPYKTOPCompatible.value = !!(
     field.value.getData() as CircuitDesignData
@@ -120,20 +120,20 @@ const onShowExportDialog = () => {
     exportTextArea.value?.focus();
     exportTextArea.value?.select();
   });
-};
+}
 
-const closeAllDialogs = () => {
+function closeAllDialogs() {
   showImportDialog.value = false;
   showExportDialog.value = false;
-};
+}
 
-const onCopyExport = () => {
+function onCopyExport() {
   if (!clipboard) return;
   clipboard.copy(exportCode.value);
   exportCopied.value = true;
-};
+}
 
-const onImport = () => {
+function onImport() {
   if (!importCode.value) return;
   try {
     loadDesign(importCode.value);
@@ -142,9 +142,9 @@ const onImport = () => {
   } catch (e: any) {
     alert(`Failed to import:\n${e.message ?? e}`);
   }
-};
+}
 
-const onFileSelectedDesigns = async (ev: Event) => {
+async function onFileSelectedDesigns(ev: Event) {
   const input = ev.target as HTMLInputElement;
   if (!input.files?.[0]) return;
   const file = input.files[0];
@@ -162,9 +162,9 @@ const onFileSelectedDesigns = async (ev: Event) => {
     alert('Designs imported successfully!');
   }
   fileInputImportDesigns.value!.value = '';
-};
+}
 
-const onFileSelectedSnippets = async (ev: Event) => {
+async function onFileSelectedSnippets(ev: Event) {
   const input = ev.target as HTMLInputElement;
   if (!input.files?.[0]) return;
   const file = input.files[0];
@@ -182,9 +182,9 @@ const onFileSelectedSnippets = async (ev: Event) => {
     alert('Snippets imported successfully!');
   }
   fileInputImportSnippets.value!.value = '';
-};
+}
 
-const onSelected = async (id?: string) => {
+async function onSelected(id?: string) {
   if (!id) return;
   document.dispatchEvent(new MenuBarActionEvent(id));
   switch (id) {
@@ -221,7 +221,7 @@ const onSelected = async (id?: string) => {
     const loaderKey = id.slice('level/'.length);
     loadLevel(loaderKey);
   }
-};
+}
 
 useEventListener('keydown', (e) => {
   if (e.key === 'Escape') {

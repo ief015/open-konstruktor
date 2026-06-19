@@ -145,11 +145,11 @@ const { mode, modifiers, ignoreKeyShortcuts } = useToolbox();
 
 const status = useStatusBar();
 
-const onChange = (mode: ToolboxMode, prevMode: ToolboxMode) => {
+function onChange(mode: ToolboxMode, prevMode: ToolboxMode) {
   emit('change', mode, prevMode);
-};
+}
 
-const onClickTool = (item: ToolkitItem) => {
+function onClickTool(item: ToolkitItem) {
   const toMode = item.mode === mode.value ? 'none' : item.mode;
   const prevMode = mode.value;
   mode.value = toMode;
@@ -159,7 +159,7 @@ const onClickTool = (item: ToolkitItem) => {
     status.setText(item.description ?? '');
   }
   onChange(toMode, prevMode);
-};
+}
 
 useEventListener('keypress', (ev) => {
   if (ignoreKeyShortcuts.value) return;

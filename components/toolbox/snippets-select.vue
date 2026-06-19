@@ -85,13 +85,13 @@ import { FieldGraph } from '@/simulation';
 import { TILE_SIZE } from '@/utils/field-view';
 
 const fieldCanvas = ref();
-const updateFieldCanvas = () => {
+function updateFieldCanvas() {
   fieldCanvas.value = document.getElementById('field-canvas');
   if (!fieldCanvas.value) {
     console.warn('Field canvas not found, retrying...');
     nextTick(updateFieldCanvas);
   }
-};
+}
 updateFieldCanvas();
 
 const { elementX: canvasMouseX, elementY: canvasMouseY } =
@@ -143,7 +143,7 @@ const groupsSorted = computed(() => {
   return sorted;
 });
 
-const loadOption = async (opt: SnippetRecord) => {
+async function loadOption(opt: SnippetRecord) {
   const field = FieldGraph.from(opt.data, 'snippet');
   const { columns, rows } = field.getDimensions();
   selectionFieldGraph.value = field;
@@ -158,7 +158,7 @@ const loadOption = async (opt: SnippetRecord) => {
   selectionIsSnippet.value = true;
   selectionState.value = 'dragging';
   toolboxMode.value = 'select';
-};
+}
 
 function getTooltip(snippet: SnippetRecord) {
   const { name, description } = snippet;
@@ -168,17 +168,17 @@ function getTooltip(snippet: SnippetRecord) {
   return name;
 }
 
-const onSelect = (opt: SnippetRecord) => {
+function onSelect(opt: SnippetRecord) {
   loadOption(opt);
-};
+}
 
-const onSave = () => {
+function onSave() {
   if (!selectionFieldGraph.value) return;
   if (selectionFieldGraph.value.isEmpty()) return;
   saveDialog.open();
-};
+}
 
-const onSaveSubmit = async (formData: SaveSnippetFormData) => {
+async function onSaveSubmit(formData: SaveSnippetFormData) {
   if (saveDialog.record) {
     // Save existing snippet
     await saveSnippet({
@@ -207,23 +207,23 @@ const onSaveSubmit = async (formData: SaveSnippetFormData) => {
       updatedAt: now,
     });
   }
-};
+}
 
-const onLoad = () => {
+function onLoad() {
   const opt = selected.value[0];
   if (opt) {
     loadOption(opt);
   }
-};
+}
 
-const onEdit = () => {
+function onEdit() {
   const opt = selected.value[0];
   if (opt) {
     saveDialog.open(opt);
   }
-};
+}
 
-const onDelete = async () => {
+async function onDelete() {
   const opt = selected.value[0];
   if (
     opt?.id &&
@@ -233,5 +233,5 @@ const onDelete = async () => {
     selected.value = [];
     saveDialog.close();
   }
-};
+}
 </script>

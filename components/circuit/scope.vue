@@ -175,7 +175,7 @@ function getContext(): CanvasRenderingContext2D {
   return ctx;
 }
 
-const renderScope = () => {
+function renderScope() {
   const ctx = getContext();
   const vsim = sim.value;
 
@@ -208,10 +208,10 @@ const renderScope = () => {
   const baseline = -(SCOPE_ROW_HEIGHT_PX / 4 + 0.5);
   const highLine = baseline - Math.floor(SCOPE_ROW_HEIGHT_PX / 2);
 
-  const strokeSequenceLine = (
+  function strokeSequenceLine(
     seq: Readonly<Sequence> | null,
     endX: number = scopeWidth,
-  ) => {
+  ) {
     if (seq) {
       ctx.beginPath();
       ctx.moveTo(0, baseline);
@@ -234,7 +234,7 @@ const renderScope = () => {
       ctx.lineTo(scopeWidth, baseline);
       ctx.stroke();
     }
-  };
+  }
 
   // draw scopes for each pin from top to bottom
   const pins = filteredPins.value;
@@ -314,14 +314,9 @@ const renderScope = () => {
   }
 
   ctx.restore();
-};
+}
 
-const addPulse = (
-  seq: Sequence,
-  start: number,
-  end: number,
-  state: boolean,
-) => {
+function addPulse(seq: Sequence, start: number, end: number, state: boolean) {
   if (!canEdit.value) return;
   const len = sim.value.getRunningLength();
   if (end < len && seq.probe(end) !== state) {
@@ -330,9 +325,9 @@ const addPulse = (
   if (start < len) {
     seq.setFrame(start, state);
   }
-};
+}
 
-const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
+function draw(mode: DrawMode, coordA: Point, coordB: Point) {
   if (!canEdit.value) return;
   const minX = Math.min(coordA[0], coordB[0]);
   const maxX = Math.max(coordA[0], coordB[0]);
@@ -357,9 +352,9 @@ const draw = (mode: DrawMode, coordA: Point, coordB: Point) => {
     }
   }
   renderScope();
-};
+}
 
-const mouseToGrid = (mx: number, my: number, xInterval = 1): Point => {
+function mouseToGrid(mx: number, my: number, xInterval = 1): Point {
   const ctx = getContext();
   const rect = ctx.canvas.getBoundingClientRect();
   const rx = mx - rect.left - SCOPE_LABEL_WIDTH_PX + translateX.value;
@@ -367,18 +362,18 @@ const mouseToGrid = (mx: number, my: number, xInterval = 1): Point => {
   const x = Math.trunc(rx / (SCOPE_SCALE_X * xInterval)) * xInterval;
   const y = Math.trunc(ry / SCOPE_ROW_HEIGHT_PX);
   return [x, y];
-};
+}
 
-const onMouseMove = (e: MouseEvent) => {
+function onMouseMove(e: MouseEvent) {
   if (isRunning.value) return;
   if (isDrawing.value) {
     const coords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
     draw(drawMode.value, prevDrawingCoords, coords);
     prevDrawingCoords = coords;
   }
-};
+}
 
-const onMouseDown = (e: MouseEvent) => {
+function onMouseDown(e: MouseEvent) {
   if (isRunning.value) return;
   if (e.button === 0) {
     drawMode.value = 'high';
@@ -390,20 +385,20 @@ const onMouseDown = (e: MouseEvent) => {
   isDrawing.value = true;
   prevDrawingCoords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
   draw(drawMode.value, prevDrawingCoords, prevDrawingCoords);
-};
+}
 
-const onMouseUp = (e: MouseEvent) => {
+function onMouseUp(e: MouseEvent) {
   if (isRunning.value) return;
   isDrawing.value = false;
-};
+}
 
-const onResize = () => {
+function onResize() {
   const ctx = getContext();
   ctx.canvas.width = Math.trunc(ctx.canvas.clientWidth);
   canvasWidth.value = ctx.canvas.width;
   ctx.canvas.height = scopeHeight.value;
   renderScope();
-};
+}
 
 onCircuitRender(renderScope);
 

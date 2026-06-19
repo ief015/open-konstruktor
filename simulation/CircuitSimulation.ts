@@ -75,7 +75,7 @@ export interface VerificationResult {
 
 const VERIFICATION_PASS_THRESHOLD = 97;
 
-const evenOddPinSort = (pins: PinNode[]) => {
+function evenOddPinSort(pins: PinNode[]) {
   pins.sort((a, b) => {
     const aid = pins.indexOf(a);
     const bid = pins.indexOf(b);
@@ -87,7 +87,7 @@ const evenOddPinSort = (pins: PinNode[]) => {
       return aid - bid;
     }
   });
-};
+}
 
 export function getNodeState(node: NetworkNode): boolean {
   if (node instanceof PathNode) {

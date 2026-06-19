@@ -52,9 +52,9 @@ const emit = defineEmits<{
   save: [label: string];
 }>();
 
-const onSave = () => {
+function onSave() {
   if (!model.value) return;
   model.value.label = formData.label;
   emit('save', model.value.label);
-};
+}
 </script>
