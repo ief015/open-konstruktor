@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { useMenuItems } from '@/composables/menu-items';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
-import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
+import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
 import type { SavedDesignsExport } from '@/composables/use-saved-designs';
 import type { CircuitDesignData } from '@/serialization';
 
@@ -229,20 +229,16 @@ useEventListener('keydown', (e) => {
   }
 });
 
-useEventListener(
-  document,
-  WelcomeDialogActionEvent.eventType,
-  (event: WelcomeDialogActionEvent) => {
-    switch (event.action) {
-      case 'start-tutorial':
-        loadLevel('Tutorial 01 Introduction');
-        break;
-      case 'play-levels':
-        menuBar.value?.openMenu('levels');
-        break;
-    }
-  },
-);
+useWelcomeDialogListener((event) => {
+  switch (event.action) {
+    case 'start-tutorial':
+      loadLevel('Tutorial 01 Introduction');
+      break;
+    case 'play-levels':
+      menuBar.value?.openMenu('levels');
+      break;
+  }
+});
 
 watch(importCode, (code) => {
   // remove newlines
