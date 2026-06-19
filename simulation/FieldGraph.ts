@@ -10,8 +10,7 @@ import {
 import type { LayerDimensions } from '@/serialization/DesignData';
 import { decode, encode } from '@/serialization';
 import type { Point } from '@/simulation';
-import { traceLine } from '@/utils/traceLine';
-import { traceRectBorder } from '@/utils/traceRectBorder';
+import { traceLine, traceRectBorder } from '@/utils/drawing';
 import CircuitDesignData, {
   DEFAULT_PIN_SIZE,
 } from '@/serialization/CircuitDesignData';

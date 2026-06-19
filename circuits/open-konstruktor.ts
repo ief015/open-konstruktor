@@ -1,7 +1,7 @@
 import { type CircuitSimulationFactories } from '@/circuits';
 import { CircuitSimulation, Sequence } from '@/simulation';
 import { assignVCC } from '@/simulation/PinNode';
-import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
+import { createSequencesFromInputs } from '@/utils/sequence';
 
 const generateRandomSequence = (
   length: number,
