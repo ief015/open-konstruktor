@@ -92,14 +92,8 @@ const {
   resetVerificationResult,
   verificationResult,
 } = useFieldGraph();
-const {
-  network,
-  sim,
-  isRunning,
-  currentFrame,
-  onRender: onCircuitRender,
-  onComplete,
-} = useCircuitSimulator();
+const { network, sim, isRunning, currentFrame, onStepAnim, onComplete } =
+  useCircuitSimulator();
 const {
   openCompleted: levelInfoOpenCompleted,
   completedAvailable: hasOpenedCompleted,
@@ -400,7 +394,7 @@ function onResize() {
   renderScope();
 }
 
-onCircuitRender(renderScope);
+onStepAnim(() => renderScope());
 
 onComplete((result) => {
   verifyResult.value = result;

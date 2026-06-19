@@ -2,7 +2,7 @@ import type { CircuitSimulationFactory } from '@/circuits';
 import { CircuitSimulation, FieldGraph, Network } from '@/simulation';
 import type { VerificationResult } from '@/simulation';
 
-export type OnRenderHandler = () => void;
+export type OnStepAnimHandler = () => void;
 export type OnCompleteHandler = (result?: VerificationResult) => void;
 
 export type StepMode = 'fixed' | 'vsync' | 'realtime';
@@ -38,8 +38,10 @@ const stepInterval = computed(() => {
   }
 });
 
-const onRenderHandlers: OnRenderHandler[] = [];
-const onCompleteHandlers: OnCompleteHandler[] = [];
+const handlers = {
+  onStepAnim: [] as OnStepAnimHandler[],
+  onComplete: [] as OnCompleteHandler[],
+};
 
 const defaultFactory: CircuitSimulationFactory = {
   key: '',
@@ -47,12 +49,12 @@ const defaultFactory: CircuitSimulationFactory = {
 };
 const currentFactory = shallowRef<CircuitSimulationFactory>(defaultFactory);
 
-function invokeRenderers() {
-  onRenderHandlers.forEach((handler) => handler());
+function invokeStepAnimHandlers() {
+  handlers.onStepAnim.forEach((handler) => handler());
 }
 
 function invokeCompleteHandlers(result?: VerificationResult) {
-  onCompleteHandlers.forEach((handler) => handler(result));
+  handlers.onComplete.forEach((handler) => handler(result));
 }
 
 function resetProfiler() {
@@ -114,7 +116,7 @@ function onAnim(timestamp: number) {
       }
     }
     if (willStep) {
-      invokeRenderers();
+      invokeStepAnimHandlers();
     }
   }
   requestAnimationFrame(onAnim);
@@ -162,7 +164,7 @@ function regenerateSequences() {
   }
 }
 
-function step(n = 1, bInvokeRenderers = true) {
+function step(n = 1, bInvokeStepAnimHandlers = true) {
   if (!isRunning.value) return true;
   const vsim = sim.value;
   let endReached = false;
@@ -195,45 +197,48 @@ function step(n = 1, bInvokeRenderers = true) {
     }
   }
   currentFrame.value = vsim.getCurrentFrame();
-  bInvokeRenderers && invokeRenderers();
+  bInvokeStepAnimHandlers && invokeStepAnimHandlers();
   return endReached;
 }
 
 export default function useCircuitSimulator() {
-  let onRenderHandler: OnRenderHandler | null = null;
+  let onStepAnimHandler: OnStepAnimHandler | null = null;
   let onCompleteHandler: OnCompleteHandler | null = null;
 
-  function removeRenderHandler() {
-    if (onRenderHandler) {
-      onRenderHandlers.splice(onRenderHandlers.indexOf(onRenderHandler), 1);
-    }
-  }
-
-  function removeCompleteHandler() {
-    if (onCompleteHandler) {
-      onCompleteHandlers.splice(
-        onCompleteHandlers.indexOf(onCompleteHandler),
+  function removeStepAnimHandler() {
+    if (onStepAnimHandler) {
+      handlers.onStepAnim.splice(
+        handlers.onStepAnim.indexOf(onStepAnimHandler),
         1,
       );
     }
   }
 
-  function onRender(handler: OnRenderHandler): () => void {
-    removeRenderHandler();
-    onRenderHandler = handler;
-    onRenderHandlers.push(handler);
-    return removeRenderHandler;
+  function removeCompleteHandler() {
+    if (onCompleteHandler) {
+      handlers.onComplete.splice(
+        handlers.onComplete.indexOf(onCompleteHandler),
+        1,
+      );
+    }
+  }
+
+  function onStepAnim(handler: OnStepAnimHandler): () => void {
+    removeStepAnimHandler();
+    onStepAnimHandler = handler;
+    handlers.onStepAnim.push(handler);
+    return removeStepAnimHandler;
   }
 
   function onComplete(handler: OnCompleteHandler): () => void {
     removeCompleteHandler();
     onCompleteHandler = handler;
-    onCompleteHandlers.push(handler);
+    handlers.onComplete.push(handler);
     return removeCompleteHandler;
   }
 
   onUnmounted(stop);
-  onUnmounted(removeRenderHandler);
+  onUnmounted(removeStepAnimHandler);
   onUnmounted(removeCompleteHandler);
 
   return {
@@ -259,7 +264,7 @@ export default function useCircuitSimulator() {
     resume,
     step,
     resetProfiler,
-    onRender,
+    onStepAnim,
     onComplete,
   };
 }

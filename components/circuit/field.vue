@@ -76,14 +76,8 @@ const {
   resetVerificationResult,
 } = useFieldGraph();
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
-const {
-  sim,
-  network,
-  circuitFactory,
-  isRunning,
-  stepsPerSecond,
-  onRender: onCircuitRender,
-} = useCircuitSimulator();
+const { sim, network, circuitFactory, isRunning, stepsPerSecond, onStepAnim } =
+  useCircuitSimulator();
 const { mode: toolBoxMode, ignoreKeyShortcuts } = useToolbox();
 const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
 const tilePreloader = useTileRenderer();
@@ -752,9 +746,7 @@ function updateCanvasPointer(clientX: number, clientY: number) {
   canvasMouseOutside.value = false;
 }
 
-onCircuitRender(() => {
-  queueAnimFuncs.add(renderHot);
-});
+onStepAnim(() => queueAnimFuncs.add(renderHot));
 
 useRafFn(({ delta, timestamp }) => {
   const start = performance.now();
