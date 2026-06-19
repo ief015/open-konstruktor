@@ -576,6 +576,8 @@ function clearSelection() {
   selectionFieldGraph.value = undefined;
   selectionIsSnippet.value = false;
   selectionState.value = undefined;
+  updateDesignScoreThrottle();
+  resetVerificationResult();
 }
 
 function endSelection() {
@@ -637,6 +639,8 @@ function endSelection() {
             selectionTranslate.value = [0, 0];
           }
         }
+        updateDesignScoreThrottle();
+        resetVerificationResult();
         history.push();
         queueAnimFuncs.add(renderField);
       } else {
@@ -1053,6 +1057,10 @@ watch(toolBoxMode, (mode, was) => {
 });
 
 watch(isRunning, (isRunning) => {
+  if (isRunning) {
+    updateDesignScoreThrottle();
+    resetVerificationResult();
+  }
   queueAnimFuncs.add(renderHot);
 });
 
