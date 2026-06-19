@@ -12,6 +12,7 @@
       <button
         v-else
         @click="onClickTool(item)"
+        ref="buttons"
         class="relative flex items-center justify-center w-full h-[3em] rounded border-solid border-2"
         :class="{
           [item.classes ?? '']: true,
@@ -42,6 +43,8 @@ interface ToolkitItem {
   description?: string;
   key?: string;
 }
+
+const buttons = useTemplateRef('buttons');
 
 const props = withDefaults(
   defineProps<{
@@ -156,18 +159,19 @@ function onClickTool(item: ToolkitItem) {
   } else {
     status.setText(item.description ?? '');
   }
+  buttons.value?.forEach((btn) => btn?.blur());
   onChange(toMode, prevMode);
 }
 
 useEventListener('keypress', (ev) => {
   if (ignoreKeyShortcuts.value) return;
-  if (ev.key >= '0' && ev.key <= '9') {
-    const item = toolkit.find((item) => {
-      return item !== 'divider' && item.key === ev.key;
-    }) as ToolkitItem | undefined;
-    if (item) {
-      onClickTool(item);
-    }
+  if (ev.shiftKey || ev.ctrlKey || ev.altKey || ev.metaKey) return;
+  const k = ev.key.toLowerCase();
+  const item = toolkit.find((item) => {
+    return item !== 'divider' && item.key === k;
+  }) as ToolkitItem | undefined;
+  if (item) {
+    onClickTool(item);
   }
 });
 
