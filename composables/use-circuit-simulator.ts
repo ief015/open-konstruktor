@@ -93,23 +93,27 @@ function onAnim(timestamp: number) {
     } else {
       accumulatedTime += dt;
     }
-    let stepped = false;
     const interval = isRealTime ? 0 : stepInterval.value;
+    const cutoff = performance.now() + 100;
+    const willStep = accumulatedTime >= interval;
     while (accumulatedTime >= interval) {
       const ts = isRealTime ? performance.now() : 0;
       profiler.steps++;
-      stepped = true;
       if (step(1, false)) {
         break;
       }
+      const now = performance.now();
       if (isRealTime) {
-        const elapsed = performance.now() - ts;
+        const elapsed = now - ts;
         accumulatedTime -= elapsed;
       } else {
-        accumulatedTime -= stepInterval.value;
+        accumulatedTime -= interval;
+      }
+      if (now > cutoff) {
+        accumulatedTime = -Number.EPSILON;
       }
     }
-    if (stepped) {
+    if (willStep) {
       invokeRenderers();
     }
   }
