@@ -65,7 +65,6 @@
 
 <script setup lang="ts">
 import type { SaveDesignFormData } from '@/components/dialog/designs/save.vue';
-import type { DesignRecord } from '@/composables/use-saved-designs';
 
 const { groups, designs, categories, saveDesign, deleteDesign } =
   useSavedDesigns();

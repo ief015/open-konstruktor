@@ -66,10 +66,8 @@
 </template>
 
 <script setup lang="ts">
-import { useMenuItems } from '@/composables/menu-items';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
-import type { SavedDesignsExport } from '@/composables/use-saved-designs';
 import type { CircuitDesignData } from '@/serialization';
 
 const { items: menuItems } = useMenuItems();

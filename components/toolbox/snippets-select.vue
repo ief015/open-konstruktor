@@ -79,7 +79,6 @@
 
 <script setup lang="ts">
 import type { SaveSnippetFormData } from '@/components/dialog/snippets/save.vue';
-import type { SnippetRecord } from '@/composables/use-saved-snippets';
 import { FieldGraph } from '@/simulation';
 
 const saveDialog = reactive({

@@ -22,7 +22,6 @@
 <script setup lang="ts">
 import { FieldGraph } from '@/simulation';
 import type { GraphLayer, Point } from '@/simulation';
-import type { ToolboxMode } from '@/composables/use-toolbox';
 import { useMenuBarListener } from '@/components/menu/bar-app-events';
 import { BackgroundGridRenderer } from '@/render/BackgroundGridRenderer';
 import { FieldRenderer, type TileBounds } from '@/render/FieldRenderer';
