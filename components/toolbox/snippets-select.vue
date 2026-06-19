@@ -81,6 +81,26 @@
 import type { SaveSnippetFormData } from '@/components/dialog/snippets/save.vue';
 import { FieldGraph } from '@/simulation';
 
+const { groups, snippets, categories, saveSnippet, deleteSnippet } =
+  useSavedSnippets();
+const {
+  start: startSelection,
+  end: endSelection,
+  translate: translateSelection,
+  fieldGraph: selectionFieldGraph,
+  state: selectionState,
+  isSnippet: selectionIsSnippet,
+  computeTranslationFromMouse,
+} = useSelection();
+const { isRunning } = useCircuitSimulator();
+const { mode: toolboxMode } = useToolbox();
+const selected = ref<SnippetRecord[]>([]);
+const groupsSorted = computed(() => {
+  const sorted = [...groups.value];
+  sorted.sort((a, b) => a.label.localeCompare(b.label));
+  return sorted;
+});
+
 const saveDialog = reactive({
   isOpen: false,
   record: null as SnippetRecord | null,
@@ -101,26 +121,8 @@ const saveDialog = reactive({
   },
 });
 
-const { groups, snippets, categories, saveSnippet, deleteSnippet } =
-  useSavedSnippets();
-const {
-  start: startSelection,
-  end: endSelection,
-  translate: translateSelection,
-  fieldGraph: selectionFieldGraph,
-  state: selectionState,
-  isSnippet: selectionIsSnippet,
-  computeTranslationFromMouse,
-} = useSelection();
-const { mode: toolboxMode } = useToolbox();
-const selected = ref<SnippetRecord[]>([]);
-const groupsSorted = computed(() => {
-  const sorted = [...groups.value];
-  sorted.sort((a, b) => a.label.localeCompare(b.label));
-  return sorted;
-});
-
 async function loadOption(opt: SnippetRecord) {
+  if (isRunning.value) return;
   const field = FieldGraph.from(opt.data, 'snippet');
   const { columns, rows } = field.getDimensions();
   selectionFieldGraph.value = field;

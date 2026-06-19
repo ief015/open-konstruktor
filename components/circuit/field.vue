@@ -604,7 +604,11 @@ function endSelection() {
     case 'dragging-duplicate': {
       const lastState = selectionState.value;
       selectionState.value = undefined;
-      if (selectionFieldGraph.value && selectionBounds.value) {
+      if (
+        selectionFieldGraph.value &&
+        selectionBounds.value &&
+        !isRunning.value
+      ) {
         const [left, top, right, bottom] = selectionBounds.value;
         const [ox, oy] = selectionTranslate.value ?? [0, 0];
         const pasteStart: Point = [Math.round(left + ox), Math.round(top + oy)];

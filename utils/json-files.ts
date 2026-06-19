@@ -4,7 +4,7 @@ export function downloadJSON(
   formatted: boolean = false,
 ) {
   if (!document) {
-    throw new Error('downloadJSON can only be used in a browser environment');
+    throw new Error('Must be used in a browser environment');
   }
   const json = formatted ? JSON.stringify(data, null, 2) : JSON.stringify(data);
   const blob = new Blob([json], { type: 'application/json' });
