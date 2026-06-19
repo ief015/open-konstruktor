@@ -14,9 +14,9 @@ and expanding on it.
 ✅️ Import/export designs with KOHCTPYKTOP compatibility  
 ✅️ Save designs and snippets in-game  
 ✅️ Improved controls such as selection rotating and flipping, undo history  
-✅️ Design debugging tools: Pausing, stepping, looping, pause-on-error  
+✅️ Design debugging tools: Pausing, stepping, looping, pause-on-error, probing  
 ✅️ Original KOHCTPYKTOP level pack  
-✅️ New tutorial levels  
+✅️ New tutorial levels, editable timings  
 
 ## Work in progress
 
@@ -35,7 +35,7 @@ The following features are planned:
 *Custom levels, workspace UI features*
 
 ⬜️ UI Overhaul: support tabbed workspaces  
-⬜️ Editable scope timings (Prerequisite for custom levels)  
+✅️ Editable scope timings (Prerequisite for custom levels)  
 ⬜️ Custom levels and level packs  
 ⬜️ Graphical themes  
 
