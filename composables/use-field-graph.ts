@@ -7,30 +7,30 @@ const dimensions = reactive<LayerDimensions>({ columns: 0, rows: 0 });
 const designScore = ref(0);
 const verificationResult = ref<VerificationResult | null>(null);
 
-const updateDesignScore = () => {
+function updateDesignScore() {
   designScore.value = field.value.getDesignScore();
-};
+}
 
-const setVerificationResult = (result: VerificationResult) => {
+function setVerificationResult(result: VerificationResult) {
   verificationResult.value = result;
-};
+}
 
-const resetVerificationResult = () => {
+function resetVerificationResult() {
   verificationResult.value = null;
-};
+}
 
-const updateDimensions = () => {
+function updateDimensions() {
   const { columns, rows } = field.value.getDimensions();
   dimensions.columns = columns;
   dimensions.rows = rows;
-};
+}
 
-const loadBlank = (
+function loadBlank(
   columns?: number,
   rows?: number,
   pinRows?: number,
   clearHistory = true,
-) => {
+) {
   const data = new CircuitDesignData(columns, rows, pinRows);
   field.value = new FieldGraph(data);
   updateDesignScore();
@@ -39,9 +39,9 @@ const loadBlank = (
   if (clearHistory) {
     history.clear();
   }
-};
+}
 
-const loadData = (data: CircuitDesignData, clearHistory = true) => {
+function loadData(data: CircuitDesignData, clearHistory = true) {
   field.value = new FieldGraph(data);
   updateDesignScore();
   resetVerificationResult();
@@ -49,9 +49,9 @@ const loadData = (data: CircuitDesignData, clearHistory = true) => {
   if (clearHistory) {
     history.clear();
   }
-};
+}
 
-const load = (saveString: string, clearHistory = true) => {
+function load(saveString: string, clearHistory = true) {
   field.value = FieldGraph.from(saveString, 'circuit');
   updateDesignScore();
   resetVerificationResult();
@@ -59,7 +59,7 @@ const load = (saveString: string, clearHistory = true) => {
   if (clearHistory) {
     history.clear();
   }
-};
+}
 
 const history = {
   states: [] as string[],

@@ -1,6 +1,13 @@
-import Network from '@/simulation/Network';
+import Network, { getGraphKey } from '@/simulation/Network';
 import PinNode from '@/simulation/PinNode';
 import Sequence from '@/simulation/Sequence';
+import {
+  GateNode,
+  PathNode,
+  type GraphLayer,
+  type NetworkNode,
+  type Point,
+} from '@/simulation';
 import type { DifferenceMethod } from '@/simulation/Sequence';
 
 export type PrintPinOrdering = 'none' | 'even-odd';
@@ -25,8 +32,24 @@ export interface PrintRecordingScopeOptions {
   filter?: PinFilter;
 }
 
-export type SequenceMap = Map<PinNode, Sequence>;
-export type RecordingMap = Map<PinNode, Sequence>;
+export interface ProbeInfo {
+  label: string;
+  layer?: GraphLayer;
+  layerPosition: Point;
+}
+
+export type SequenceMap<TNode extends NetworkNode = PinNode> = Map<
+  TNode,
+  Sequence
+>;
+export type RecordingMap<TNode extends NetworkNode = NetworkNode> = Map<
+  TNode | ProbeInfo,
+  Sequence
+>;
+export type ProbeMap<TNode extends NetworkNode = NetworkNode> = Map<
+  ProbeInfo,
+  TNode[]
+>;
 
 export interface VerificationResultOutput {
   pin: PinNode;
@@ -52,7 +75,7 @@ export interface VerificationResult {
 
 const VERIFICATION_PASS_THRESHOLD = 97;
 
-const evenOddPinSort = (pins: PinNode[]) => {
+function evenOddPinSort(pins: PinNode[]) {
   pins.sort((a, b) => {
     const aid = pins.indexOf(a);
     const bid = pins.indexOf(b);
@@ -64,7 +87,17 @@ const evenOddPinSort = (pins: PinNode[]) => {
       return aid - bid;
     }
   });
-};
+}
+
+export function getNodeState(node: NetworkNode): boolean {
+  if (node instanceof PathNode) {
+    return node.state;
+  } else if (node instanceof GateNode) {
+    return node.active === node.isNPN && node.gatedPaths.some((p) => p.state);
+  } else {
+    return node.active;
+  }
+}
 
 export class CircuitSimulation {
   private network: Network;
@@ -73,6 +106,9 @@ export class CircuitSimulation {
   private outputSequences: SequenceMap = new Map();
   private sequenceLength: number = 0;
   private defaultRuntime?: number;
+
+  private probes: ProbeInfo[] = [];
+  private probedNodes: ProbeMap<NetworkNode> = new Map();
 
   private currentFrame: number = 0;
   private recording: RecordingMap = new Map();
@@ -98,6 +134,10 @@ export class CircuitSimulation {
   public reset(clearRecordings: boolean = true) {
     for (const [pin, sequence] of this.inputSequences) {
       pin.active = sequence.getFrames()[0] ?? false;
+    }
+    for (const probe of this.probes) {
+      const nodes = this.network.getNodesAt(probe.layerPosition, probe.layer);
+      this.probedNodes.set(probe, nodes);
     }
     this.network.reset();
     clearRecordings && this.clearRecordings();
@@ -130,7 +170,9 @@ export class CircuitSimulation {
   public setNetwork(network: Network) {
     const oldNet = this.network;
     this.network = network;
+    // Clear recordings
     this.reset();
+    // Remap input/output sequences
     const oldPins = oldNet.getPinNodes();
     const newPins = network.getPinNodes();
     if (oldPins.length !== newPins.length) {
@@ -165,8 +207,12 @@ export class CircuitSimulation {
     }
   }
 
-  public getRecording(pin: PinNode): Readonly<Sequence> | null {
-    return this.recording.get(pin) ?? null;
+  public getRecording(node: NetworkNode): Readonly<Sequence> | null;
+  public getRecording(probe: ProbeInfo): Readonly<Sequence> | null;
+  public getRecording(
+    nodeOrProbe: NetworkNode | ProbeInfo,
+  ): Readonly<Sequence> | null {
+    return this.recording.get(nodeOrProbe) ?? null;
   }
 
   /**
@@ -209,6 +255,65 @@ export class CircuitSimulation {
     this.sequenceLength = Math.max(...inputLengths, ...outputLengths, 0);
   }
 
+  public getProbes(): readonly ProbeInfo[] {
+    return this.probes;
+  }
+
+  public getProbesAt(point: Point, layer?: GraphLayer): ProbeInfo[] {
+    return this.probes.filter(
+      (probe) =>
+        (layer === undefined || probe.layer === layer) &&
+        probe.layerPosition[0] === point[0] &&
+        probe.layerPosition[1] === point[1],
+    );
+  }
+
+  public getProbeNodes(probe: ProbeInfo): NetworkNode[] {
+    return this.probedNodes.get(probe) ?? [];
+  }
+
+  public addProbe(probe: ProbeInfo) {
+    this.probes.push(probe);
+  }
+
+  public addProbeAt(
+    point: Point,
+    layer?: GraphLayer,
+    label?: string,
+  ): ProbeInfo {
+    const probe: ProbeInfo = {
+      layer,
+      layerPosition: point,
+      label: label ?? `Probe ${point[0]},${point[1]}`,
+    };
+    this.addProbe(probe);
+    return probe;
+  }
+
+  public removeProbe(probe: ProbeInfo): void {
+    const index = this.probes.indexOf(probe);
+    if (index !== -1) {
+      this.probes.splice(index, 1);
+    }
+    this.probedNodes.delete(probe);
+    this.recording.delete(probe);
+  }
+
+  public clearProbes() {
+    for (const probe of this.probes) {
+      this.recording.delete(probe);
+    }
+    this.probes = [];
+    this.probedNodes.clear();
+  }
+
+  public getInputSequences(): Readonly<{ pin: PinNode; sequence: Sequence }[]> {
+    return [...this.inputSequences.entries()].map(([pin, sequence]) => ({
+      pin,
+      sequence,
+    }));
+  }
+
   public setInputSequence(pin: PinNode | number, sequence: Sequence) {
     if (typeof pin === 'number') {
       pin = this.network.getPinNode(pin);
@@ -228,6 +333,15 @@ export class CircuitSimulation {
   public clearInputSequences() {
     this.inputSequences.clear();
     this.updateSequenceLength();
+  }
+
+  public getOutputSequences(): Readonly<
+    { pin: PinNode; sequence: Sequence }[]
+  > {
+    return [...this.outputSequences.entries()].map(([pin, sequence]) => ({
+      pin,
+      sequence,
+    }));
   }
 
   public setOutputSequence(pin: PinNode | number, sequence: Sequence) {
@@ -264,28 +378,15 @@ export class CircuitSimulation {
     };
   }
 
-  public getInputSequences(): Readonly<{ pin: PinNode; sequence: Sequence }[]> {
-    return [...this.inputSequences.entries()].map(([pin, sequence]) => ({
-      pin,
-      sequence,
-    }));
-  }
-
-  public getOutputSequences(): Readonly<
-    { pin: PinNode; sequence: Sequence }[]
-  > {
-    return [...this.outputSequences.entries()].map(([pin, sequence]) => ({
-      pin,
-      sequence,
-    }));
-  }
-
   public clearRecordings() {
     this.recording.clear();
     this.recordingLength = 0;
     const pins = this.network.getPinNodes();
     for (const pin of pins) {
       this.recording.set(pin, new Sequence());
+    }
+    for (const probe of this.probes) {
+      this.recording.set(probe, new Sequence());
     }
   }
 
@@ -294,9 +395,16 @@ export class CircuitSimulation {
     const frame = this.currentFrame;
     for (const pin of pins) {
       const state = pin.path?.state;
-      const pinRec = this.recording.get(pin);
-      if (pinRec && pinRec.getBack() != state) {
-        pinRec.setFrame(frame, state);
+      const rec = this.recording.get(pin);
+      if (rec && rec.getBack() != state) {
+        rec.setFrame(frame, state);
+      }
+    }
+    for (const [probe, nodes] of this.probedNodes) {
+      const state = nodes.some(getNodeState);
+      const rec = this.recording.get(probe);
+      if (rec && rec.getBack() != state) {
+        rec.setFrame(frame, state);
       }
     }
     this.recordingLength = Math.max(this.recordingLength, frame + 1);

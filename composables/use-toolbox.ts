@@ -9,7 +9,9 @@ export type ToolboxMode =
   | 'draw-metal'
   | 'draw-p-silicon'
   | 'draw-n-silicon'
-  | 'draw-via';
+  | 'draw-via'
+  | 'toggle-probe'
+  | 'toggle-probe-named';
 
 interface ToolboxModeConfig {
   shiftMode?: ToolboxMode;
@@ -21,6 +23,7 @@ const modes: Record<ToolboxMode, ToolboxModeConfig> = {
   select: {},
   'draw-metal': {
     ctrlMode: 'erase-metal',
+    shiftMode: 'draw-via',
   },
   'draw-p-silicon': {
     ctrlMode: 'erase-silicon',
@@ -45,6 +48,12 @@ const modes: Record<ToolboxMode, ToolboxModeConfig> = {
   },
   'erase-gate': {
     shiftMode: 'erase',
+  },
+  'toggle-probe': {
+    shiftMode: 'toggle-probe-named',
+  },
+  'toggle-probe-named': {
+    shiftMode: 'toggle-probe',
   },
 };
 

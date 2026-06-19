@@ -1,5 +1,5 @@
 import { test } from 'vitest';
-import { assertEqual, assertPin } from '@/utils/assert';
+import { assertEqual, assertPin } from '@/test/utils/assert';
 import {
   CircuitDesignData,
   ConnectionValue,

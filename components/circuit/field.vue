@@ -1,13 +1,6 @@
 <template>
   <div class="relative w-full h-full">
-    <canvas
-      ref="canvas"
-      id="field-canvas"
-      class="absolute w-full h-full"
-      @mousedown="onMouseDown"
-      @wheel="onWheel"
-      oncontextmenu="return false;"
-    >
+    <canvas ref="canvas" class="absolute w-full h-full">
       Your browser must support the canvas tag.
     </canvas>
     <div class="absolute w-full h-full pointer-events-none select-none">
@@ -18,21 +11,20 @@
         />
       </div>
     </div>
+    <DialogProbeLabel
+      v-if="dialogLabelProbe.probe"
+      v-model="dialogLabelProbe.open"
+      v-model:probe="dialogLabelProbe.probe"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  Layer,
-  MetalValue,
-  SiliconValue,
-  ViaValue,
-  GateValue,
-} from '@/serialization';
-import { FieldGraph, GateNode, PathNode } from '@/simulation';
-import type { Point } from '@/simulation';
-import type { ToolboxMode } from '@/composables/use-toolbox';
-import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
+import { FieldGraph } from '@/simulation';
+import type { GraphLayer, Point } from '@/simulation';
+import { useMenuBarListener } from '@/components/menu/bar-app-events';
+import { BackgroundGridRenderer } from '@/render/BackgroundGridRenderer';
+import { FieldRenderer, type TileBounds } from '@/render/FieldRenderer';
 import {
   TILE_SIZE,
   DEFAULT_VIEW_SCALE,
@@ -47,8 +39,7 @@ import {
   stepViewScale,
   zoomAtPoint,
 } from '@/utils/field-view';
-
-const TILE_SIZE_HALF = Math.floor(TILE_SIZE / 2);
+import type { ProbeInfo } from '@/simulation/CircuitSimulation';
 
 const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);
@@ -61,6 +52,22 @@ const canvasLayers = {
   overlay: document.createElement('canvas'),
 };
 
+const gridRenderer = new BackgroundGridRenderer(canvasLayers['background']);
+const fieldRenderer = new FieldRenderer().applyCanvases({
+  metal: canvasLayers['metal-tiles'],
+  silicon: canvasLayers['silicon-tiles'],
+  metalHot: canvasLayers['metal-hot'],
+  siliconHot: canvasLayers['silicon-hot'],
+});
+const selectionFieldRenderer = new FieldRenderer().setCanvas(
+  canvasLayers['overlay'],
+);
+
+const dialogLabelProbe = reactive({
+  probe: null as ProbeInfo | null,
+  open: false,
+});
+
 const {
   field,
   dimensions,
@@ -69,16 +76,11 @@ const {
   resetVerificationResult,
 } = useFieldGraph();
 const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
-const {
-  sim,
-  network,
-  circuitFactory,
-  isRunning,
-  stepsPerSecond,
-  onRender: onCircuitRender,
-} = useCircuitSimulator();
+const { sim, network, circuitFactory, isRunning, stepsPerSecond, onStepAnim } =
+  useCircuitSimulator();
 const { mode: toolBoxMode, ignoreKeyShortcuts } = useToolbox();
-const images = useImageLoader();
+const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
+const tilePreloader = useTileRenderer();
 
 const canvasWidth = ref(0);
 const canvasHeight = ref(0);
@@ -102,23 +104,6 @@ const canvasMouseX = ref(0);
 const canvasMouseY = ref(0);
 const canvasMouseOutside = ref(true);
 
-const updateCanvasPointer = (clientX: number, clientY: number) => {
-  if (!canvas.value) return;
-  const [x, y] = canvasPointerPosition(canvas.value, clientX, clientY);
-  canvasMouseX.value = x;
-  canvasMouseY.value = y;
-  canvasMouseOutside.value = false;
-};
-
-useEventListener(canvas, 'mousemove', (e) =>
-  updateCanvasPointer(e.clientX, e.clientY),
-);
-useEventListener(canvas, 'mouseenter', (e) =>
-  updateCanvasPointer(e.clientX, e.clientY),
-);
-useEventListener(canvas, 'mouseleave', () => {
-  canvasMouseOutside.value = true;
-});
 const coordMouseX = computed(
   () =>
     mouseToGridCoord(
@@ -143,34 +128,64 @@ const isDrawing = ref(false);
 const isPanning = ref(false);
 let prevDrawingCoords: Point = [0, 0];
 
+const showPinLabels = ref(true);
+
 const perfRenderTime = ref(0);
+const debugFlags = reactive({
+  // TODO: UI to toggle debug flags?
+  enabled: true,
+  showMouseCanvasPosition: false,
+  showMouseGridPosition: true,
+  showLayersDataAtMouse: false,
+  showGridSize: false,
+  showViewPosition: false,
+  showViewBounds: false,
+  showRenderTime: true,
+  showStepsPerSecond: true,
+});
 const debugMsg = computed(() => {
+  if (!debugFlags.enabled) return '';
   const dbg: string[] = [];
   if (!canvasMouseOutside.value) {
-    const mouseX = canvasMouseX.value.toFixed(0);
-    const mouseY = canvasMouseY.value.toFixed(0);
-    const coordX = coordMouseX.value;
-    const coordY = coordMouseY.value;
-    //dbg.push(`Mouse: [${mouseX}, ${mouseY}]`);
-    dbg.push(`Coord: [${coordX}, ${coordY}]`);
-    /*
-    const data = field.value?.getData();
-    if (data) {
-      data.getLayers().forEach((layer, idx) => {
-        dbg.push(`Layer ${idx}: ${layer[col]?.[row]}`);
-      });
+    if (debugFlags.showMouseCanvasPosition) {
+      const mouseX = canvasMouseX.value.toFixed(0);
+      const mouseY = canvasMouseY.value.toFixed(0);
+      dbg.push(`Mouse: [${mouseX}, ${mouseY}]`);
     }
-    */
+    if (debugFlags.showMouseGridPosition) {
+      const coordX = coordMouseX.value;
+      const coordY = coordMouseY.value;
+      dbg.push(`Coord: [${coordX}, ${coordY}]`);
+    }
+    if (debugFlags.showLayersDataAtMouse) {
+      const layers = field.value?.getData()?.getLayers();
+      if (layers) {
+        const layersInfo = layers.map(
+          (layer, idx) =>
+            `${idx}:${layer[coordMouseX.value]?.[coordMouseY.value] ?? '?'}`,
+        );
+        dbg.push(`Layers: ${layersInfo.join(' ')}`);
+      }
+    }
   }
-  const panX = viewX.value.toFixed(0);
-  const panY = viewY.value.toFixed(0);
-  const { minX, minY, maxX, maxY } = viewBounds.value;
-  const { columns, rows } = dimensions;
-  // dbg.push(`Grid: [${columns}, ${rows}]`);
-  //dbg.push(`View: [${panX}, ${panY}]`);
-  // dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
-  dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
-  dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
+  if (debugFlags.showGridSize) {
+    dbg.push(`Grid: [${dimensions.columns}, ${dimensions.rows}]`);
+  }
+  if (debugFlags.showViewPosition) {
+    const panX = viewX.value.toFixed(0);
+    const panY = viewY.value.toFixed(0);
+    dbg.push(`View: [${panX}, ${panY}]`);
+  }
+  if (debugFlags.showViewBounds) {
+    const { minX, minY, maxX, maxY } = viewBounds.value;
+    dbg.push(`View Bounds: min=[${minX}, ${minY}] max=[${maxX}, ${maxY}]`);
+  }
+  if (debugFlags.showRenderTime) {
+    dbg.push(`Last render ms: ${perfRenderTime.value.toFixed(2)}`);
+  }
+  if (debugFlags.showStepsPerSecond) {
+    dbg.push(`Steps/s: ${stepsPerSecond.value.toFixed(2)}`);
+  }
   return dbg.join('<br/>');
 });
 
@@ -184,16 +199,14 @@ const {
   translate: selectionTranslate,
   fieldGraph: selectionFieldGraph,
   isSnippet: selectionIsSnippet,
-  fieldView: selectionFieldView,
-} = useSelection();
-watch([viewX, viewY], ([x, y]) => (selectionFieldView.value = [x, y])); // TODO: yuck, crappy way of providing viewX and viewY to the selection composable
+} = useSelection({ canvas, viewX, viewY });
 
-const getTileViewport = (): {
+function getTileViewport(): {
   left: number;
   top: number;
   right: number;
   bottom: number;
-} => {
+} {
   const { columns, rows } = dimensions;
   return computeTileViewport(
     viewX.value,
@@ -204,321 +217,98 @@ const getTileViewport = (): {
     columns,
     rows,
   );
-};
+}
 
-const renderBackground = () => {
-  const ctx = canvasLayers['background']?.getContext('2d');
-  if (!ctx) throw new Error('Could not get background canvas context');
-  canvasDirty.value = true;
-  const { columns, rows } = dimensions;
+function renderBackground() {
   const [minCol, maxCol] = field.value.getMinMaxColumns();
-  const { left, top, right, bottom } = getTileViewport();
-  // Background colour
-  ctx.fillStyle = '#959595';
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.save();
-  applyFieldViewTransform(ctx, viewX.value, viewY.value, viewScale.value);
-  // Draw grid lines
-  ctx.save();
-  ctx.translate(0.5, 0.5);
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#818181';
-  ctx.beginPath();
-  for (let x = left; x <= right; x++) {
-    ctx.moveTo(x * TILE_SIZE, 0);
-    ctx.lineTo(x * TILE_SIZE, rows * TILE_SIZE);
-  }
-  for (let y = top; y <= bottom; y++) {
-    ctx.moveTo(0, y * TILE_SIZE);
-    ctx.lineTo(columns * TILE_SIZE, y * TILE_SIZE);
-  }
-  ctx.stroke();
-  ctx.restore();
-  // Draw pin column boundaries
-  ctx.fillStyle = 'rgba(0,0,0,calc(20/255))';
-  ctx.fillRect(0, 0, minCol * TILE_SIZE + 1, rows * TILE_SIZE + 1);
-  ctx.fillRect(
-    (maxCol + 1) * TILE_SIZE,
-    0,
-    (columns - maxCol - 1) * TILE_SIZE,
-    rows * TILE_SIZE,
-  );
-  // Draw border
-  ctx.strokeStyle = '#000';
-  ctx.strokeRect(0.5, 0.5, columns * TILE_SIZE, rows * TILE_SIZE);
-  ctx.restore();
-};
-
-const renderTiles = (
-  options: {
-    metal?: boolean; // Render metal layer
-    silicon?: boolean; // Render silicon layer
-    context2d?: CanvasRenderingContext2D; // Override context to render to
-    field?: FieldGraph; // Override field to render
-    bounds?: number[]; // Rendering bounds
-    noTranslate?: boolean; // Disables view translation
-  } = {},
-) => {
-  const contextSiliconTiles =
-    options.context2d ?? canvasLayers['silicon-tiles']?.getContext('2d');
-  const contextMetalTiles =
-    options.context2d ?? canvasLayers['metal-tiles']?.getContext('2d');
-  if (!contextSiliconTiles)
-    throw new Error('Could not get silicon-tiles canvas context');
-  if (!contextMetalTiles)
-    throw new Error('Could not get metal-tiles canvas context');
+  gridRenderer.applyDefinition({
+    columns: dimensions.columns,
+    rows: dimensions.rows,
+    boundaryLeft: minCol,
+    boundaryRight: dimensions.columns - maxCol,
+  });
+  gridRenderer.render({
+    viewport: getTileViewport(),
+    transform: {
+      translateX: viewX.value,
+      translateY: viewY.value,
+      scale: viewScale.value,
+    },
+  });
   canvasDirty.value = true;
-  const data = (options.field ?? field.value).getData();
-  const { columns, rows } = options.field?.getDimensions() ?? dimensions;
-  const {
-    metal: showMetal,
-    silicon: showSilicon,
-    bounds,
-    noTranslate,
-  } = Object.assign({ metal: true, silicon: true }, options);
-  const tileViewport = getTileViewport();
-  let [left, top, right, bottom] = bounds ?? [
-    tileViewport.left,
-    tileViewport.top,
-    tileViewport.right,
-    tileViewport.bottom,
-  ];
-  left = Math.max(0, left - 2);
-  top = Math.max(0, top - 2);
-  right = Math.min(columns - 1, right + 2);
-  bottom = Math.min(rows - 1, bottom + 2);
-  if (!options.context2d) {
-    if (bounds) {
-      for (const ctx of [contextSiliconTiles, contextMetalTiles]) {
-        ctx.save();
-        applyFieldViewTransform(
-          ctx,
-          viewX.value,
-          viewY.value,
-          viewScale.value,
-        );
-        ctx.clearRect(
-          left * TILE_SIZE + 1,
-          top * TILE_SIZE + 1,
-          (right - left + 1) * TILE_SIZE,
-          (bottom - top + 1) * TILE_SIZE,
-        );
-        ctx.restore();
-      }
-    } else {
-      contextSiliconTiles.clearRect(
-        0,
-        0,
-        contextSiliconTiles.canvas.width,
-        contextSiliconTiles.canvas.height,
-      );
-      contextMetalTiles.clearRect(
-        0,
-        0,
-        contextMetalTiles.canvas.width,
-        contextMetalTiles.canvas.height,
-      );
-    }
-  }
-  if (showSilicon) {
-    const ctx = contextSiliconTiles;
-    const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
-    const siliconLayer = data.getLayer(Layer.Silicon);
-    const siliconConnHLayer = data.getLayer(Layer.SiliconConnectionsH);
-    const siliconConnVLayer = data.getLayer(Layer.SiliconConnectionsV);
-    const gatesHLayer = data.getLayer(Layer.GatesH);
-    const gatesVLayer = data.getLayer(Layer.GatesV);
-    const viaLayer = data.getLayer(Layer.Vias);
-    const viaImage = images.findImage('/tiles/link.png');
-    ctx.save();
-    !noTranslate &&
-      applyFieldViewTransform(
-        ctx,
-        viewX.value,
-        viewY.value,
-        viewScale.value,
-      );
-    !noTranslate && ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
-    ctx.strokeStyle = '#060000';
-    // Silicon layer + vias
-    for (let x = left; x <= right; x++) {
-      ctx.save();
-      for (let y = top; y <= bottom; y++) {
-        const st = siliconLayer[x][y];
-        if (st === SiliconValue.PSilicon) {
-          const xdir = getDirectionX(siliconConnHLayer, x, y);
-          const ydir = getDirectionY(siliconConnVLayer, x, y);
-          if (gatesHLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.PGateH, xdir, ydir);
-          } else if (gatesVLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.PGateV, xdir, ydir);
-          } else {
-            renderTile(TileType.PSilicon, xdir, ydir);
-          }
-        } else if (st === SiliconValue.NSilicon) {
-          const xdir = getDirectionX(siliconConnHLayer, x, y);
-          const ydir = getDirectionY(siliconConnVLayer, x, y);
-          if (gatesHLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.NGateH, xdir, ydir);
-          } else if (gatesVLayer[x][y] === GateValue.Gate) {
-            renderTile(TileType.NGateV, xdir, ydir);
-          } else {
-            renderTile(TileType.NSilicon, xdir, ydir);
-          }
-        }
-        if (viaLayer[x][y] === ViaValue.Via) {
-          //ctx.beginPath();
-          //ctx.roundRect(TILE_SIZE_HALF - 2.5, TILE_SIZE_HALF - 2.5, 5, 5, 1.5);
-          //ctx.stroke();
-          //ctx.closePath();
-          ctx.drawImage(viaImage, 0, 0);
-        }
-        ctx.translate(0, TILE_SIZE);
-      }
-      ctx.restore();
-      ctx.translate(TILE_SIZE, 0);
-    }
-    ctx.restore();
-  }
-  // Metal layer
-  if (showMetal) {
-    const ctx = contextMetalTiles;
-    const { renderTile, getDirectionX, getDirectionY } = useTileRenderer(ctx);
-    const metalLayer = data.getLayer(Layer.Metal);
-    const metalConnHLayer = data.getLayer(Layer.MetalConnectionsH);
-    const metalConnVLayer = data.getLayer(Layer.MetalConnectionsV);
-    ctx.save();
-    !noTranslate &&
-      applyFieldViewTransform(
-        ctx,
-        viewX.value,
-        viewY.value,
-        viewScale.value,
-      );
-    !noTranslate && ctx.translate(left * TILE_SIZE + 1, top * TILE_SIZE + 1);
-    for (let x = left; x <= right; x++) {
-      ctx.save();
-      for (let y = top; y <= bottom; y++) {
-        if (metalLayer[x][y] === MetalValue.Metal) {
-          const xdir = getDirectionX(metalConnHLayer, x, y);
-          const ydir = getDirectionY(metalConnVLayer, x, y);
-          renderTile(TileType.Metal, xdir, ydir);
-        }
-        ctx.translate(0, TILE_SIZE);
-      }
-      ctx.restore();
-      ctx.translate(TILE_SIZE, 0);
-    }
-    ctx.restore();
-  }
-};
+}
 
-const renderHot = (
-  options: { metal?: boolean; silicon?: boolean } = {
+function renderField(bounds?: TileBounds) {
+  fieldRenderer.render({
+    field: field.value,
     metal: true,
     silicon: true,
-  },
-) => {
-  const net = network.value;
-  const ctxMetalHot = canvasLayers['metal-hot']?.getContext('2d');
-  const ctxSiliconHot = canvasLayers['silicon-hot']?.getContext('2d');
-  if (!ctxMetalHot) throw new Error('Could not get metal-hot canvas context');
-  if (!ctxSiliconHot)
-    throw new Error('Could not get silicon-hot canvas context');
+    bounds: bounds,
+    transform: {
+      translateX: viewX.value,
+      translateY: viewY.value,
+      scale: viewScale.value,
+    },
+  });
   canvasDirty.value = true;
-  const { metal: showMetal, silicon: showSilicon } = Object.assign(
-    { metal: false, silicon: false },
-    options,
-  );
-  const { left, top, right, bottom } = getTileViewport();
-  ctxMetalHot.clearRect(
-    0,
-    0,
-    ctxMetalHot.canvas.width,
-    ctxMetalHot.canvas.height,
-  );
-  ctxSiliconHot.clearRect(
-    0,
-    0,
-    ctxSiliconHot.canvas.width,
-    ctxSiliconHot.canvas.height,
-  );
-  ctxMetalHot.save();
-  ctxSiliconHot.save();
-  applyFieldViewTransform(
-    ctxMetalHot,
-    viewX.value,
-    viewY.value,
-    viewScale.value,
-  );
-  applyFieldViewTransform(
-    ctxSiliconHot,
-    viewX.value,
-    viewY.value,
-    viewScale.value,
-  );
-  ctxMetalHot.translate(1, 1);
-  ctxSiliconHot.translate(1, 1);
-  // Draw current
-  if (isRunning.value) {
-    const hotImage = images.findImage('/tiles/hot.png');
-    for (let x = left; x <= right; x++) {
-      for (let y = top; y <= bottom; y++) {
-        if (showSilicon) {
-          const nodes = net.getNodesAt([x, y], 'silicon');
-          const hot = nodes.some((n) => {
-            if (n instanceof PathNode) {
-              return n.state;
-            } else if (n instanceof GateNode) {
-              const open = n.isNPN ? n.active : !n.active;
-              return open && n.gatedPaths.some((p) => p.state);
-            }
-            return false;
-          });
-          if (hot) {
-            ctxSiliconHot.drawImage(hotImage, x * TILE_SIZE, y * TILE_SIZE);
-          }
-        }
-        if (showMetal) {
-          const nodes = net.getNodesAt([x, y], 'metal');
-          const hot = nodes.some((n) => {
-            if (n instanceof PathNode) {
-              return n.state;
-            }
-            return false;
-          });
-          if (hot) {
-            ctxMetalHot.drawImage(hotImage, x * TILE_SIZE, y * TILE_SIZE);
-          }
-        }
-      }
-    }
-  }
-  ctxMetalHot.restore();
-  ctxSiliconHot.restore();
-};
+}
 
-const renderOverlay = () => {
+function renderHot() {
+  fieldRenderer.render({
+    field: field.value,
+    network: network.value,
+    metalHot: true,
+    siliconHot: true,
+    transform: {
+      translateX: viewX.value,
+      translateY: viewY.value,
+      scale: viewScale.value,
+    },
+  });
+  canvasDirty.value = true;
+}
+
+function renderOverlay() {
   const ctx = canvasLayers['overlay'].getContext('2d');
   if (!ctx) throw new Error('Could not get overlay canvas context');
   const net = network.value;
-  canvasDirty.value = true;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.save();
   applyFieldViewTransform(ctx, viewX.value, viewY.value, viewScale.value);
-  /*
-  // Draw mouse cursor
-  ctx.save();
-  ctx.translate(0.5, 0.5);
-  if (!canvasMouseOutside.value) {
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(255, 255, 255, calc(2/3))';
-    ctx.strokeRect(Math.floor(canvasMouseX.value / TILE_SIZE) * TILE_SIZE, Math.floor(canvasMouseY.value / TILE_SIZE) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  // Draw pin labels
+  if (showPinLabels.value) {
+    ctx.fillStyle = '#000';
+    ctx.font = '10px Georgia10';
+    const pinNodes = net.getPinNodes();
+    const textPadX = 3;
+    for (let pid = 0; pid < pinNodes.length; pid++) {
+      const [x, y] = field.value.getPinPoint(pid);
+      const { label } = pinNodes[pid];
+      const tx = x * TILE_SIZE + textPadX;
+      const ty = y * TILE_SIZE + 10;
+      const tw = TILE_SIZE * 3 - textPadX;
+      ctx.fillText(label, tx, ty, tw);
+    }
   }
-  ctx.restore();
-  */
-  // Draw selection
+  // Draw probes
+  const probes = sim.value?.getProbes() ?? [];
+  ctx.fillStyle = '#88ffffee';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  for (const probe of probes) {
+    const [x, y] = probe.layerPosition;
+    const tx = x * TILE_SIZE + TILE_SIZE / 2 + 0.5;
+    const ty = y * TILE_SIZE + TILE_SIZE / 2;
+    ctx.beginPath();
+    ctx.moveTo(tx, ty);
+    ctx.lineTo(tx - 4, ty - 9);
+    ctx.lineTo(tx + 4, ty - 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
   if (!isRunning.value) {
+    // Draw selection box
     if (selectionStart.value && selectionEnd.value) {
       ctx.save();
       ctx.translate(0.5, 0.5);
@@ -535,6 +325,7 @@ const renderOverlay = () => {
       ctx.strokeRect(0, 0, width * TILE_SIZE, height * TILE_SIZE);
       ctx.restore();
     }
+    // Draw selection field tiles
     if (
       selectionFieldGraph.value &&
       (selectionState.value === 'dragging' ||
@@ -548,40 +339,28 @@ const renderOverlay = () => {
         Math.floor((left + tx) * TILE_SIZE),
         Math.floor((top + ty) * TILE_SIZE),
       );
-      renderTiles({
-        context2d: ctx,
+      selectionFieldRenderer.render({
         field: selectionFieldGraph.value,
-        noTranslate: true,
+        metal: true,
+        silicon: true,
+        noClear: true,
       });
       ctx.restore();
     }
   }
-  // Draw pin labels
-  ctx.fillStyle = '#000';
-  ctx.font = '10px Georgia10';
-  const pinNodes = net.getPinNodes();
-  const textPadX = 3;
-  for (let pid = 0; pid < pinNodes.length; pid++) {
-    const [x, y] = field.value.getPinPoint(pid);
-    const { label } = pinNodes[pid];
-    const tx = x * TILE_SIZE + textPadX;
-    const ty = y * TILE_SIZE + 10;
-    const tw = TILE_SIZE * 3 - textPadX * 2;
-    ctx.fillText(label, tx, ty, tw);
-  }
   ctx.restore();
-};
+  canvasDirty.value = true;
+}
 
-const tilePreloader = useTileRenderer();
-const renderAll = async () => {
+async function renderAll() {
   await tilePreloader.preloadImages();
   renderBackground();
-  renderTiles();
+  renderField();
   renderHot();
   renderOverlay();
-};
+}
 
-const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
+function draw(mode: ToolboxMode, coordA: Point, coordB: Point) {
   switch (mode) {
     default:
     case 'none':
@@ -616,27 +395,45 @@ const draw = (mode: ToolboxMode, coordA: Point, coordB: Point) => {
   }
   updateDesignScoreThrottle();
   resetVerificationResult();
-  const bounds = [
+  const bounds: TileBounds = [
     Math.min(coordA[0], coordB[0]),
     Math.min(coordA[1], coordB[1]),
     Math.max(coordA[0], coordB[0]),
     Math.max(coordA[1], coordB[1]),
   ];
-  queueAnimFuncs.add(() => renderTiles({ bounds }));
-};
+  queueAnimFuncs.add(() => renderField(bounds));
+}
 
-const clear = () => {
+function toggleProbe(coord: Point, layer?: GraphLayer, named?: boolean) {
+  if (!field.value.isInBounds(coord)) return;
+  const existing = sim.value?.getProbesAt(coord, layer);
+  if (existing.length) {
+    for (const probe of existing) {
+      sim.value?.removeProbe(probe);
+    }
+  } else {
+    const probe = sim.value?.addProbeAt(coord, layer);
+    if (probe && named) {
+      dialogLabelProbe.probe = probe;
+      dialogLabelProbe.open = true;
+    }
+  }
+  queueAnimFuncs.add(renderOverlay);
+}
+
+function clear() {
   if (isRunning.value) return;
   field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
     enforceBounds: true,
   });
+  sim.value?.clearProbes();
   updateDesignScore();
   resetVerificationResult();
   queueAnimFuncs.add(renderAll);
   history.push();
-};
+}
 
-const panView = (dx: number, dy: number) => {
+function panView(dx: number, dy: number) {
   const [x, y] = clampViewPosition(
     viewX.value + dx,
     viewY.value + dy,
@@ -645,9 +442,9 @@ const panView = (dx: number, dy: number) => {
   viewX.value = x;
   viewY.value = y;
   queueAnimFuncs.add(renderAll);
-};
+}
 
-const resetView = () => {
+function resetView() {
   const [x, y] = computeResetViewPosition(
     fieldWidth.value,
     fieldHeight.value,
@@ -658,14 +455,14 @@ const resetView = () => {
   );
   viewX.value = x;
   viewY.value = y;
-};
+}
 
-const resetViewZoom = () => {
+function resetViewZoom() {
   viewScale.value = DEFAULT_VIEW_SCALE;
   resetView();
-};
+}
 
-const zoomView = (newScale: number, anchorX: number, anchorY: number) => {
+function zoomView(newScale: number, anchorX: number, anchorY: number) {
   const zoomed = zoomAtPoint(
     viewX.value,
     viewY.value,
@@ -690,21 +487,9 @@ const zoomView = (newScale: number, anchorX: number, anchorY: number) => {
   viewX.value = x;
   viewY.value = y;
   queueAnimFuncs.add(renderAll);
-};
+}
 
-const onWheel = (e: WheelEvent) => {
-  e.preventDefault();
-  if (!canvas.value) return;
-  const [mx, my] = canvasPointerPosition(canvas.value, e.clientX, e.clientY);
-  updateCanvasPointer(e.clientX, e.clientY);
-  zoomView(
-    scaleFromWheelDelta(viewScale.value, e.deltaY, e.deltaMode),
-    mx,
-    my,
-  );
-};
-
-const invalidateCanvasSizes = () => {
+function updateCanvasSizes() {
   if (!canvas.value) return;
   const { clientWidth, clientHeight } = canvas.value;
   canvasWidth.value = Math.trunc(clientWidth);
@@ -716,48 +501,48 @@ const invalidateCanvasSizes = () => {
     canvas.width = canvasWidth.value;
     canvas.height = canvasHeight.value;
   }
-};
+}
 
-const mouseToGrid = (mx: number, my: number): Point => {
+function mouseToGrid(mx: number, my: number): Point {
   if (!canvas.value) return [0, 0];
   return mouseToGridCoord(mx, my, viewX.value, viewY.value, viewScale.value);
-};
+}
 
-const clampCoords = (coord: Point): Point => {
+function clampCoords(coord: Point): Point {
   const { rows } = dimensions;
   const [min, max] = field.value.getMinMaxColumns();
   const [x, y] = coord;
   return [Math.max(min, Math.min(max, x)), Math.max(0, Math.min(rows - 1, y))];
-};
+}
 
-const pointerCoords = (e: { clientX: number; clientY: number }): Point => {
+function pointerCoords(e: { clientX: number; clientY: number }): Point {
   if (!canvas.value) return [0, 0];
   return canvasPointerPosition(canvas.value, e.clientX, e.clientY);
-};
+}
 
-const startDraw = (e: MouseEvent) => {
+function startDraw(e: MouseEvent) {
   const [px, py] = pointerCoords(e);
   const mouseCoords = mouseToGrid(px, py);
   isDrawing.value = true;
   prevDrawingCoords = mouseCoords;
   draw(toolBoxMode.value, prevDrawingCoords, prevDrawingCoords);
-};
+}
 
-const endDraw = (e: MouseEvent) => {
+function endDraw(e: MouseEvent) {
   if (!isDrawing.value) return;
   isDrawing.value = false;
   history.push();
-};
+}
 
-const startPan = (e: MouseEvent) => {
+function startPan(e: MouseEvent) {
   isPanning.value = true;
-};
+}
 
-const endPan = (e: MouseEvent) => {
+function endPan(e: MouseEvent) {
   isPanning.value = false;
-};
+}
 
-const startSelection = (e: MouseEvent) => {
+function startSelection(e: MouseEvent) {
   if (
     selectionState.value === 'dragging' ||
     selectionState.value === 'dragging-duplicate'
@@ -774,7 +559,7 @@ const startSelection = (e: MouseEvent) => {
     } else {
       selectionState.value = 'dragging-duplicate';
     }
-    queueAnimFuncs.add(renderTiles);
+    queueAnimFuncs.add(renderField);
     queueAnimFuncs.add(renderOverlay);
   } else {
     selectionStart.value = clampCoords(mouseCoords);
@@ -782,18 +567,20 @@ const startSelection = (e: MouseEvent) => {
     selectionTranslate.value = [0, 0];
     selectionState.value = 'selecting';
   }
-};
+}
 
-const clearSelection = () => {
+function clearSelection() {
   selectionStart.value = undefined;
   selectionEnd.value = undefined;
   selectionTranslate.value = undefined;
   selectionFieldGraph.value = undefined;
   selectionIsSnippet.value = false;
   selectionState.value = undefined;
-};
+  updateDesignScoreThrottle();
+  resetVerificationResult();
+}
 
-const endSelection = () => {
+function endSelection() {
   switch (selectionState.value) {
     case 'selecting': {
       const [left, top, right, bottom] = selectionBounds.value!;
@@ -813,7 +600,11 @@ const endSelection = () => {
     case 'dragging-duplicate': {
       const lastState = selectionState.value;
       selectionState.value = undefined;
-      if (selectionFieldGraph.value && selectionBounds.value) {
+      if (
+        selectionFieldGraph.value &&
+        selectionBounds.value &&
+        !isRunning.value
+      ) {
         const [left, top, right, bottom] = selectionBounds.value;
         const [ox, oy] = selectionTranslate.value ?? [0, 0];
         const pasteStart: Point = [Math.round(left + ox), Math.round(top + oy)];
@@ -848,17 +639,207 @@ const endSelection = () => {
             selectionTranslate.value = [0, 0];
           }
         }
+        updateDesignScoreThrottle();
+        resetVerificationResult();
         history.push();
-        queueAnimFuncs.add(renderTiles);
+        queueAnimFuncs.add(renderField);
       } else {
         clearSelection();
       }
       break;
     }
   }
-};
+}
 
-const onKeyDownModifySelection = (e: KeyboardEvent) => {
+function deleteSelection() {
+  if (isRunning.value) return;
+  if (!selectionBounds.value) return;
+  const [left, top, right, bottom] = selectionBounds.value!;
+  const start: Point = [left, top];
+  const end: Point = [right, bottom];
+  if (
+    selectionState.value === 'selecting' ||
+    selectionState.value === 'selected'
+  ) {
+    field.value.clearRect(start, end, { enforceBounds: true });
+  }
+  selectionFieldGraph.value = undefined;
+  endSelection();
+  queueAnimFuncs.add(renderField);
+  queueAnimFuncs.add(renderOverlay);
+  history.push();
+}
+
+function undo() {
+  if (isRunning.value) return;
+  history.undo();
+  updateDesignScore();
+  resetVerificationResult();
+  queueAnimFuncs.add(renderAll);
+}
+
+function redo() {
+  if (isRunning.value) return;
+  history.redo();
+  updateDesignScore();
+  resetVerificationResult();
+  queueAnimFuncs.add(renderAll);
+}
+
+function coordInSelection(coord: Point) {
+  const [x, y] = coord;
+  if (!selectionBounds.value) return false;
+  const [left, top, right, bottom] = selectionBounds.value;
+  return x >= left && x <= right && y >= top && y <= bottom;
+}
+
+function cutSelectionToClipboard() {
+  if (isRunning.value) return;
+  if (!selectionFieldGraph.value) return;
+  if (!clipboard) return;
+  const data = selectionFieldGraph.value.toSaveString();
+  clipboard.copy(data);
+  const [left, top, right, bottom] = selectionBounds.value!;
+  const start: Point = [left, top];
+  const end: Point = [right, bottom];
+  field.value.clearRect(start, end, { enforceBounds: true });
+  endSelection();
+  queueAnimFuncs.add(renderField);
+  queueAnimFuncs.add(renderOverlay);
+  history.push();
+}
+
+function copySelectionToClipboard() {
+  if (!selectionFieldGraph.value) return;
+  if (!clipboard) return;
+  const data = selectionFieldGraph.value.toSaveString();
+  clipboard.copy(data).then(() => console.log('copied', clipboard.text.value));
+}
+
+function pasteClipboard() {
+  if (isRunning.value) return;
+  if (!clipboard) return;
+  try {
+    if (!clipboard.text.value) return;
+    const text = clipboard.text.value;
+    const graph = FieldGraph.from(text, 'snippet');
+    const { columns, rows } = graph.getDimensions();
+    if (columns > 0 && rows > 0) {
+      selectionFieldGraph.value = graph;
+      selectionTranslate.value = [
+        coordMouseX.value - columns / 2,
+        coordMouseY.value - rows / 2,
+      ];
+      selectionStart.value = [0, 0];
+      selectionEnd.value = [columns - 1, rows - 1];
+      selectionIsSnippet.value = true;
+      selectionState.value = 'dragging';
+      toolBoxMode.value = 'select';
+      queueAnimFuncs.add(renderOverlay);
+    }
+  } catch (err) {
+    console.error('Failed to parse clipboard data as field graph', err);
+  }
+}
+
+function updateCanvasPointer(clientX: number, clientY: number) {
+  if (!canvas.value) return;
+  const [x, y] = canvasPointerPosition(canvas.value, clientX, clientY);
+  canvasMouseX.value = x;
+  canvasMouseY.value = y;
+  canvasMouseOutside.value = false;
+}
+
+onStepAnim(() => queueAnimFuncs.add(renderHot));
+
+useRafFn(({ delta, timestamp }) => {
+  const start = performance.now();
+  queueAnimFuncs.forEach((fn) => fn());
+  queueAnimFuncs.clear();
+  if (!canvasDirty.value) return;
+  canvasDirty.value = false;
+  const ctx = canvas.value?.getContext('2d');
+  if (!ctx) throw new Error('Could not get primary canvas context');
+  const { width, height } = ctx.canvas;
+  ctx.drawImage(canvasLayers['background'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['silicon-tiles'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['silicon-hot'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['metal-tiles'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['metal-hot'], 0, 0, width, height);
+  ctx.drawImage(canvasLayers['overlay'], 0, 0, width, height);
+  perfRenderTime.value = performance.now() - start;
+});
+
+useResizeObserver(canvas, (entries, obs) => {
+  updateCanvasSizes();
+  queueAnimFuncs.add(renderAll);
+});
+
+useEventListener(canvas, 'mousemove', (e) =>
+  updateCanvasPointer(e.clientX, e.clientY),
+);
+
+useEventListener(canvas, 'mouseenter', (e) =>
+  updateCanvasPointer(e.clientX, e.clientY),
+);
+
+useEventListener(canvas, 'mouseleave', (e) => {
+  canvasMouseOutside.value = true;
+});
+
+useEventListener(canvas, 'wheel', (e) => {
+  e.preventDefault();
+  const [mx, my] = canvasPointerPosition(canvas.value!, e.clientX, e.clientY);
+  updateCanvasPointer(e.clientX, e.clientY);
+  zoomView(scaleFromWheelDelta(viewScale.value, e.deltaY, e.deltaMode), mx, my);
+});
+
+useEventListener(canvas, 'mousedown', (e) => {
+  e.preventDefault();
+  switch (e.button) {
+    case 0:
+      if (!isRunning.value) {
+        switch (toolBoxMode.value) {
+          case 'select':
+            startSelection(e);
+            break;
+          case 'toggle-probe':
+            toggleProbe(mouseToGrid(...pointerCoords(e)));
+            break;
+          case 'toggle-probe-named':
+            toggleProbe(mouseToGrid(...pointerCoords(e)), undefined, true);
+            break;
+          default:
+            startDraw(e);
+            break;
+        }
+      }
+      break;
+    case 2:
+      startPan(e);
+      break;
+  }
+});
+
+useEventListener(canvas, 'contextmenu', (e) => {
+  e.preventDefault();
+});
+
+useEventListener('mouseup', (e) => {
+  switch (e.button) {
+    case 0:
+      endDraw(e);
+      endSelection();
+      break;
+    case 2:
+      endPan(e);
+      break;
+  }
+});
+
+useEventListener('keydown', (e) => {
+  // Selection controls (flip, rotate, delete, etc)
+  if (ignoreKeyShortcuts.value) return;
   if (!selectionFieldGraph.value) return;
   let modified = true;
   switch (e.key.toLowerCase()) {
@@ -891,6 +872,11 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
         console.log('Rotate only works when dragging a selection');
       }
       break;
+    case 'delete':
+    case 'backspace':
+      deleteSelection();
+      modified = false;
+      break;
     default:
       modified = false;
       break;
@@ -901,80 +887,130 @@ const onKeyDownModifySelection = (e: KeyboardEvent) => {
     const end: Point = [right, bottom];
     field.value.clearRect(start, end, { enforceBounds: true });
     field.value.paste(start, selectionFieldGraph.value);
-    queueAnimFuncs.add(renderTiles);
+    queueAnimFuncs.add(renderField);
     history.push();
   }
-};
+});
 
-function deleteSelection() {
-  if (isRunning.value) return;
-  if (!selectionBounds.value) return;
-  const [left, top, right, bottom] = selectionBounds.value!;
-  const start: Point = [left, top];
-  const end: Point = [right, bottom];
-  if (
-    selectionState.value === 'selecting' ||
-    selectionState.value === 'selected'
-  ) {
-    field.value.clearRect(start, end, { enforceBounds: true });
+useEventListener('keydown', (e) => {
+  // Undo/redo shortcuts
+  if (ignoreKeyShortcuts.value) return;
+  if (e.key.toLowerCase() === 'z' && e.ctrlKey) {
+    if (e.shiftKey) {
+      redo();
+    } else {
+      undo();
+    }
   }
-  selectionFieldGraph.value = undefined;
-  endSelection();
-  queueAnimFuncs.add(renderTiles);
-  queueAnimFuncs.add(renderOverlay);
-  history.push();
-}
+});
 
-function undo() {
-  if (isRunning.value) return;
-  history.undo();
-  updateDesignScore();
-  resetVerificationResult();
-  queueAnimFuncs.add(renderAll);
-}
+useEventListener('keydown', (e) => {
+  // Zooming shortcuts
+  if (ignoreKeyShortcuts.value) return;
+  if (e.ctrlKey && !e.altKey && !e.metaKey) {
+    switch (e.key) {
+      case '=':
+      case '+':
+        e.preventDefault();
+        zoomView(
+          stepViewScale(viewScale.value, 'in'),
+          canvasWidth.value / 2,
+          canvasHeight.value / 2,
+        );
+        break;
+      case '-':
+        e.preventDefault();
+        zoomView(
+          stepViewScale(viewScale.value, 'out'),
+          canvasWidth.value / 2,
+          canvasHeight.value / 2,
+        );
+        break;
+      case '0':
+        if (!e.shiftKey) {
+          e.preventDefault();
+          resetViewZoom();
+          queueAnimFuncs.add(renderAll);
+        }
+        break;
+    }
+  }
+});
 
-function redo() {
-  if (isRunning.value) return;
-  history.redo();
-  updateDesignScore();
-  resetVerificationResult();
-  queueAnimFuncs.add(renderAll);
-}
+useEventListener('keydown', (e) => {
+  // Cut, copy, paste shortcuts
+  if (ignoreKeyShortcuts.value) return;
+  const k = e.key.toLowerCase();
+  if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+    switch (k) {
+      case 'c':
+        copySelectionToClipboard();
+        break;
+      case 'x':
+        cutSelectionToClipboard();
+        break;
+      case 'v': {
+        pasteClipboard();
+        break;
+      }
+    }
+  }
+});
 
-const onKeyDownDeleteSelection = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'Delete':
-    case 'Backspace':
+useMenuBarListener((event) => {
+  switch (event.id) {
+    case 'view/reset':
+      resetView();
+      queueAnimFuncs.add(renderAll);
+      break;
+    case 'view/toggle-debug':
+      debugFlags.enabled = !debugFlags.enabled;
+      break;
+    case 'view/zoom-in':
+      zoomView(
+        stepViewScale(viewScale.value, 'in'),
+        canvasWidth.value / 2,
+        canvasHeight.value / 2,
+      );
+      break;
+    case 'view/zoom-out':
+      zoomView(
+        stepViewScale(viewScale.value, 'out'),
+        canvasWidth.value / 2,
+        canvasHeight.value / 2,
+      );
+      break;
+    case 'view/zoom-reset':
+      resetViewZoom();
+      queueAnimFuncs.add(renderAll);
+      break;
+    case 'edit/clear-probes':
+      sim.value?.clearProbes();
+      queueAnimFuncs.add(renderOverlay);
+      break;
+    case 'edit/clear':
+      clear();
+      break;
+    case 'edit/undo':
+      undo();
+      break;
+    case 'edit/redo':
+      redo();
+      break;
+    case 'edit/cut':
+      cutSelectionToClipboard();
+      break;
+    case 'edit/copy':
+      copySelectionToClipboard();
+      break;
+    case 'edit/paste':
+      pasteClipboard();
+      break;
+    case 'edit/delete':
       deleteSelection();
       break;
   }
-};
-
-const coordInSelection = (coord: Point) => {
-  const [x, y] = coord;
-  if (!selectionBounds.value) return false;
-  const [left, top, right, bottom] = selectionBounds.value;
-  return x >= left && x <= right && y >= top && y <= bottom;
-};
-
-const onMouseDown = (e: MouseEvent) => {
-  if (!canvas.value) return;
-  e.preventDefault();
-  switch (e.button) {
-    case 0:
-      if (!isRunning.value) {
-        if (toolBoxMode.value === 'select') {
-          startSelection(e);
-        } else {
-          startDraw(e);
-        }
-      }
-      break;
-    case 2:
-      startPan(e);
-      break;
-  }
-};
+});
 
 watch([canvasMouseX, canvasMouseY], ([x, y], [oldX, oldY]) => {
   const dx = x - oldX;
@@ -1020,233 +1056,18 @@ watch(toolBoxMode, (mode, was) => {
   }
 });
 
-useEventListener('mouseup', (e) => {
-  if (!canvas.value) return;
-  switch (e.button) {
-    case 0:
-      endDraw(e);
-      break;
-    case 2:
-      endPan(e);
-      break;
-  }
-});
-
-useEventListener(canvas, 'mouseup', (e) => {
-  switch (e.button) {
-    case 0:
-      endSelection();
-      break;
-  }
-});
-
-useEventListener('keydown', (e) => {
-  if (ignoreKeyShortcuts.value) return;
-  onKeyDownModifySelection(e);
-  onKeyDownDeleteSelection(e);
-});
-
-useEventListener('keydown', (e) => {
-  if (ignoreKeyShortcuts.value) return;
-  if (e.key.toLowerCase() === 'z' && e.ctrlKey) {
-    if (e.shiftKey) {
-      redo();
-    } else {
-      undo();
-    }
-  }
-});
-
-useEventListener('keydown', (e) => {
-  if (ignoreKeyShortcuts.value) return;
-  if (e.ctrlKey && !e.altKey && !e.metaKey) {
-    switch (e.key) {
-      case '=':
-      case '+':
-        e.preventDefault();
-        zoomView(
-          stepViewScale(viewScale.value, 'in'),
-          canvasWidth.value / 2,
-          canvasHeight.value / 2,
-        );
-        break;
-      case '-':
-        e.preventDefault();
-        zoomView(
-          stepViewScale(viewScale.value, 'out'),
-          canvasWidth.value / 2,
-          canvasHeight.value / 2,
-        );
-        break;
-      case '0':
-        if (!e.shiftKey) {
-          e.preventDefault();
-          resetViewZoom();
-          queueAnimFuncs.add(renderAll);
-        }
-        break;
-    }
-  }
-});
-
-const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
-
-function cutSelectionToClipboard() {
-  if (isRunning.value) return;
-  if (!selectionFieldGraph.value) return;
-  if (!clipboard) return;
-  const data = selectionFieldGraph.value.toSaveString();
-  clipboard.copy(data);
-  const [left, top, right, bottom] = selectionBounds.value!;
-  const start: Point = [left, top];
-  const end: Point = [right, bottom];
-  field.value.clearRect(start, end, { enforceBounds: true });
-  endSelection();
-  queueAnimFuncs.add(renderTiles);
-  queueAnimFuncs.add(renderOverlay);
-  history.push();
-}
-
-function copySelectionToClipboard() {
-  if (!selectionFieldGraph.value) return;
-  if (!clipboard) return;
-  const data = selectionFieldGraph.value.toSaveString();
-  clipboard.copy(data).then(() => console.log('copied', clipboard.text.value));
-}
-
-function pasteClipboard() {
-  if (isRunning.value) return;
-  if (!clipboard) return;
-  try {
-    console.log('paste', clipboard.text.value);
-    if (!clipboard.text.value) return;
-    const text = clipboard.text.value;
-    const graph = FieldGraph.from(text, 'snippet');
-    const { columns, rows } = graph.getDimensions();
-    if (columns > 0 && rows > 0) {
-      selectionFieldGraph.value = graph;
-      selectionTranslate.value = [
-        coordMouseX.value - columns / 2,
-        coordMouseY.value - rows / 2,
-      ];
-      selectionStart.value = [0, 0];
-      selectionEnd.value = [columns - 1, rows - 1];
-      selectionIsSnippet.value = true;
-      selectionState.value = 'dragging';
-      toolBoxMode.value = 'select';
-      queueAnimFuncs.add(renderOverlay);
-    }
-  } catch (err) {
-    console.error('Failed to parse clipboard data as field graph', err);
-  }
-}
-
-useEventListener('keydown', (e) => {
-  if (ignoreKeyShortcuts.value) return;
-  const k = e.key.toLowerCase();
-  if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
-    switch (k) {
-      case 'c':
-        copySelectionToClipboard();
-        break;
-      case 'x':
-        cutSelectionToClipboard();
-        break;
-      case 'v': {
-        pasteClipboard();
-        break;
-      }
-    }
-  }
-});
-
-useEventListener(
-  document,
-  MenuBarActionEvent.eventType,
-  (event: MenuBarActionEvent) => {
-    switch (event.id) {
-      case 'view/reset':
-        resetView();
-        queueAnimFuncs.add(renderAll);
-        break;
-      case 'view/zoom-in':
-        zoomView(
-          stepViewScale(viewScale.value, 'in'),
-          canvasWidth.value / 2,
-          canvasHeight.value / 2,
-        );
-        break;
-      case 'view/zoom-out':
-        zoomView(
-          stepViewScale(viewScale.value, 'out'),
-          canvasWidth.value / 2,
-          canvasHeight.value / 2,
-        );
-        break;
-      case 'view/zoom-reset':
-        resetViewZoom();
-        queueAnimFuncs.add(renderAll);
-        break;
-      case 'edit/clear':
-        clear();
-        break;
-      case 'edit/undo':
-        undo();
-        break;
-      case 'edit/redo':
-        redo();
-        break;
-      case 'edit/cut':
-        cutSelectionToClipboard();
-        break;
-      case 'edit/copy':
-        copySelectionToClipboard();
-        break;
-      case 'edit/paste':
-        pasteClipboard();
-        break;
-      case 'edit/delete':
-        deleteSelection();
-        break;
-    }
-  },
-);
-
-useResizeObserver(canvas, (entries, obs) => {
-  invalidateCanvasSizes();
-  queueAnimFuncs.add(renderAll);
-});
-
-useRafFn(({ delta, timestamp }) => {
-  const start = performance.now();
-  queueAnimFuncs.forEach((fn) => fn());
-  queueAnimFuncs.clear();
-  if (!canvasDirty.value) return;
-  canvasDirty.value = false;
-  const ctx = canvas.value?.getContext('2d');
-  if (!ctx) throw new Error('Could not get primary canvas context');
-  const { width, height } = ctx.canvas;
-  ctx.drawImage(canvasLayers['background'], 0, 0, width, height);
-  ctx.drawImage(canvasLayers['silicon-tiles'], 0, 0, width, height);
-  ctx.drawImage(canvasLayers['silicon-hot'], 0, 0, width, height);
-  ctx.drawImage(canvasLayers['metal-tiles'], 0, 0, width, height);
-  ctx.drawImage(canvasLayers['metal-hot'], 0, 0, width, height);
-  ctx.drawImage(canvasLayers['overlay'], 0, 0, width, height);
-  perfRenderTime.value = performance.now() - start;
-});
-
-onCircuitRender(() => {
-  queueAnimFuncs.add(renderHot);
-});
-
 watch(isRunning, (isRunning) => {
+  if (isRunning) {
+    updateDesignScoreThrottle();
+    resetVerificationResult();
+  }
   queueAnimFuncs.add(renderHot);
 });
 
 watch([sim, circuitFactory], async ([sim, factory], [oldSim, oldFactory]) => {
   await nextTick(); // Wait for resize observer to update canvas size
   if (factory !== oldFactory) {
-    invalidateCanvasSizes();
+    updateCanvasSizes();
     resetViewZoom();
   }
   queueAnimFuncs.add(renderAll);
@@ -1256,7 +1077,7 @@ watch(canvas, (canvas) => {
   const ctx = canvas?.getContext('2d');
   if (!ctx) return;
   ctx.imageSmoothingEnabled = false;
-  invalidateCanvasSizes();
+  updateCanvasSizes();
   resetViewZoom();
   queueAnimFuncs.add(renderAll);
 });

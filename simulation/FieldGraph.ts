@@ -9,9 +9,8 @@ import {
 } from '@/serialization/DesignData';
 import type { LayerDimensions } from '@/serialization/DesignData';
 import { decode, encode } from '@/serialization';
-import type { GraphLayer, Point } from '@/simulation';
-import { traceLine } from '@/utils/traceLine';
-import { traceRectBorder } from '@/utils/traceRectBorder';
+import type { Point } from '@/simulation';
+import { traceLine, traceRectBorder } from '@/utils/drawing';
 import CircuitDesignData, {
   DEFAULT_PIN_SIZE,
 } from '@/serialization/CircuitDesignData';
@@ -104,6 +103,20 @@ export default class FieldGraph {
     return [this.minDrawColumn, this.maxDrawColumn];
   }
 
+  public isInBounds(point: Point, enforceDrawBounds = false): boolean {
+    const { columns, rows } = this.data.getDimensions();
+    const [x, y] = point;
+    if (enforceDrawBounds) {
+      if (x < this.minDrawColumn || x > this.maxDrawColumn) {
+        return false;
+      }
+    }
+    if (x < 0 || y < 0 || x >= columns || y >= rows) {
+      return false;
+    }
+    return true;
+  }
+
   public getPinCount(): number {
     if (this.data instanceof CircuitDesignData) {
       return this.data.getPinCount();
@@ -126,8 +139,8 @@ export default class FieldGraph {
     return this.data.getDesignScore();
   }
 
-  public isEmpty(drawnAreaOnly = false): boolean {
-    const bounds = drawnAreaOnly
+  public isEmpty(inDrawBoundsOnly = false): boolean {
+    const bounds = inDrawBoundsOnly
       ? {
           minCol: this.minDrawColumn,
           maxCol: this.maxDrawColumn,

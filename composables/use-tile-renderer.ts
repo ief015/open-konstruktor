@@ -207,38 +207,39 @@ const connectionTiles = {
   },
 };
 
+export function getConnectionDirectionX(
+  layerH: DesignDataLayer,
+  x: number,
+  y: number,
+): TileRenderDirection {
+  const cx = layerH[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
+  const cxp = layerH[x - 1]?.[y] === ConnectionValue.Connected ? 1 : 0;
+  return cx === 0 && cxp === 0 ? null : cx - cxp;
+}
+
+export function getConnectionDirectionY(
+  layerV: DesignDataLayer,
+  x: number,
+  y: number,
+): TileRenderDirection {
+  const cy = layerV[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
+  const cyp = layerV[x]?.[y - 1] === ConnectionValue.Connected ? 1 : 0;
+  return cy === 0 && cyp === 0 ? null : cy - cyp;
+}
+
+const preloaded = ref(false);
+
 export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
   const tileSize = 12;
 
-  const getDirectionX = (
-    layerH: DesignDataLayer,
-    x: number,
-    y: number,
-  ): TileRenderDirection => {
-    const cx = layerH[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
-    const cxp = layerH[x - 1]?.[y] === ConnectionValue.Connected ? 1 : 0;
-    return cx === 0 && cxp === 0 ? null : cx - cxp;
-  };
-
-  const getDirectionY = (
-    layerV: DesignDataLayer,
-    x: number,
-    y: number,
-  ): TileRenderDirection => {
-    const cy = layerV[x]?.[y] === ConnectionValue.Connected ? 1 : 0;
-    const cyp = layerV[x]?.[y - 1] === ConnectionValue.Connected ? 1 : 0;
-    return cy === 0 && cyp === 0 ? null : cy - cyp;
-  };
-
-  let preloaded = false;
-  const preloadImages = () => {
-    if (preloaded) return Promise.resolve();
-    preloaded = true;
+  async function preloadImages() {
+    if (preloaded.value) return Promise.resolve(true);
+    preloaded.value = true;
     const images = Object.values(sprites).map((src) => loader.findImage(src));
     return Promise.all(
       images.map(
         (img) =>
-          new Promise((resolve) => {
+          new Promise<boolean>((resolve) => {
             if (img.complete) {
               resolve(true);
             } else {
@@ -248,18 +249,18 @@ export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
           }),
       ),
     );
-  };
+  }
 
   /**
    * Renders a tile depending on its type and connections.
    * If a numerical direction is given, the tile will be rotated accordingly.
    * If a direction is false, the tile will be rendered without connections.
    */
-  const renderTile = (
+  function renderTile(
     tile: TileType,
     xConnectionDir: TileRenderDirection,
     yConnectionDir: TileRenderDirection,
-  ) => {
+  ) {
     if (!ctx) return;
     switch (tile) {
       case TileType.Metal:
@@ -312,11 +313,9 @@ export default function useTileRenderer(ctx?: CanvasRenderingContext2D) {
         break;
       }
     }
-  };
+  }
 
   return {
-    getDirectionX,
-    getDirectionY,
     preloadImages,
     renderTile,
   };

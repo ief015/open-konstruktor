@@ -204,13 +204,13 @@ watch(
   { immediate: true },
 );
 
-const onStart = () => {
+function onStart() {
   if (isRunning.value) return;
   updateField(field.value);
   start();
-};
+}
 
-const onTogglePause = () => {
+function onTogglePause() {
   if (!isRunning.value) {
     onStart();
     pause();
@@ -221,9 +221,9 @@ const onTogglePause = () => {
   } else {
     pause();
   }
-};
+}
 
-const onStep = (n?: number) => {
+function onStep(n?: number) {
   if (!isRunning.value) {
     onStart();
     pause();
@@ -231,7 +231,7 @@ const onStep = (n?: number) => {
   if (isPaused.value) {
     step(n);
   }
-};
+}
 </script>
 
 <style scoped>

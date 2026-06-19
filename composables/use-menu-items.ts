@@ -87,6 +87,12 @@ export function useMenuItems() {
           disabled: isRunning.value || !selection.bounds.value,
         },
         'divider',
+        {
+          id: 'edit/clear-probes',
+          label: 'Clear All Probes',
+          disabled: isRunning.value,
+        },
+        'divider',
         { id: 'edit/clear', label: 'Clear', disabled: isRunning.value },
       ],
     },
@@ -99,6 +105,8 @@ export function useMenuItems() {
         { id: 'view/zoom-in', label: 'Zoom In' },
         { id: 'view/zoom-out', label: 'Zoom Out' },
         { id: 'view/zoom-reset', label: 'Reset Zoom' },
+        'divider',
+        { id: 'view/toggle-debug', label: 'Toggle Debug' },
       ],
     },
     {

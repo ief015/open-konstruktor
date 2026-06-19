@@ -1,5 +1,5 @@
 import { test } from 'vitest';
-import { assertEqual } from '@/utils/assert';
+import { assertEqual } from '@/test/utils/assert';
 import { Network, FieldGraph } from '@/simulation';
 import { kohctpyktop } from '@/circuits/kohctpyktop';
 

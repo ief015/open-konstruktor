@@ -1,6 +1,6 @@
-import { Sequence } from "@/simulation";
+import { Sequence } from '@/simulation';
 
-interface SequencerContext<TState extends object> {
+export interface SequencerContext<TState extends object> {
   /**
    * The current state of the sequencer.
    */
@@ -10,10 +10,10 @@ interface SequencerContext<TState extends object> {
    */
   inputs: boolean[];
   /**
-   * The changes of each input since the last frame.  
-   * 1: input was set to true  
-   * 0: input was not changed  
-   * -1: input was set to false  
+   * The changes of each input since the last frame.
+   * 1: input was set to true
+   * 0: input was not changed
+   * -1: input was set to false
    */
   edges: number[];
   /**
@@ -22,29 +22,29 @@ interface SequencerContext<TState extends object> {
   frame: number;
 }
 
-function createSequencesFromInputs<TState extends object>(
+export function createSequencesFromInputs<TState extends object>(
   inputSequences: Sequence[],
   mapper: (context: SequencerContext<TState>) => boolean[],
   initialState?: TState,
 ): Sequence[];
 
-function createSequencesFromInputs<TState extends object>(
+export function createSequencesFromInputs<TState extends object>(
   inputSequences: Sequence[],
   mapper: (context: SequencerContext<TState>) => boolean[],
   maxLength: number,
 ): Sequence[];
 
-function createSequencesFromInputs<TState extends object>(
+export function createSequencesFromInputs<TState extends object>(
   inputSequences: Sequence[],
   mapper: (context: SequencerContext<TState>) => boolean[],
   initialState: TState,
   maxLength: number,
 ): Sequence[];
 
-function createSequencesFromInputs<TState extends object>(
+export function createSequencesFromInputs<TState extends object>(
   inputSequences: Sequence[],
   mapper: (context: SequencerContext<TState>) => boolean[],
-  initialState?: number|TState,
+  initialState?: number | TState,
   maxLength?: number,
 ): Sequence[] {
   if (typeof initialState === 'number') {
@@ -52,8 +52,10 @@ function createSequencesFromInputs<TState extends object>(
     initialState = <TState>{};
   }
   const state = <TState>{ ...initialState };
-  maxLength = maxLength || inputSequences.reduce((max, seq) => Math.max(max, seq.getLength()), 0);
-  const inputs = inputSequences.map(seq => seq.getFront());
+  maxLength =
+    maxLength ||
+    inputSequences.reduce((max, seq) => Math.max(max, seq.getLength()), 0);
+  const inputs = inputSequences.map((seq) => seq.getFront());
   const edges: number[] = [];
   const outputSequences: Sequence[] = [];
   for (let frame = 0; frame < maxLength!; frame++) {
@@ -61,7 +63,7 @@ function createSequencesFromInputs<TState extends object>(
       const seq = inputSequences[i];
       const newState = seq.getFrames()[frame];
       const lastState = inputs[i];
-      edges[i] = (newState !== lastState) ? (newState ? 1 : -1) : 0;
+      edges[i] = newState !== lastState ? (newState ? 1 : -1) : 0;
       if (newState === undefined) {
         continue;
       }
@@ -78,5 +80,3 @@ function createSequencesFromInputs<TState extends object>(
   }
   return outputSequences;
 }
-
-export default createSequencesFromInputs;

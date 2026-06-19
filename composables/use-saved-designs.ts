@@ -97,8 +97,8 @@ const groups = computed<DesignGroup[]>(() => {
 
 const loading = ref(true);
 
-const getDB = () =>
-  new Promise<IDBDatabase>((resolve, reject) => {
+function getDB() {
+  return new Promise<IDBDatabase>((resolve, reject) => {
     if (db.readyState === 'done') {
       resolve(db.result);
       return;
@@ -106,6 +106,7 @@ const getDB = () =>
     db.onsuccess = () => resolve(db.result);
     db.onerror = () => reject(db.error);
   });
+}
 
 db.onupgradeneeded = async () => {
   const DB = db.result;
@@ -113,16 +114,16 @@ db.onupgradeneeded = async () => {
   DB.createObjectStore('categories');
 };
 
-const fetchDesignRecords = async (): Promise<DesignRecord[]> => {
+async function fetchDesignRecords(): Promise<DesignRecord[]> {
   const db = await getDB();
   const transaction = db.transaction('designs', 'readonly');
   const store = transaction.objectStore('designs');
   const request = store.openCursor();
   const results = await idbCursorGetAll<DesignRecord>(request);
   return results;
-};
+}
 
-const reload = async () => {
+async function reload() {
   loading.value = true;
   try {
     const designsRecords = await fetchDesignRecords();
@@ -130,9 +131,9 @@ const reload = async () => {
   } finally {
     loading.value = false;
   }
-};
+}
 
-const saveDesign = async (design: DesignRecord): Promise<DesignRecord> => {
+async function saveDesign(design: DesignRecord): Promise<DesignRecord> {
   if (!isDesignRecord(design)) {
     throw new Error('Invalid design record');
   }
@@ -154,9 +155,9 @@ const saveDesign = async (design: DesignRecord): Promise<DesignRecord> => {
     };
     request.onerror = () => reject(request.error);
   });
-};
+}
 
-const deleteDesign = async (id: string) => {
+async function deleteDesign(id: string) {
   const db = await getDB();
   const transaction = db.transaction('designs', 'readwrite');
   const store = transaction.objectStore('designs');
@@ -171,14 +172,14 @@ const deleteDesign = async (id: string) => {
     };
     request.onerror = () => reject(request.error);
   });
-};
+}
 
 export interface SavedDesignsExport {
   version: number;
   designs: DesignRecord[];
 }
 
-const importDesignRecords = async (designs: DesignRecord[]) => {
+async function importDesignRecords(designs: DesignRecord[]) {
   const invalids = designs.filter((design) => !isDesignRecord(design));
   if (invalids.length > 0) {
     throw new Error(
@@ -199,7 +200,7 @@ const importDesignRecords = async (designs: DesignRecord[]) => {
   await reload();
   console.log('Designs reloaded after import');
   return results;
-};
+}
 
 const importDesigns = async (data: SavedDesignsExport) => {
   if (!data.version || data.version !== 1) {
@@ -216,9 +217,9 @@ export interface ExportDesignsOptions {
   downloadFilename?: string;
 }
 
-const exportDesigns = async (
+async function exportDesigns(
   opts: ExportDesignsOptions = {},
-): Promise<SavedDesignsExport> => {
+): Promise<SavedDesignsExport> {
   const { download = false, downloadFilename = 'exported-designs.json' } = opts;
   const records = await fetchDesignRecords();
   const data: SavedDesignsExport = {
@@ -229,7 +230,7 @@ const exportDesigns = async (
     downloadJSON(data, downloadFilename, true);
   }
   return data;
-};
+}
 
 reload();
 

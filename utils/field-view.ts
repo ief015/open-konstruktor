@@ -19,10 +19,7 @@ export function clampViewScale(scale: number): number {
   return Math.max(MIN_VIEW_SCALE, Math.min(MAX_VIEW_SCALE, scale));
 }
 
-export function stepViewScale(
-  scale: number,
-  direction: 'in' | 'out',
-): number {
+export function stepViewScale(scale: number, direction: 'in' | 'out'): number {
   const factor = direction === 'in' ? VIEW_SCALE_STEP : 1 / VIEW_SCALE_STEP;
   return clampViewScale(scale * factor);
 }
@@ -108,20 +105,14 @@ export function computeResetViewPosition(
     fieldWidth < visibleWidth
       ? Math.max(
           bounds.minX,
-          Math.min(
-            bounds.maxX,
-            -Math.trunc((visibleWidth - fieldWidth) / 2),
-          ),
+          Math.min(bounds.maxX, -Math.trunc((visibleWidth - fieldWidth) / 2)),
         )
       : 0;
   const viewY =
     fieldHeight < visibleHeight
       ? Math.max(
           bounds.minY,
-          Math.min(
-            bounds.maxY,
-            -Math.trunc((visibleHeight - fieldHeight) / 2),
-          ),
+          Math.min(bounds.maxY, -Math.trunc((visibleHeight - fieldHeight) / 2)),
         )
       : 0;
   return [viewX, viewY];

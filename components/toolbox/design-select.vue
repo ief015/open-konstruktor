@@ -65,7 +65,6 @@
 
 <script setup lang="ts">
 import type { SaveDesignFormData } from '@/components/dialog/designs/save.vue';
-import type { DesignRecord } from '@/composables/use-saved-designs';
 
 const { groups, designs, categories, saveDesign, deleteDesign } =
   useSavedDesigns();
@@ -119,27 +118,27 @@ const saveDialog = reactive({
   },
 });
 
-const loadOption = (opt: DesignRecord) => {
+function loadOption(opt: DesignRecord) {
   loadField(opt.data);
   loadSim(field.value);
-};
+}
 
-const confirmLoad = (opt: DesignRecord) => {
+function confirmLoad(opt: DesignRecord) {
   if (confirm(`Are you sure you want to load "${opt.name}"?`)) {
     loadOption(opt);
   }
-};
+}
 
-const onSelect = (opt: DesignRecord) => {
+function onSelect(opt: DesignRecord) {
   confirmLoad(opt);
-};
+}
 
-const onSave = () => {
+function onSave() {
   if (!field.value) return;
   saveDialog.open();
-};
+}
 
-const onSaveSubmit = async (formData: SaveDesignFormData) => {
+async function onSaveSubmit(formData: SaveDesignFormData) {
   if (!field.value) return;
   const { columns, rows } = saveDialog.record
     ? { columns: saveDialog.record.width, rows: saveDialog.record.height }
@@ -155,28 +154,28 @@ const onSaveSubmit = async (formData: SaveDesignFormData) => {
     createdAt: saveDialog.record?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
-};
+}
 
-const onLoad = () => {
+function onLoad() {
   const opt = selected.value[0];
   if (opt) {
     confirmLoad(opt);
   }
-};
+}
 
-const onEdit = () => {
+function onEdit() {
   const opt = selected.value[0];
   if (opt) {
     saveDialog.open(opt);
   }
-};
+}
 
-const onDelete = async () => {
+async function onDelete() {
   const opt = selected.value[0];
   if (opt?.id && confirm(`Are you sure you want to delete "${opt.name}"?`)) {
     await deleteDesign(opt.id);
     selected.value = [];
     saveDialog.close();
   }
-};
+}
 </script>
