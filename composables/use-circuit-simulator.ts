@@ -228,7 +228,6 @@ export default function useCircuitSimulator() {
     return removeCompleteHandler;
   }
 
-  // TODO: causing warns - use-level-info.ts calls this outside of component
   onUnmounted(stop);
   onUnmounted(removeRenderHandler);
   onUnmounted(removeCompleteHandler);
