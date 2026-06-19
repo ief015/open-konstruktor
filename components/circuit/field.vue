@@ -1,6 +1,6 @@
 <template>
   <div class="relative w-full h-full">
-    <canvas ref="canvas" id="field-canvas" class="absolute w-full h-full">
+    <canvas ref="canvas" class="absolute w-full h-full">
       Your browser must support the canvas tag.
     </canvas>
     <div class="absolute w-full h-full pointer-events-none select-none">
@@ -206,9 +206,7 @@ const {
   translate: selectionTranslate,
   fieldGraph: selectionFieldGraph,
   isSnippet: selectionIsSnippet,
-  fieldView: selectionFieldView,
-} = useSelection();
-watch([viewX, viewY], ([x, y]) => (selectionFieldView.value = [x, y])); // TODO: yuck, crappy way of providing viewX and viewY to the selection composable
+} = useSelection({ canvas, viewX, viewY });
 
 function getTileViewport(): {
   left: number;
@@ -721,7 +719,6 @@ function pasteClipboard() {
   if (isRunning.value) return;
   if (!clipboard) return;
   try {
-    console.log('paste', clipboard.text.value);
     if (!clipboard.text.value) return;
     const text = clipboard.text.value;
     const graph = FieldGraph.from(text, 'snippet');
