@@ -14,10 +14,6 @@
         :style="{
           height: `${scopeHeight}px`,
         }"
-        @mousemove="onMouseMove"
-        @mousedown="onMouseDown"
-        @mouseup="onMouseUp"
-        oncontextmenu="return false;"
       >
         Your browser must support the canvas tag.
       </canvas>
@@ -169,9 +165,20 @@ function getContext(): CanvasRenderingContext2D {
   return ctx;
 }
 
+function updateCanvasSize() {
+  const ctx = getContext();
+  ctx.canvas.width = Math.trunc(ctx.canvas.clientWidth);
+  canvasWidth.value = ctx.canvas.width;
+  ctx.canvas.height = scopeHeight.value;
+  renderScope();
+}
+
 function renderScope() {
   const ctx = getContext();
   const vsim = sim.value;
+  const runningLength = vsim.getRunningLength();
+  const scopeWidth = runningLength * SCOPE_SCALE_X;
+  const currentX = vsim.getRecordingLength() * SCOPE_SCALE_X;
 
   ctx.save();
   ctx.fillStyle = COLOR_CHART;
@@ -180,14 +187,10 @@ function renderScope() {
   ctx.translate(-translateX.value, 0); // Translate for horizontal autoscrolling
   ctx.lineWidth = 1;
 
-  const runningLength = vsim.getRunningLength();
-  const scopeWidth = runningLength * SCOPE_SCALE_X;
-  const currentX = vsim.getRecordingLength() * SCOPE_SCALE_X;
-
-  // draw grid lines
-  ctx.strokeStyle = COLOR_GRID_LINE;
   ctx.save();
   {
+    // draw grid lines
+    ctx.strokeStyle = COLOR_GRID_LINE;
     ctx.setLineDash([2, 1]);
     ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
     ctx.beginPath();
@@ -230,70 +233,74 @@ function renderScope() {
     }
   }
 
-  // draw scopes for each pin from top to bottom
-  const pins = filteredPins.value;
   ctx.save();
-  ctx.fillStyle = COLOR_SCOPE_LINE;
-  for (const offset of [0, 1]) {
-    for (let i = offset; i < pins.length; i += 2) {
-      const pin = pins[i];
-      const { input, output } = vsim.getSequence(pin);
-      ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
-
-      // draw label
-      ctx.strokeStyle = COLOR_SCOPE_LINE;
-      ctx.beginPath();
-      ctx.moveTo(0, baseline);
-      ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
-      ctx.stroke();
-      if (pin.label) {
-        ctx.save();
-        ctx.translate(translateX.value, 0);
-        ctx.font = FONT;
-        ctx.fillText(pin.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
-        ctx.restore();
-      }
-
-      // draw scopes on graph
-      ctx.save();
-      ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
-      if (input) {
-        // input signal
+  {
+    // draw scopes for each pin from top to bottom
+    const pins = filteredPins.value;
+    ctx.fillStyle = COLOR_SCOPE_LINE;
+    for (const offset of [0, 1]) {
+      for (let i = offset; i < pins.length; i += 2) {
+        const pin = pins[i];
+        const { input, output } = vsim.getSequence(pin);
+        ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
+        // draw label
         ctx.strokeStyle = COLOR_SCOPE_LINE;
-        strokeSequenceLine(input);
-      } else if (output) {
-        // expected output signal
-        ctx.strokeStyle = COLOR_SCOPE_HINT;
-        strokeSequenceLine(output);
-        // recorded output signal
-        const rec = vsim.getRecording(pin);
-        if (rec) {
-          ctx.strokeStyle = COLOR_SCOPE_LINE;
-          strokeSequenceLine(rec, currentX);
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
+        ctx.stroke();
+        if (pin.label) {
+          ctx.save();
+          ctx.translate(translateX.value, 0);
+          ctx.font = FONT;
+          ctx.fillText(pin.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+          ctx.restore();
         }
-      } else {
-        strokeSequenceLine(null);
-      }
-      ctx.restore();
-    }
-  }
-  // draw scopes for probed paths
-  ctx.strokeStyle = COLOR_SCOPE_LINE;
-  for (const probe of vsim.getProbes()) {
-    const rec = vsim.getRecording(probe);
-    if (rec) {
-      ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
-      if (probe.label) {
+        // draw scopes on graph
         ctx.save();
-        ctx.translate(translateX.value, 0);
-        ctx.font = FONT;
-        ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+        ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
+        if (input) {
+          // input signal
+          ctx.strokeStyle = COLOR_SCOPE_LINE;
+          strokeSequenceLine(input);
+        } else if (output) {
+          // expected output signal
+          ctx.strokeStyle = COLOR_SCOPE_HINT;
+          strokeSequenceLine(output);
+          // recorded output signal
+          const rec = vsim.getRecording(pin);
+          if (rec) {
+            ctx.strokeStyle = COLOR_SCOPE_LINE;
+            strokeSequenceLine(rec, currentX);
+          }
+        } else {
+          strokeSequenceLine(null);
+        }
         ctx.restore();
       }
-      ctx.save();
-      ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
-      strokeSequenceLine(rec, currentX);
-      ctx.restore();
+    }
+    // draw scopes for probed paths
+    ctx.strokeStyle = COLOR_SCOPE_LINE;
+    for (const probe of vsim.getProbes()) {
+      const rec = vsim.getRecording(probe);
+      if (rec) {
+        ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
+        if (probe.label) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(0, baseline);
+          ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
+          ctx.stroke();
+          ctx.translate(translateX.value, 0);
+          ctx.font = FONT;
+          ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+          ctx.restore();
+        }
+        ctx.save();
+        ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
+        strokeSequenceLine(rec, currentX);
+        ctx.restore();
+      }
     }
   }
   ctx.restore();
@@ -358,42 +365,6 @@ function mouseToGrid(mx: number, my: number, xInterval = 1): Point {
   return [x, y];
 }
 
-function onMouseMove(e: MouseEvent) {
-  if (isRunning.value) return;
-  if (isDrawing.value) {
-    const coords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
-    draw(drawMode.value, prevDrawingCoords, coords);
-    prevDrawingCoords = coords;
-  }
-}
-
-function onMouseDown(e: MouseEvent) {
-  if (isRunning.value) return;
-  if (e.button === 0) {
-    drawMode.value = 'high';
-  } else if (e.button === 2) {
-    drawMode.value = 'low';
-  } else {
-    return;
-  }
-  isDrawing.value = true;
-  prevDrawingCoords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
-  draw(drawMode.value, prevDrawingCoords, prevDrawingCoords);
-}
-
-function onMouseUp(e: MouseEvent) {
-  if (isRunning.value) return;
-  isDrawing.value = false;
-}
-
-function onResize() {
-  const ctx = getContext();
-  ctx.canvas.width = Math.trunc(ctx.canvas.clientWidth);
-  canvasWidth.value = ctx.canvas.width;
-  ctx.canvas.height = scopeHeight.value;
-  renderScope();
-}
-
 onStepAnim(() => renderScope());
 
 onComplete((result) => {
@@ -406,6 +377,38 @@ onComplete((result) => {
   } else {
     resetVerificationResult();
   }
+});
+
+useEventListener(canvas, 'mousemove', (e) => {
+  if (isRunning.value) return;
+  if (isDrawing.value) {
+    const coords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
+    draw(drawMode.value, prevDrawingCoords, coords);
+    prevDrawingCoords = coords;
+  }
+});
+
+useEventListener(canvas, 'mousedown', (e) => {
+  if (isRunning.value) return;
+  if (e.button === 0) {
+    drawMode.value = 'high';
+  } else if (e.button === 2) {
+    drawMode.value = 'low';
+  } else {
+    return;
+  }
+  isDrawing.value = true;
+  prevDrawingCoords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
+  draw(drawMode.value, prevDrawingCoords, prevDrawingCoords);
+});
+
+useEventListener(canvas, 'mouseup', (e) => {
+  if (isRunning.value) return;
+  isDrawing.value = false;
+});
+
+useEventListener(canvas, 'contextmenu', (e) => {
+  e.preventDefault();
 });
 
 watch(isRunning, (running) => {
@@ -423,16 +426,14 @@ watch(sim, (sim) => {
   renderScope();
 });
 
-watch(network, (network) => {
-  onResize();
-});
+watch(network, (network) => updateCanvasSize());
 
-useResizeObserver(canvasContainer, () => onResize());
-useEventListener('resize', onResize);
+useResizeObserver(canvasContainer, (e, o) => updateCanvasSize());
+useEventListener('resize', (e) => updateCanvasSize());
 
 onMounted(async () => {
   const ctx = getContext();
   ctx.imageSmoothingEnabled = false;
-  onResize();
+  updateCanvasSize();
 });
 </script>
