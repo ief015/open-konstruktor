@@ -211,14 +211,13 @@ function renderScope() {
   const highLine = baseline - Math.floor(SCOPE_ROW_HEIGHT_PX / 2);
 
   function strokeSequenceLine(
-    seq: Readonly<Sequence> | Readonly<Sequence>[] | null,
+    seq: Readonly<Sequence> | null,
     endX: number = scopeWidth,
   ) {
     if (seq) {
       ctx.beginPath();
       ctx.moveTo(0, baseline);
       let lastY = baseline;
-      seq = Array.isArray(seq) ? seq[0] : seq;
       const frames = seq.getFrames();
       for (const frame in frames) {
         const state = frames[frame];
@@ -232,29 +231,6 @@ function renderScope() {
       }
       ctx.lineTo(endX, lastY);
       ctx.stroke();
-      // TODO: this supports multiple sequences, but could use some refactoring for efficiency
-      // Currently unneeded as multiple sequences per pin are not currently used
-      /*
-      ctx.beginPath();
-      ctx.moveTo(0, baseline);
-      let lastY = baseline;
-      seq = Array.isArray(seq) ? seq : [seq];
-      const maxLength = Math.max(...seq.map((s) => s.getLength()));
-      const frames = seq.map((s) => s.getFrames());
-      for (let i = 0; i < maxLength; i++) {
-        const states = frames.map((f) => f[i]).filter((s) => s !== undefined);
-        if (states.length === 0) continue;
-        const state = states.some((s) => s === true);
-        const x = i * SCOPE_SCALE_X;
-        const y = state ? highLine : baseline;
-        ctx.lineTo(x, lastY);
-        ctx.lineTo(x, y);
-        ctx.lineTo(x + SCOPE_SCALE_X, y);
-        lastY = y;
-      }
-      ctx.lineTo(endX, lastY);
-      ctx.stroke();
-      */
     } else {
       // N/C
       ctx.beginPath();

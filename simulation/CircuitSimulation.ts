@@ -145,10 +145,10 @@ export class CircuitSimulation {
       for (let i = 0; i < oldPins.length; i++) {
         const oldPin = oldPins[i];
         const newPin = newPins[i];
-        const { input = [], output } = this.getPinSequence(oldPin);
-        for (const seq of input) {
-          this.sequencer.remove(seq, oldPin);
-          this.sequencer.add(seq, newPin);
+        const { input, output } = this.getPinSequence(oldPin);
+        if (input) {
+          this.sequencer.remove(input, oldPin);
+          this.sequencer.add(input, newPin);
         }
         if (output) {
           this.outputSequences.delete(oldPin);
@@ -274,15 +274,14 @@ export class CircuitSimulation {
   }
 
   public getPinSequence(pin: PinNode | number): {
-    input?: Sequence[];
+    input?: Sequence;
     output?: Sequence;
   } {
     if (typeof pin === 'number') {
       pin = this.network.getPinNode(pin);
     }
-    const inputs = this.sequencer.findNodeSequences(pin);
     return {
-      input: inputs.length > 0 ? inputs : undefined,
+      input: this.sequencer.findNodeSequence(pin),
       output: this.outputSequences.get(pin),
     };
   }

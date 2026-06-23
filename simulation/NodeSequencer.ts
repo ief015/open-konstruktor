@@ -76,16 +76,27 @@ export class NodeSequencer {
   }
 
   /**
-   * Find all sequences that a node is assigned to.
+   * Find the sequence assigned to a node.
    */
-  public findNodeSequences(node: NetworkNode): Sequence[] {
-    const sequences: Sequence[] = [];
+  public findNodeSequence(node: NetworkNode): Sequence | undefined {
     for (const [sequence, nodes] of this.sequences) {
       if (nodes.includes(node)) {
-        sequences.push(sequence);
+        return sequence;
       }
     }
-    return sequences;
+    return undefined;
+  }
+
+  /**
+   * Check if a node is assigned to any sequence.
+   */
+  public hasNode(node: NetworkNode): boolean {
+    for (const nodes of this.sequences.values()) {
+      if (nodes.includes(node)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -94,14 +105,14 @@ export class NodeSequencer {
    * @param node Node or nodes to add to the sequence.
    */
   public add(sequence: Sequence, node: NetworkNode | NetworkNode[]): void {
+    node = Array.isArray(node) ? node : [node];
+    if (node.some((n) => this.hasNode(n))) {
+      throw new Error('Node is already assigned to a sequence.');
+    }
     if (!this.sequences.has(sequence)) {
       this.sequences.set(sequence, []);
     }
-    if (Array.isArray(node)) {
-      this.sequences.get(sequence)!.push(...node);
-    } else {
-      this.sequences.get(sequence)!.push(node);
-    }
+    this.sequences.get(sequence)!.push(...node);
     this.invalidateMaxSequenceLength();
   }
 

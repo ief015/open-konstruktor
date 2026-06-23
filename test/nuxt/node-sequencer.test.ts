@@ -1,6 +1,6 @@
 import { PathNode, Sequence, NodeSequencer } from '@/simulation';
 import { assertEqual } from '@/test/utils/assert';
-import { test } from 'vitest';
+import { expect, test } from 'vitest';
 
 test('test sequencer', () => {
   const sequencer = new NodeSequencer(20);
@@ -42,4 +42,13 @@ test('test sequencer', () => {
   }
   assertEqual(sequencer.isComplete(), true, 'finished');
   assertEqual(sequencer.getCurrentFrame(), 20, 'current frame');
+});
+
+test('do not allow multiple sequences per node', () => {
+  const sequencer = new NodeSequencer(20);
+  const node = new PathNode();
+  const seqA = new Sequence();
+  const seqB = new Sequence();
+  sequencer.add(seqA, node);
+  expect(() => sequencer.add(seqB, node)).toThrow();
 });
