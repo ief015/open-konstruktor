@@ -24,7 +24,7 @@ export function getNodeState(node: NetworkNode): boolean {
   } else if (node instanceof GateNode) {
     return node.active === node.isNPN && node.gatedPaths.some((p) => p.state);
   } else {
-    return node.active;
+    return node.active || node.path?.state || false;
   }
 }
 
