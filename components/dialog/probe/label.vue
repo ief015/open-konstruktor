@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ProbeInfo } from '@/simulation/CircuitSimulation';
+import type { ProbeInfo } from '@/simulation';
 
 const model = defineModel<ProbeInfo>('probe');
 const props = withDefaults(

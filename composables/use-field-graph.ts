@@ -1,5 +1,4 @@
-import { CircuitDesignData } from '@/serialization';
-import type { LayerDimensions } from '@/serialization';
+import { CircuitDesignData, type LayerDimensions } from '@/serialization';
 import { FieldGraph, type VerificationResult } from '@/simulation';
 
 const field = shallowRef<FieldGraph>(new FieldGraph());

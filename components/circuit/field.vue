@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import { FieldGraph } from '@/simulation';
-import type { GraphLayer, Point } from '@/simulation';
+import type { GraphLayer, Point, ProbeInfo } from '@/simulation';
 import { useMenuBarListener } from '@/components/menu/bar-app-events';
 import { BackgroundGridRenderer } from '@/render/BackgroundGridRenderer';
 import { FieldRenderer, type TileBounds } from '@/render/FieldRenderer';
@@ -39,7 +39,6 @@ import {
   stepViewScale,
   zoomAtPoint,
 } from '@/utils/field-view';
-import type { ProbeInfo } from '@/simulation/CircuitSimulation';
 
 const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);

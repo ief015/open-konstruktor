@@ -1,6 +1,10 @@
 import type { CircuitSimulationFactory } from '@/circuits';
-import { CircuitSimulation, FieldGraph, Network } from '@/simulation';
-import type { VerificationResult } from '@/simulation';
+import {
+  CircuitSimulation,
+  FieldGraph,
+  Network,
+  type VerificationResult,
+} from '@/simulation';
 
 export type OnStepAnimHandler = () => void;
 export type OnCompleteHandler = (result?: VerificationResult) => void;
@@ -154,7 +158,7 @@ function regenerateSequences() {
   const regen = currentFactory.value.setup(network.value);
   const pins = network.value.getPinNodes();
   for (const pin of pins) {
-    const { input, output } = regen.getSequence(pin);
+    const { input, output } = regen.getPinSequence(pin);
     if (input) {
       sim.value.setInputSequence(pin, input.slice(0));
     }
@@ -178,7 +182,7 @@ function step(n = 1, bInvokeStepAnimHandlers = true) {
           regenerateSequences();
         }
       } else {
-        const verifyResult = vsim.verify('kohctpyktop');
+        const verifyResult = vsim.verify();
         invokeCompleteHandlers(verifyResult);
         stop();
         break;

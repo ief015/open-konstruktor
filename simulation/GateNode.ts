@@ -1,8 +1,8 @@
-import PathNode from "@/simulation/PathNode";
+import { PathNode } from '@/simulation';
 
 export type GateType = 'pnp' | 'npn';
 
-export default class GateNode {
+export class GateNode {
   public gatedPaths: PathNode[] = []; // Paths of controlled flow
   public switchingPaths: PathNode[] = []; // Paths of switching state
   public active: boolean = false;

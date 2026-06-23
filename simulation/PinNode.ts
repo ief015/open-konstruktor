@@ -1,6 +1,6 @@
-import PathNode from '@/simulation/PathNode';
+import { PathNode } from '@/simulation';
 
-export default class PinNode {
+export class PinNode {
   public active: boolean;
   public label: string;
   public path: PathNode;
