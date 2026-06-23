@@ -1,3 +1,4 @@
+import type { ISimulation } from '@/simulation/ISimulation';
 import { CircuitSimulation } from '@/simulation/CircuitSimulation';
 import type {
   PinFilter,
@@ -5,7 +6,6 @@ import type {
   PrintPinOrdering,
   PrintRecordingScopeOptions,
   PrintRecordingOptions,
-  SequenceMap,
   ProbeInfo,
 } from '@/simulation/CircuitSimulation';
 import { FieldGraph } from '@/simulation/FieldGraph';
@@ -44,6 +44,7 @@ export type Point = [number, number];
 export type NetworkNode = PinNode | PathNode | GateNode;
 
 export {
+  type ISimulation,
   CircuitSimulation,
   NodeSequencer,
   SequenceRecorder,
@@ -54,7 +55,6 @@ export {
   type PrintPinOrdering,
   type PrintRecordingOptions,
   type PrintRecordingScopeOptions,
-  type SequenceMap,
   type ProbeInfo,
 };
 
