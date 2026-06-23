@@ -23,7 +23,7 @@ export class NodeSequencer {
     return this.sequences.keys();
   }
 
-  public getSequenceEntries() {
+  public entries() {
     return this.sequences.entries();
   }
 
@@ -31,7 +31,10 @@ export class NodeSequencer {
     return this.frame;
   }
 
-  protected getMaxSequenceLength(): number {
+  /**
+   * Get the length of the largest sequence.
+   */
+  public getMaxSequenceLength(): number {
     if (this.maxSequenceLength !== undefined) {
       return this.maxSequenceLength;
     }
@@ -41,7 +44,7 @@ export class NodeSequencer {
     return this.maxSequenceLength;
   }
 
-  protected invalidateMaxSequenceLength(): void {
+  public invalidateMaxSequenceLength(): void {
     this.maxSequenceLength = undefined;
   }
 
@@ -54,6 +57,14 @@ export class NodeSequencer {
       return this.length;
     }
     return this.getMaxSequenceLength();
+  }
+
+  /**
+   * Check if the sequencer is complete.
+   * @returns `true` if the sequencer has reached the end
+   */
+  public isComplete(): boolean {
+    return this.frame >= this.getLength();
   }
 
   /**
@@ -82,18 +93,34 @@ export class NodeSequencer {
   }
 
   /**
-   * Remove a sequence from the sequencer.
-   * @param sequence Sequence to remove.
+   * Remove a sequence or nodes from the sequencer.
+   * @param sequence Sequence to remove or remove from.
+   * @param node Node or nodes to remove from the sequence. If not provided, the entire sequence is removed.
    */
-  public remove(sequence: Sequence): void {
-    this.sequences.delete(sequence);
+  public remove(
+    sequence: Sequence,
+    node?: NetworkNode | NetworkNode[],
+  ): boolean {
     this.invalidateMaxSequenceLength();
+    if (node) {
+      const nodes = this.sequences.get(sequence);
+      if (!nodes) return false;
+      let prevLen = nodes.length;
+      const arr = Array.isArray(node) ? node : [node];
+      nodes.splice(0, nodes.length, ...nodes.filter((n) => !arr.includes(n)));
+      if (nodes.length === 0) {
+        return this.sequences.delete(sequence);
+      }
+      return prevLen !== nodes.length;
+    } else {
+      return this.sequences.delete(sequence);
+    }
   }
 
   /**
    * Remove all sequences from the sequencer.
    */
-  public clear(): void {
+  public clear() {
     this.sequences.clear();
     this.invalidateMaxSequenceLength();
   }
@@ -101,7 +128,7 @@ export class NodeSequencer {
   /**
    * Reset sequencer and nodes to initial state.
    */
-  public reset(): void {
+  public reset() {
     this.frame = 0;
     for (const [sequence, nodes] of this.sequences) {
       for (const node of nodes) {
@@ -116,9 +143,10 @@ export class NodeSequencer {
 
   /**
    * Step the sequencer to the next frame.
+   * @returns `true` if the sequencer has reached the end, `false` otherwise.
    */
-  public step(): void {
-    if (this.frame >= this.getLength()) return;
+  public step(): boolean {
+    if (this.isComplete()) return true;
     for (const [sequence, nodes] of this.sequences) {
       const state = sequence.getFrames()[this.frame];
       if (state === undefined) continue;
@@ -131,12 +159,13 @@ export class NodeSequencer {
       }
     }
     this.frame++;
+    return false;
   }
 
   /**
    * Move the sequencer to a specific frame.
    */
-  public moveTo(frame: number): void {
+  public moveTo(frame: number) {
     this.frame = Math.max(0, Math.min(frame, this.getLength() - 1));
     for (const [sequence, nodes] of this.sequences) {
       for (const node of nodes) {
