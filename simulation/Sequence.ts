@@ -8,12 +8,6 @@ export class Sequence implements Iterable<boolean> {
   protected frameIndexCache: Readonly<Array<keyof SequenceFrames>> | null =
     null;
 
-  constructor(frames?: SequenceFrames) {
-    if (frames) {
-      this.applyFrames(frames);
-    }
-  }
-
   public [Symbol.iterator](): Iterator<boolean> {
     let frame = 0;
     let state = false;

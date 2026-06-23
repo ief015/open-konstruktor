@@ -24,8 +24,10 @@ export class ToleranceValidator implements IValidator {
     actual: Sequence,
     frame: number,
   ): boolean | null {
-    const frameState = expected.probe(frame);
     const tolerance = this.tolerance;
+    // TODO: consider end frames as well? investigate if kohctpyktop produces errors at the end of seqs
+    if (frame < tolerance) return null; // Ignore beginning frames
+    const frameState = expected.probe(frame);
     for (let o = -tolerance; o <= tolerance; o++) {
       if (o === 0) continue;
       if (expected.probe(frame + o) !== frameState) {
@@ -50,11 +52,11 @@ export class ToleranceValidator implements IValidator {
     length?: number,
   ): DifferenceResult {
     const len = length ?? Math.max(expected.getLength(), actual.getLength());
+    const min = this.tolerance;
+    const max = len - this.tolerance;
     let differences = 0;
     let skippedFrames = 0;
-    const tolerance = this.tolerance;
-    const max = len - tolerance;
-    for (let i = tolerance; i < max; i++) {
+    for (let i = min; i < max; i++) {
       const isEqualOrSkip = this.isFrameEqualOrSkip(expected, actual, i);
       if (isEqualOrSkip === null) {
         skippedFrames++;
@@ -62,7 +64,7 @@ export class ToleranceValidator implements IValidator {
         differences++;
       }
     }
-    const total = len - skippedFrames - 2 * tolerance;
+    const total = max - min - skippedFrames;
     const ratio = total === 0 ? 1 : 1 - differences / total;
     return { differences, ratio };
   }

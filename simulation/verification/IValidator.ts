@@ -60,7 +60,7 @@ export abstract class IValidator {
    * Get the differences between two sequences.
    * @param expected Expected reference sequence
    * @param actual Sequence verified against the expected reference sequence
-   * @param length Sequence length
+   * @param length Verification length
    */
   public abstract getDifference(
     expected: Sequence,
@@ -71,7 +71,7 @@ export abstract class IValidator {
   /**
    * Verify and grade sequences against expected sequences.
    * @param sequences Sequences to verify
-   * @param length Sequence length
+   * @param length Verification length
    */
   public abstract verify(
     sequences: SequencePair[],
