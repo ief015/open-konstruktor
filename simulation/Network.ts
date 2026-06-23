@@ -1,6 +1,10 @@
-import FieldGraph from '@/simulation/FieldGraph';
-import type { QueryResult } from '@/simulation/FieldGraph';
-import { GateNode, PathNode, PinNode } from '@/simulation';
+import {
+  FieldGraph,
+  GateNode,
+  PathNode,
+  PinNode,
+  type QueryResult,
+} from '@/simulation';
 import type { NetworkNode, Point } from '@/simulation';
 
 type FoundGate = {
@@ -14,7 +18,17 @@ export function getGraphKey(point: Point, layer: GraphLayer): string {
   return `${point[0]},${point[1]}:${layer === 'metal' ? 'm' : 's'}`;
 }
 
-export default class Network {
+export function getNodeState(node: NetworkNode): boolean {
+  if (node instanceof PathNode) {
+    return node.state;
+  } else if (node instanceof GateNode) {
+    return node.active === node.isNPN && node.gatedPaths.some((p) => p.state);
+  } else {
+    return node.active;
+  }
+}
+
+export class Network {
   private paths: PathNode[] = [];
   private gates: GateNode[] = [];
   private pins: PinNode[] = [];

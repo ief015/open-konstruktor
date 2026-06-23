@@ -61,8 +61,12 @@
 </template>
 
 <script setup lang="ts">
-import type { PinNode, Sequence } from '@/simulation';
-import type { Point, VerificationResult } from '@/simulation';
+import type {
+  PinNode,
+  Sequence,
+  Point,
+  VerificationResult,
+} from '@/simulation';
 
 type DrawMode = 'high' | 'low';
 

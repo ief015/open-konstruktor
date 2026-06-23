@@ -1,14 +1,15 @@
-import Network, { getGraphKey } from '@/simulation/Network';
-import PinNode from '@/simulation/PinNode';
-import Sequence from '@/simulation/Sequence';
 import {
-  GateNode,
-  PathNode,
+  Network,
+  Sequence,
+  PinNode,
+  getNodeState,
+  KOHCTPYKTOPValidator,
   type GraphLayer,
   type NetworkNode,
   type Point,
+  type IValidator,
+  type VerificationResult,
 } from '@/simulation';
-import type { DifferenceMethod } from '@/simulation/Sequence';
 
 export type PrintPinOrdering = 'none' | 'even-odd';
 export type PinFilter = (id: number, pin: PinNode) => boolean;
@@ -51,30 +52,6 @@ export type ProbeMap<TNode extends NetworkNode = NetworkNode> = Map<
   TNode[]
 >;
 
-export interface VerificationResultOutput {
-  pin: PinNode;
-  expected: Sequence;
-  actual: Sequence;
-  differences: number;
-  ratio: number;
-}
-
-export interface FrameError {
-  pin: PinNode;
-  frame: number;
-  expected: boolean;
-  actual: boolean;
-}
-
-export interface VerificationResult {
-  ratioAvg: number;
-  gradePercent: number;
-  outputs: VerificationResultOutput[];
-  passed: boolean;
-}
-
-const VERIFICATION_PASS_THRESHOLD = 97;
-
 function evenOddPinSort(pins: PinNode[]) {
   pins.sort((a, b) => {
     const aid = pins.indexOf(a);
@@ -87,16 +64,6 @@ function evenOddPinSort(pins: PinNode[]) {
       return aid - bid;
     }
   });
-}
-
-export function getNodeState(node: NetworkNode): boolean {
-  if (node instanceof PathNode) {
-    return node.state;
-  } else if (node instanceof GateNode) {
-    return node.active === node.isNPN && node.gatedPaths.some((p) => p.state);
-  } else {
-    return node.active;
-  }
 }
 
 export class CircuitSimulation {
@@ -113,6 +80,8 @@ export class CircuitSimulation {
   private currentFrame: number = 0;
   private recording: RecordingMap = new Map();
   private recordingLength: number = 0;
+
+  protected validator: IValidator = new KOHCTPYKTOPValidator();
 
   constructor(network: Network, defaultRuntime?: number) {
     this.network = network;
@@ -205,6 +174,14 @@ export class CircuitSimulation {
         newPin.isVCC = oldPin.isVCC;
       }
     }
+  }
+
+  public getValidator(): IValidator {
+    return this.validator;
+  }
+
+  public setValidator(validator: IValidator) {
+    this.validator = validator;
   }
 
   public getRecording(node: NetworkNode): Readonly<Sequence> | null;
@@ -410,94 +387,40 @@ export class CircuitSimulation {
     this.recordingLength = Math.max(this.recordingLength, frame + 1);
   }
 
-  public verify(method: DifferenceMethod = 'kohctpyktop'): VerificationResult {
-    let sumRatio = 0;
-    let sumGrade = 0;
-    const outputs: VerificationResultOutput[] = [];
-    for (const [pin, expected] of this.outputSequences) {
-      const actual = this.recording.get(pin);
-      if (actual) {
-        const { differences, ratio } = expected.getDifference(actual, {
-          method,
-          length: this.currentFrame,
-        });
-        sumRatio += ratio;
-        sumGrade += Math.trunc(ratio * 100); // Inaccurate, but how kohctpyktop does it.
-        outputs.push({
-          pin,
-          expected,
-          actual,
-          differences,
-          ratio,
-        });
-      }
-    }
-    const ratioAvg = sumRatio / this.outputSequences.size;
-    const gradePercent = Math.trunc(sumGrade / this.outputSequences.size) || 0;
-    const passed = gradePercent >= VERIFICATION_PASS_THRESHOLD;
-    return {
-      ratioAvg,
-      gradePercent,
-      outputs,
-      passed,
-    };
+  public verify(): VerificationResult {
+    const sequencePairs = [...this.outputSequences.entries()].map(
+      ([pin, expected]) => {
+        const actual = this.recording.get(pin);
+        if (!actual) throw new Error(`No recording found for pin ${pin.label}`);
+        return { expected, actual };
+      },
+    );
+    return this.validator.verify(sequencePairs, this.getRunningLength());
   }
 
   /**
    * Find verification errors for all pins on a specific frame.
    * @param frame Frame to verify.
-   * @param method Method to use for verification.
-   * @returns Array of errors found, if any.
+   * @returns Array of sequence pairs that do not match on the given frame.
    */
-  public findFrameVerificationErrors(
-    frame: number,
-    method: DifferenceMethod = 'kohctpyktop',
-  ): FrameError[] {
-    const errors: FrameError[] = [];
-    for (const [pin, expected] of this.outputSequences) {
-      const actual = this.recording.get(pin);
-      if (actual) {
-        // TODO: Verification done in CircuitSimulation and Sequence
-        switch (method) {
-          case 'strict': {
-            const actualState = actual.probe(frame);
-            const expectedState = expected.probe(frame);
-            if (actualState !== expectedState) {
-              errors.push({
-                pin,
-                frame,
-                expected: expectedState,
-                actual: actualState,
-              });
-            }
-            break;
-          }
-          case 'kohctpyktop': {
-            if (frame >= 2 && frame < expected.getLength() - 2) {
-              const expectedState = expected.probe(frame);
-              if (
-                expected.probe(frame - 1) == expectedState &&
-                expected.probe(frame - 2) == expectedState &&
-                expected.probe(frame + 2) == expectedState &&
-                expected.probe(frame + 1) == expectedState
-              ) {
-                const actualState = actual.probe(frame);
-                if (actualState != expectedState) {
-                  errors.push({
-                    pin,
-                    frame,
-                    expected: expectedState,
-                    actual: actualState,
-                  });
-                }
-              }
-            }
-            break;
-          }
-        }
-      }
-    }
-    return errors;
+  public findFrameVerificationErrors(frame: number) {
+    const sequencePairs = [...this.outputSequences.entries()].map(
+      ([pin, expected]) => {
+        const actual = this.recording.get(pin);
+        if (!actual) throw new Error(`No recording found for pin ${pin.label}`);
+        return { expected, actual, pin };
+      },
+    );
+    return sequencePairs
+      .map((pair) => {
+        const isEq = this.validator.isFrameEqual(
+          pair.expected,
+          pair.actual,
+          frame,
+        );
+        return !isEq ? pair : null;
+      })
+      .filter((e) => e !== null);
   }
 
   public printHistory(options: PrintRecordingOptions = {}) {

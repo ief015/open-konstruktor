@@ -178,7 +178,7 @@ function step(n = 1, bInvokeStepAnimHandlers = true) {
           regenerateSequences();
         }
       } else {
-        const verifyResult = vsim.verify('kohctpyktop');
+        const verifyResult = vsim.verify();
         invokeCompleteHandlers(verifyResult);
         stop();
         break;

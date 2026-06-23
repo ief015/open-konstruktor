@@ -1,3 +1,3 @@
-export default class PathNode {
+export class PathNode {
   public state: boolean = false;
 }

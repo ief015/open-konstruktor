@@ -1,6 +1,6 @@
 import { test } from 'vitest';
 import { assertEqual } from '@/test/utils/assert';
-import { Network, FieldGraph } from '@/simulation';
+import { Network, FieldGraph, StrictValidator } from '@/simulation';
 import { kohctpyktop } from '@/circuits/kohctpyktop';
 
 test('field-graph-drawing', () => {
@@ -40,7 +40,6 @@ test('KT221A-imported-vs-drawn', () => {
     sim.run(280);
     return sim.getRecordings();
   }
-
   function andGateFromDrawnField() {
     const field = new FieldGraph();
     field.draw('metal', [3, 8], [4, 8], [4, 9]);
@@ -67,15 +66,15 @@ test('KT221A-imported-vs-drawn', () => {
     sim.run(280);
     return sim.getRecordings();
   }
-
+  const validator = new StrictValidator();
   const stringRecordings = Array.from(andGateFromString().values());
   const drawnRecordings = Array.from(andGateFromDrawnField().values());
   for (const k in stringRecordings) {
     const stringRecording = stringRecordings[k];
     const drawnRecording = drawnRecordings[k];
-    const { differences, ratio } = stringRecording.getDifference(
+    const { differences, ratio } = validator.getDifference(
+      stringRecording,
       drawnRecording,
-      { method: 'strict', length: 280 },
     );
     assertEqual(
       differences,
