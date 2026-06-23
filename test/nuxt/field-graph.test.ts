@@ -38,7 +38,7 @@ test('KT221A-imported-vs-drawn', () => {
       '02 KT221A DUAL 2-INPUT AND GATE',
     )!.setup(net);
     sim.run(280);
-    return sim.getRecordings();
+    return sim.getRecorder().values();
   }
   function andGateFromDrawnField() {
     const field = new FieldGraph();
@@ -64,11 +64,11 @@ test('KT221A-imported-vs-drawn', () => {
       '02 KT221A DUAL 2-INPUT AND GATE',
     )!.setup(net);
     sim.run(280);
-    return sim.getRecordings();
+    return sim.getRecorder().values();
   }
   const validator = new StrictValidator();
-  const stringRecordings = Array.from(andGateFromString().values());
-  const drawnRecordings = Array.from(andGateFromDrawnField().values());
+  const stringRecordings = Array.from(andGateFromString());
+  const drawnRecordings = Array.from(andGateFromDrawnField());
   for (const k in stringRecordings) {
     const stringRecording = stringRecordings[k];
     const drawnRecording = drawnRecordings[k];

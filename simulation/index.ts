@@ -5,7 +5,6 @@ import type {
   PrintPinOrdering,
   PrintRecordingScopeOptions,
   PrintRecordingOptions,
-  RecordingMap,
   SequenceMap,
   ProbeInfo,
 } from '@/simulation/CircuitSimulation';
@@ -19,37 +18,42 @@ import type {
   QuerySiliconResult,
   SiliconType,
 } from '@/simulation/FieldGraph';
+import { Network, getNodeState, type GraphLayer } from '@/simulation/Network';
 import { GateNode } from '@/simulation/GateNode';
-import { Network, getNodeState } from '@/simulation/Network';
-import type { GraphLayer } from '@/simulation/Network';
 import { PathNode } from '@/simulation/PathNode';
 import { PinNode, assignVCC } from '@/simulation/PinNode';
-import { Sequence } from '@/simulation/Sequence';
-import type { SequenceFrames } from '@/simulation/Sequence';
+import { Sequence, type SequenceFrames } from '@/simulation/Sequence';
 import type {
   DifferenceResult,
   VerificationDifference,
   VerificationResult,
-} from '@/simulation/verification/IValidator';
-import type {
   IValidator,
   SequencePair,
 } from '@/simulation/verification/IValidator';
 import { StrictValidator } from '@/simulation/verification/StrictValidator';
 import { ToleranceValidator } from '@/simulation/verification/ToleranceValidator';
 import { KOHCTPYKTOPValidator } from '@/simulation/verification/KOHCTPYKTOPValidator';
+import { NodeSequencer } from '@/simulation/NodeSequencer';
+import {
+  SequenceRecorder,
+  type Recordable,
+  type RecordableFn,
+} from '@/simulation/SequenceRecorder';
 
 export type Point = [number, number];
 export type NetworkNode = PinNode | PathNode | GateNode;
 
 export {
   CircuitSimulation,
+  NodeSequencer,
+  SequenceRecorder,
+  type Recordable,
+  type RecordableFn,
   type PinFilter,
   type PinSort,
   type PrintPinOrdering,
   type PrintRecordingOptions,
   type PrintRecordingScopeOptions,
-  type RecordingMap,
   type SequenceMap,
   type ProbeInfo,
 };

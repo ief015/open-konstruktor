@@ -180,9 +180,10 @@ function updateCanvasSize() {
 function renderScope() {
   const ctx = getContext();
   const vsim = sim.value;
+  const recorder = vsim.getRecorder();
   const runningLength = vsim.getRunningLength();
   const scopeWidth = runningLength * SCOPE_SCALE_X;
-  const currentX = vsim.getRecordingLength() * SCOPE_SCALE_X;
+  const currentX = recorder.getRecordingLength() * SCOPE_SCALE_X;
 
   ctx.save();
   ctx.fillStyle = COLOR_CHART;
@@ -210,24 +211,50 @@ function renderScope() {
   const highLine = baseline - Math.floor(SCOPE_ROW_HEIGHT_PX / 2);
 
   function strokeSequenceLine(
-    seq: Readonly<Sequence> | null,
+    seq: Readonly<Sequence> | Readonly<Sequence>[] | null,
     endX: number = scopeWidth,
   ) {
     if (seq) {
       ctx.beginPath();
       ctx.moveTo(0, baseline);
-      let i = 0;
       let lastY = baseline;
-      for (const state of seq) {
-        const x = i * SCOPE_SCALE_X;
+      seq = Array.isArray(seq) ? seq[0] : seq;
+      const frames = seq.getFrames();
+      for (const frame in frames) {
+        const state = frames[frame];
+        if (state === undefined) continue;
+        const x = Number(frame) * SCOPE_SCALE_X;
         const y = state ? highLine : baseline;
+        ctx.lineTo(x, lastY);
         ctx.lineTo(x, y);
         ctx.lineTo(x + SCOPE_SCALE_X, y);
-        i++;
         lastY = y;
       }
       ctx.lineTo(endX, lastY);
       ctx.stroke();
+      // TODO: this supports multiple sequences, but could use some refactoring for efficiency
+      // Currently unneeded as multiple sequences per pin are not currently used
+      /*
+      ctx.beginPath();
+      ctx.moveTo(0, baseline);
+      let lastY = baseline;
+      seq = Array.isArray(seq) ? seq : [seq];
+      const maxLength = Math.max(...seq.map((s) => s.getLength()));
+      const frames = seq.map((s) => s.getFrames());
+      for (let i = 0; i < maxLength; i++) {
+        const states = frames.map((f) => f[i]).filter((s) => s !== undefined);
+        if (states.length === 0) continue;
+        const state = states.some((s) => s === true);
+        const x = i * SCOPE_SCALE_X;
+        const y = state ? highLine : baseline;
+        ctx.lineTo(x, lastY);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x + SCOPE_SCALE_X, y);
+        lastY = y;
+      }
+      ctx.lineTo(endX, lastY);
+      ctx.stroke();
+      */
     } else {
       // N/C
       ctx.beginPath();
@@ -245,7 +272,7 @@ function renderScope() {
     for (const offset of [0, 1]) {
       for (let i = offset; i < pins.length; i += 2) {
         const pin = pins[i];
-        const { input, output } = vsim.getSequence(pin);
+        const { input, output } = vsim.getPinSequence(pin);
         ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
         // draw label
         ctx.strokeStyle = COLOR_SCOPE_LINE;
@@ -272,7 +299,7 @@ function renderScope() {
           ctx.strokeStyle = COLOR_SCOPE_HINT;
           strokeSequenceLine(output);
           // recorded output signal
-          const rec = vsim.getRecording(pin);
+          const rec = vsim.getPinRecording(pin);
           if (rec) {
             ctx.strokeStyle = COLOR_SCOPE_LINE;
             strokeSequenceLine(rec, currentX);
@@ -286,7 +313,7 @@ function renderScope() {
     // draw scopes for probed paths
     ctx.strokeStyle = COLOR_SCOPE_LINE;
     for (const probe of vsim.getProbes()) {
-      const rec = vsim.getRecording(probe);
+      const rec = vsim.getProbeRecording(probe);
       if (rec) {
         ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
         if (probe.label) {
@@ -343,7 +370,7 @@ function draw(mode: DrawMode, coordA: Point, coordB: Point) {
   for (let y = Math.max(minY, 0); y <= Math.min(maxY, numPins - 1); y++) {
     const pin = filteredPins.value[rowToPinIndex(y)];
     if (!pin) continue;
-    const { input, output } = sim.value.getSequence(pin);
+    const { input, output } = sim.value.getPinSequence(pin);
     const seq = input || output;
     if (!seq) continue;
     for (

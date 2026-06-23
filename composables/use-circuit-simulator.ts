@@ -1,6 +1,10 @@
 import type { CircuitSimulationFactory } from '@/circuits';
-import { CircuitSimulation, FieldGraph, Network } from '@/simulation';
-import type { VerificationResult } from '@/simulation';
+import {
+  CircuitSimulation,
+  FieldGraph,
+  Network,
+  type VerificationResult,
+} from '@/simulation';
 
 export type OnStepAnimHandler = () => void;
 export type OnCompleteHandler = (result?: VerificationResult) => void;
@@ -154,9 +158,9 @@ function regenerateSequences() {
   const regen = currentFactory.value.setup(network.value);
   const pins = network.value.getPinNodes();
   for (const pin of pins) {
-    const { input, output } = regen.getSequence(pin);
-    if (input) {
-      sim.value.setInputSequence(pin, input.slice(0));
+    const { input = [], output } = regen.getPinSequence(pin);
+    for (const seq of input) {
+      sim.value.setInputSequence(pin, seq.slice(0));
     }
     if (output) {
       sim.value.setOutputSequence(pin, output.slice(0));

@@ -1,6 +1,9 @@
-import { PathNode, Sequence } from '@/simulation';
-import { NodeSequencer } from '@/simulation/NodeSequencer';
-import { SequenceRecorder } from '@/simulation/SequenceRecorder';
+import {
+  PathNode,
+  Sequence,
+  NodeSequencer,
+  SequenceRecorder,
+} from '@/simulation';
 import { assertEqual } from '@/test/utils/assert';
 import { expect, test } from 'vitest';
 
