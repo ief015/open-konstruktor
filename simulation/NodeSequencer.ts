@@ -76,6 +76,19 @@ export class NodeSequencer {
   }
 
   /**
+   * Find all sequences that a node is assigned to.
+   */
+  public findNodeSequences(node: NetworkNode): Sequence[] {
+    const sequences: Sequence[] = [];
+    for (const [sequence, nodes] of this.sequences) {
+      if (nodes.includes(node)) {
+        sequences.push(sequence);
+      }
+    }
+    return sequences;
+  }
+
+  /**
    * Add a node to a sequence.
    * @param sequence Sequence to add the node or nodes to.
    * @param node Node or nodes to add to the sequence.
