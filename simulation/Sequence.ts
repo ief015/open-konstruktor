@@ -41,13 +41,6 @@ export class Sequence implements Iterable<boolean> {
     return this.frameIndexCache ?? this.buildFrameIndexCache();
   }
 
-  public slice(start: number = 0, end?: number): Sequence {
-    const sequence = new Sequence();
-    sequence.frames = this.frames.slice(start, end);
-    sequence.frames[0] = this.probe(start);
-    return sequence;
-  }
-
   public getFrames(): Readonly<SequenceFrames> {
     return this.frames;
   }
@@ -109,6 +102,19 @@ export class Sequence implements Iterable<boolean> {
 
   public setFrame(frame: number, state: boolean): Sequence {
     this.frames[frame] = state;
+    this.invalidateFrameIndexCache();
+    return this;
+  }
+
+  public slice(start: number = 0, end?: number): Sequence {
+    const sequence = new Sequence();
+    sequence.frames = this.frames.slice(start, end);
+    sequence.frames[0] = this.probe(start);
+    return sequence;
+  }
+
+  public clear(): Sequence {
+    this.frames.length = 0;
     this.invalidateFrameIndexCache();
     return this;
   }
