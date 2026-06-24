@@ -92,7 +92,7 @@ const {
   isSnippet: selectionIsSnippet,
   computeTranslationFromMouse,
 } = useSelection();
-const { isRunning } = useCircuitSimulator();
+const { isRunning } = injectCircuitSimulation();
 const { mode: toolboxMode } = useToolbox();
 const selected = ref<SnippetRecord[]>([]);
 const groupsSorted = computed(() => {

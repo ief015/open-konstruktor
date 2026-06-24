@@ -71,8 +71,10 @@ import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-ev
 import type { CircuitDesignData } from '@/serialization';
 
 const { items: menuItems } = useMenuItems();
-const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
-const { load: loadSim, circuitFactory } = useCircuitSimulator();
+const {
+  load: loadSim,
+  field: { field, loadBlank: loadFieldBlank, load: loadField },
+} = injectCircuitSimulation();
 const { getLoader } = useCircuitLoaders();
 const { ignoreKeyShortcuts } = useToolbox();
 const designs = useSavedDesigns();
@@ -95,8 +97,8 @@ function loadLevel(levelName: string) {
   if (!loader) {
     throw new Error(`Unknown loader: ${levelName}`);
   }
-  loadBlankDesign(loader.width, loader.height, loader.pinRows);
-  loadSim(field.value, loader);
+  loadFieldBlank(loader.width, loader.height, loader.pinRows);
+  loadSim(loader);
 }
 
 function onShowImportDialog() {
@@ -134,8 +136,8 @@ function onCopyExport() {
 function onImport() {
   if (!importCode.value) return;
   try {
-    loadDesign(importCode.value);
-    loadSim(field.value);
+    loadField(importCode.value);
+    loadSim();
     showImportDialog.value = false;
   } catch (e: any) {
     alert(`Failed to import:\n${e.message ?? e}`);

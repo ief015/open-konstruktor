@@ -68,15 +68,21 @@ const dialogLabelProbe = reactive({
 });
 
 const {
-  field,
-  dimensions,
-  updateDesignScore,
-  history,
-  resetVerificationResult,
-} = useFieldGraph();
-const updateDesignScoreThrottle = useThrottleFn(updateDesignScore, 1000, true);
-const { sim, network, circuitFactory, isRunning, stepsPerSecond, onStepAnim } =
-  useCircuitSimulator();
+  sim,
+  network,
+  circuitFactory,
+  isRunning,
+  stepsPerSecond,
+  onStepAnim,
+  field: {
+    field,
+    dimensions,
+    history,
+    resetVerificationResult,
+    updateDesignScore,
+  },
+} = injectCircuitSimulation();
+const updateDesignScoreThrottled = useThrottleFn(updateDesignScore, 500, true);
 const { mode: toolBoxMode, ignoreKeyShortcuts } = useToolbox();
 const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
 const tilePreloader = useTileRenderer();
@@ -392,7 +398,7 @@ function draw(mode: ToolboxMode, coordA: Point, coordB: Point) {
       field.value.erase('gate', coordA, coordB);
       break;
   }
-  updateDesignScoreThrottle();
+  updateDesignScoreThrottled();
   resetVerificationResult();
   const bounds: TileBounds = [
     Math.min(coordA[0], coordB[0]),
@@ -575,7 +581,7 @@ function clearSelection() {
   selectionFieldGraph.value = undefined;
   selectionIsSnippet.value = false;
   selectionState.value = undefined;
-  updateDesignScoreThrottle();
+  updateDesignScoreThrottled();
   resetVerificationResult();
 }
 
@@ -638,7 +644,7 @@ function endSelection() {
             selectionTranslate.value = [0, 0];
           }
         }
-        updateDesignScoreThrottle();
+        updateDesignScoreThrottled();
         resetVerificationResult();
         history.push();
         queueAnimFuncs.add(renderField);
@@ -1057,7 +1063,7 @@ watch(toolBoxMode, (mode, was) => {
 
 watch(isRunning, (isRunning) => {
   if (isRunning) {
-    updateDesignScoreThrottle();
+    updateDesignScore();
     resetVerificationResult();
   }
   queueAnimFuncs.add(renderHot);

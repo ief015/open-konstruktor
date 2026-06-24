@@ -87,13 +87,19 @@ const canvasContainer = useTemplateRef('canvasContainer');
 const canvas = useTemplateRef('canvas');
 const canvasWidth = ref(0);
 const {
-  designScore,
-  setVerificationResult,
-  resetVerificationResult,
-  verificationResult,
-} = useFieldGraph();
-const { network, sim, isRunning, currentFrame, onStepAnim, onComplete } =
-  useCircuitSimulator();
+  network,
+  sim,
+  isRunning,
+  currentFrame,
+  onStepAnim,
+  onComplete,
+  field: {
+    designScore,
+    setVerificationResult,
+    resetVerificationResult,
+    verificationResult,
+  },
+} = injectCircuitSimulation();
 const {
   openCompleted: levelInfoOpenCompleted,
   completedAvailable: hasOpenedCompleted,

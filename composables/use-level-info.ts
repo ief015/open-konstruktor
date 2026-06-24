@@ -5,7 +5,7 @@ const page = ref(0);
 const completedAvailable = ref(false);
 
 export default function useLevelInfo() {
-  const { circuitFactory } = useCircuitSimulator();
+  const { circuitFactory } = injectCircuitSimulation();
 
   const title = computed<string>(() => {
     const { info, infoCompleted } = circuitFactory.value;

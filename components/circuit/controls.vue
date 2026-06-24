@@ -137,7 +137,6 @@
 </template>
 
 <script setup lang="ts">
-const { field } = useFieldGraph();
 const {
   isRunning,
   isPaused,
@@ -152,8 +151,7 @@ const {
   resume,
   step,
   resetProfiler,
-  updateField,
-} = useCircuitSimulator();
+} = injectCircuitSimulation();
 const customRate = ref(40);
 const realtimeRate = ref(60);
 const selectedRate = ref('40');
@@ -206,7 +204,6 @@ watch(
 
 function onStart() {
   if (isRunning.value) return;
-  updateField(field.value);
   start();
 }
 

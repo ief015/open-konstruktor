@@ -23,8 +23,10 @@ export function useMenuItems() {
   const { loaders } = useCircuitLoaders();
   const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
   const selection = useSelection();
-  const { history } = useFieldGraph();
-  const { isRunning } = useCircuitSimulator();
+  const {
+    isRunning,
+    field: { history },
+  } = injectCircuitSimulation();
   const levelItems = computed((): MenuBarItem[] =>
     loaders.map(mapLoaderToMenuItem),
   );
