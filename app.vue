@@ -67,8 +67,8 @@ const status = useStatusBar();
 const clipboard = useClipboard();
 provide('clipboard', clipboard);
 
-const circuitSimulation = useCircuitSimulation();
-provideCircuitSimulation(circuitSimulation);
+const currentSimulation = shallowRef(useCircuitSimulation());
+provideCircuitSimulation(currentSimulation);
 </script>
 
 <style scoped>

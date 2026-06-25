@@ -67,6 +67,7 @@ const dialogLabelProbe = reactive({
   open: false,
 });
 
+const circuitSimulation = injectCircuitSimulation();
 const {
   sim,
   network,
@@ -74,23 +75,29 @@ const {
   isRunning,
   stepsPerSecond,
   onStepAnim,
-  field: {
-    field,
-    dimensions,
-    history,
-    resetVerificationResult,
-    updateDesignScore,
-  },
-} = injectCircuitSimulation();
-const updateDesignScoreThrottled = useThrottleFn(updateDesignScore, 500, true);
+  field: fieldGraph,
+} = toShallowRefs(circuitSimulation);
+const {
+  field,
+  dimensions,
+  history,
+  resetVerificationResult,
+  updateDesignScore,
+} = toShallowRefs(fieldGraph);
+const updateDesignScoreThrottled = useThrottleFn(
+  updateDesignScore.value,
+  500,
+  true,
+);
+
 const { mode: toolBoxMode, ignoreKeyShortcuts } = useToolbox();
 const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
 const tilePreloader = useTileRenderer();
 
 const canvasWidth = ref(0);
 const canvasHeight = ref(0);
-const fieldWidth = computed(() => dimensions.columns * TILE_SIZE);
-const fieldHeight = computed(() => dimensions.rows * TILE_SIZE);
+const fieldWidth = computed(() => dimensions.value.columns * TILE_SIZE);
+const fieldHeight = computed(() => dimensions.value.rows * TILE_SIZE);
 
 const viewX = ref(0);
 const viewY = ref(0);
@@ -174,7 +181,7 @@ const debugMsg = computed(() => {
     }
   }
   if (debugFlags.showGridSize) {
-    dbg.push(`Grid: [${dimensions.columns}, ${dimensions.rows}]`);
+    dbg.push(`Grid: [${dimensions.value.columns}, ${dimensions.value.rows}]`);
   }
   if (debugFlags.showViewPosition) {
     const panX = viewX.value.toFixed(0);
@@ -212,7 +219,7 @@ function getTileViewport(): {
   right: number;
   bottom: number;
 } {
-  const { columns, rows } = dimensions;
+  const { columns, rows } = dimensions.value;
   return computeTileViewport(
     viewX.value,
     viewY.value,
@@ -227,10 +234,10 @@ function getTileViewport(): {
 function renderBackground() {
   const [minCol, maxCol] = field.value.getMinMaxColumns();
   gridRenderer.applyDefinition({
-    columns: dimensions.columns,
-    rows: dimensions.rows,
+    columns: dimensions.value.columns,
+    rows: dimensions.value.rows,
     boundaryLeft: minCol,
-    boundaryRight: dimensions.columns - maxCol,
+    boundaryRight: dimensions.value.columns - maxCol,
   });
   gridRenderer.render({
     viewport: getTileViewport(),
@@ -399,7 +406,7 @@ function draw(mode: ToolboxMode, coordA: Point, coordB: Point) {
       break;
   }
   updateDesignScoreThrottled();
-  resetVerificationResult();
+  resetVerificationResult.value();
   const bounds: TileBounds = [
     Math.min(coordA[0], coordB[0]),
     Math.min(coordA[1], coordB[1]),
@@ -428,14 +435,18 @@ function toggleProbe(coord: Point, layer?: GraphLayer, named?: boolean) {
 
 function clear() {
   if (isRunning.value) return;
-  field.value.clearRect([0, 0], [dimensions.columns, dimensions.rows], {
-    enforceBounds: true,
-  });
+  field.value.clearRect(
+    [0, 0],
+    [dimensions.value.columns, dimensions.value.rows],
+    {
+      enforceBounds: true,
+    },
+  );
   sim.value?.clearProbes();
-  updateDesignScore();
-  resetVerificationResult();
+  updateDesignScore.value();
+  resetVerificationResult.value();
   queueAnimFuncs.add(renderAll);
-  history.push();
+  history.value.push();
 }
 
 function panView(dx: number, dy: number) {
@@ -514,7 +525,7 @@ function mouseToGrid(mx: number, my: number): Point {
 }
 
 function clampCoords(coord: Point): Point {
-  const { rows } = dimensions;
+  const { rows } = dimensions.value;
   const [min, max] = field.value.getMinMaxColumns();
   const [x, y] = coord;
   return [Math.max(min, Math.min(max, x)), Math.max(0, Math.min(rows - 1, y))];
@@ -536,7 +547,7 @@ function startDraw(e: MouseEvent) {
 function endDraw(e: MouseEvent) {
   if (!isDrawing.value) return;
   isDrawing.value = false;
-  history.push();
+  history.value.push();
 }
 
 function startPan(e: MouseEvent) {
@@ -582,7 +593,7 @@ function clearSelection() {
   selectionIsSnippet.value = false;
   selectionState.value = undefined;
   updateDesignScoreThrottled();
-  resetVerificationResult();
+  resetVerificationResult.value();
 }
 
 function endSelection() {
@@ -645,8 +656,8 @@ function endSelection() {
           }
         }
         updateDesignScoreThrottled();
-        resetVerificationResult();
-        history.push();
+        resetVerificationResult.value();
+        history.value.push();
         queueAnimFuncs.add(renderField);
       } else {
         clearSelection();
@@ -672,22 +683,22 @@ function deleteSelection() {
   endSelection();
   queueAnimFuncs.add(renderField);
   queueAnimFuncs.add(renderOverlay);
-  history.push();
+  history.value.push();
 }
 
 function undo() {
   if (isRunning.value) return;
-  history.undo();
-  updateDesignScore();
-  resetVerificationResult();
+  history.value.undo();
+  updateDesignScore.value();
+  resetVerificationResult.value();
   queueAnimFuncs.add(renderAll);
 }
 
 function redo() {
   if (isRunning.value) return;
-  history.redo();
-  updateDesignScore();
-  resetVerificationResult();
+  history.value.redo();
+  updateDesignScore.value();
+  resetVerificationResult.value();
   queueAnimFuncs.add(renderAll);
 }
 
@@ -711,7 +722,7 @@ function cutSelectionToClipboard() {
   endSelection();
   queueAnimFuncs.add(renderField);
   queueAnimFuncs.add(renderOverlay);
-  history.push();
+  history.value.push();
 }
 
 function copySelectionToClipboard() {
@@ -755,7 +766,15 @@ function updateCanvasPointer(clientX: number, clientY: number) {
   canvasMouseOutside.value = false;
 }
 
-onStepAnim(() => queueAnimFuncs.add(renderHot));
+const onStepAnimHandler = ref<OnStepAnimHandler>();
+watchImmediate(onStepAnim, (onStepAnim) => {
+  onStepAnimHandler.value?.();
+  onStepAnimHandler.value = onStepAnim(() => queueAnimFuncs.add(renderHot));
+});
+
+onUnmounted(() => {
+  onStepAnimHandler.value?.();
+});
 
 useRafFn(({ delta, timestamp }) => {
   const start = performance.now();
@@ -893,7 +912,7 @@ useEventListener('keydown', (e) => {
     field.value.clearRect(start, end, { enforceBounds: true });
     field.value.paste(start, selectionFieldGraph.value);
     queueAnimFuncs.add(renderField);
-    history.push();
+    history.value.push();
   }
 });
 
@@ -1063,8 +1082,8 @@ watch(toolBoxMode, (mode, was) => {
 
 watch(isRunning, (isRunning) => {
   if (isRunning) {
-    updateDesignScore();
-    resetVerificationResult();
+    updateDesignScore.value();
+    resetVerificationResult.value();
   }
   queueAnimFuncs.add(renderHot);
 });

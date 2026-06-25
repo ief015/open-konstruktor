@@ -137,6 +137,7 @@
 </template>
 
 <script setup lang="ts">
+const circuitSimulation = injectCircuitSimulation();
 const {
   isRunning,
   isPaused,
@@ -151,7 +152,8 @@ const {
   resume,
   step,
   resetProfiler,
-} = injectCircuitSimulation();
+} = toShallowRefs(circuitSimulation);
+
 const customRate = ref(40);
 const realtimeRate = ref(60);
 const selectedRate = ref('40');
@@ -162,7 +164,7 @@ watchDebounced(
     if (selectedRate.value === 'custom') {
       stepRate.value = Math.max(0, rate);
     }
-    resetProfiler();
+    resetProfiler.value();
   },
   { debounce: 500 },
 );
@@ -173,7 +175,7 @@ watchDebounced(
     if (selectedRate.value === 'realtime') {
       realTimeTargetFrameRate.value = Math.max(1, rate);
     }
-    resetProfiler();
+    resetProfiler.value();
   },
   { debounce: 500 },
 );
@@ -197,36 +199,36 @@ watch(
         stepMode.value = 'fixed';
         break;
     }
-    resetProfiler();
+    resetProfiler.value();
   },
   { immediate: true },
 );
 
 function onStart() {
   if (isRunning.value) return;
-  start();
+  start.value();
 }
 
 function onTogglePause() {
   if (!isRunning.value) {
     onStart();
-    pause();
+    pause.value();
     return;
   }
   if (isPaused.value) {
-    resume();
+    resume.value();
   } else {
-    pause();
+    pause.value();
   }
 }
 
 function onStep(n?: number) {
   if (!isRunning.value) {
     onStart();
-    pause();
+    pause.value();
   }
   if (isPaused.value) {
-    step(n);
+    step.value(n);
   }
 }
 </script>

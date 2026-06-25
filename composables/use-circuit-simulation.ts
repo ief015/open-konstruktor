@@ -4,6 +4,7 @@ import {
   Network,
   type VerificationResult,
 } from '@/simulation';
+import type { ShallowRef } from 'vue';
 
 export type OnStepAnimHandler = () => void;
 export type OnCompleteHandler = (result?: VerificationResult) => void;
@@ -73,7 +74,6 @@ export function useCircuitSimulation() {
         handlers.onStepAnim.splice(idx, 1);
       }
     };
-    onUnmounted(removeHandler);
     return removeHandler;
   }
 
@@ -85,7 +85,6 @@ export function useCircuitSimulation() {
         handlers.onComplete.splice(idx, 1);
       }
     };
-    onUnmounted(removeHandler);
     return removeHandler;
   }
 
@@ -263,11 +262,13 @@ export function useCircuitSimulation() {
 }
 
 export function provideCircuitSimulation(
-  circuitSim: ReturnType<typeof useCircuitSimulation>,
+  circuitSim: ShallowRef<ReturnType<typeof useCircuitSimulation>>,
 ) {
   return provide('circuitSimulation', circuitSim);
 }
 
 export function injectCircuitSimulation() {
-  return inject<ReturnType<typeof useCircuitSimulation>>('circuitSimulation')!;
+  return inject<ShallowRef<ReturnType<typeof useCircuitSimulation>>>(
+    'circuitSimulation',
+  )!;
 }

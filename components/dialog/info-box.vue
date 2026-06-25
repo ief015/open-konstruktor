@@ -55,7 +55,8 @@ const {
   open,
   close,
 } = useLevelInfo();
-const { load: loadSim, field } = injectCircuitSimulation();
+const circuitSimulation = injectCircuitSimulation();
+const { load: loadSim, field } = toShallowRefs(circuitSimulation);
 const { getLoader } = useCircuitLoaders();
 
 function loadLevel(id: string) {
@@ -63,7 +64,7 @@ function loadLevel(id: string) {
   if (!loader) {
     throw new Error(`Could not find level with id ${id}`);
   }
-  field.loadBlank(loader.width, loader.height, loader.pinRows);
-  loadSim(loader);
+  field.value.loadBlank(loader.width, loader.height, loader.pinRows);
+  loadSim.value(loader);
 }
 </script>
