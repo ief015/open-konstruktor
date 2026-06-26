@@ -127,6 +127,8 @@
 </template>
 
 <script setup lang="ts">
+import type { UseCircuitSimulationReturn } from '@/composables/use-circuit-simulation';
+
 const circuitSimulation = injectCircuitSimulation();
 const {
   id: simId,
@@ -145,12 +147,12 @@ const {
   resetProfiler,
 } = toShallowRefs(circuitSimulation);
 
-function useControlsState() {
+function useControlsState(sim: UseCircuitSimulationReturn) {
   const customRate = ref(40);
   const realtimeRate = ref(60);
   const selectedRate = ref('40');
 
-  watchDebounced(
+  const customRateWatcher = watchDebounced(
     customRate,
     (rate) => {
       if (selectedRate.value === 'custom') {
@@ -161,7 +163,7 @@ function useControlsState() {
     { debounce: 500 },
   );
 
-  watchDebounced(
+  const realtimeRateWatcher = watchDebounced(
     realtimeRate,
     (rate) => {
       if (selectedRate.value === 'realtime') {
@@ -172,7 +174,7 @@ function useControlsState() {
     { debounce: 500 },
   );
 
-  watch(
+  const selectedRateWatcher = watch(
     selectedRate,
     (rate) => {
       switch (rate) {
@@ -196,19 +198,41 @@ function useControlsState() {
     { immediate: true },
   );
 
+  function dispose() {
+    customRateWatcher();
+    realtimeRateWatcher();
+    selectedRateWatcher();
+  }
+
   return reactive({
     customRate,
     realtimeRate,
     selectedRate,
+    dispose,
   });
 }
 
 const stateMap = new Map<number, ReturnType<typeof useControlsState>>();
 
+useWorkspaceActionListener((event) => {
+  const { action, simulation } = event;
+  switch (action) {
+    case 'simulation-deleted':
+      if (simulation) {
+        const state = stateMap.get(simulation.id.value);
+        if (state) {
+          state.dispose();
+          stateMap.delete(simulation.id.value);
+        }
+      }
+      break;
+  }
+});
+
 const currentState = computed(() => {
   const id = simId.value;
   if (!stateMap.has(id)) {
-    stateMap.set(id, useControlsState());
+    stateMap.set(id, useControlsState(circuitSimulation.value));
   }
   return stateMap.get(id)!;
 });
