@@ -265,20 +265,22 @@ export function useCircuitSimulation() {
   };
 }
 
+export type UseCircuitSimulationReturn = ReturnType<
+  typeof useCircuitSimulation
+>;
+
 export function provideCircuitSimulation(
-  circuitSim: ShallowRef<ReturnType<typeof useCircuitSimulation>>,
+  circuitSim: ShallowRef<UseCircuitSimulationReturn>,
 ) {
   return provide('circuitSimulation', circuitSim);
 }
 
 export function injectCircuitSimulationOptional() {
-  return inject<
-    ShallowRef<ReturnType<typeof useCircuitSimulation> | undefined>
-  >('circuitSimulation')!;
+  return inject<ShallowRef<UseCircuitSimulationReturn | undefined>>(
+    'circuitSimulation',
+  )!;
 }
 
 export function injectCircuitSimulation() {
-  return inject<ShallowRef<ReturnType<typeof useCircuitSimulation>>>(
-    'circuitSimulation',
-  )!;
+  return inject<ShallowRef<UseCircuitSimulationReturn>>('circuitSimulation')!;
 }

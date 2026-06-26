@@ -92,6 +92,7 @@
 import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
 import { useMenuBarListener } from '@/components/menu/bar-app-events';
 import type { TabBarItem } from '@/components/tab/bar-item.vue';
+import type { UseCircuitSimulationReturn } from '@/composables/use-circuit-simulation';
 import type { ShallowRef } from 'vue';
 
 const config = useRuntimeConfig();
@@ -101,17 +102,22 @@ const status = useStatusBar();
 const clipboard = useClipboard();
 provide('clipboard', clipboard);
 
-const simulations: ReturnType<typeof useCircuitSimulation>[] = shallowReactive(
-  [],
-);
-const currentSimulation = shallowRef<ReturnType<typeof useCircuitSimulation>>();
+const {
+  allSimulations,
+  currentSimulation,
+  addNewSimulation,
+  removeSimulation,
+  openSimulation,
+  openNewLevel,
+} = useWorkspace();
+
 provideCircuitSimulation(
-  currentSimulation as ShallowRef<ReturnType<typeof useCircuitSimulation>>,
+  currentSimulation as ShallowRef<UseCircuitSimulationReturn>,
 );
 
 const currentTab = ref<string>();
 const tabItems = computed<TabBarItem[]>(() => {
-  const items: TabBarItem[] = simulations.map((sim) => ({
+  const items: TabBarItem[] = allSimulations.value.map((sim) => ({
     name: String(sim.id),
     label: sim.circuitFactory.value?.label ?? `Untitled (${sim.id})`,
     closeable: true,
@@ -119,50 +125,21 @@ const tabItems = computed<TabBarItem[]>(() => {
   return items;
 });
 
-watch(currentSimulation, (sim) => {
-  currentTab.value = sim ? String(sim.id) : undefined;
-});
-
-function openNewSimulation(open: boolean = true) {
-  const sim = useCircuitSimulation();
-  simulations.push(sim);
-  if (open) {
-    currentSimulation.value = sim;
-  }
-  return sim;
-}
-
-const { getLoader } = useCircuitLoaders();
-function loadLevel(levelName: string) {
-  const sim = openNewSimulation();
-  const loader = getLoader(levelName);
-  if (!loader) {
-    throw new Error(`Unknown loader: ${levelName}`);
-  }
-  sim.field.loadBlank(loader.width, loader.height, loader.pinRows);
-  sim.load(loader);
+function getSimulationByName(name: string) {
+  return allSimulations.value.find((sim) => String(sim.id) === name);
 }
 
 function onSelectedTab(name: string) {
-  const sim = simulations.find((sim) => String(sim.id) === name);
+  const sim = allSimulations.value.find((sim) => String(sim.id) === name);
   if (sim) {
-    currentSimulation.value = sim;
+    openSimulation(sim);
   }
 }
 
-function getSimulationByName(name: string) {
-  return simulations.find((sim) => String(sim.id) === name);
-}
-
 function onCloseTab(name: string) {
-  const index = simulations.findIndex((sim) => String(sim.id) === name);
-  if (index >= 0) {
-    const sim = simulations[index];
-    simulations.splice(index, 1);
-    if (currentSimulation.value === sim) {
-      const nextSim = simulations[index] ?? simulations[index - 1] ?? undefined;
-      currentSimulation.value = nextSim;
-    }
+  const sim = allSimulations.value.find((sim) => String(sim.id) === name);
+  if (sim) {
+    removeSimulation(sim);
   }
 }
 
@@ -171,16 +148,20 @@ useMenuBarListener((event) => {
   if (!id) return;
   if (id.startsWith('level/')) {
     const loaderKey = id.slice('level/'.length);
-    loadLevel(loaderKey);
+    openNewLevel(loaderKey);
   }
 });
 
 useWelcomeDialogListener((event) => {
   switch (event.action) {
     case 'start-tutorial':
-      loadLevel('Tutorial 01 Introduction');
+      openNewLevel('Tutorial 01 Introduction');
       break;
   }
+});
+
+watch(currentSimulation, (sim) => {
+  currentTab.value = sim ? String(sim.id) : undefined;
 });
 </script>
 
