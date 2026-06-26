@@ -457,7 +457,7 @@ watch(sim, (sim) => {
 });
 
 watch(network, (network) => updateCanvasSize());
-
+watch(scopeHeight, (height) => updateCanvasSize());
 useResizeObserver(canvasContainer, (e, o) => updateCanvasSize());
 useEventListener('resize', (e) => updateCanvasSize());
 
