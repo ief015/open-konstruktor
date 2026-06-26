@@ -164,6 +164,16 @@ function onLabelDblClick(name: string) {
   }
 }
 
+function duplicateCurrentSimulation() {
+  if (!currentSimulation.value) return;
+  const field = currentSimulation.value.field.field;
+  const factory = currentSimulation.value.circuitFactory.value;
+  const design = field.value.toSaveString();
+  const sim = addNewSimulation(true);
+  sim.load(factory);
+  sim.field.load(design);
+}
+
 function onSubmitEditTab() {
   if (editTab.value) {
     const sim = allSimulations.value.find(
@@ -185,6 +195,12 @@ useMenuBarListener((event) => {
   if (id.startsWith('level/')) {
     const loaderKey = id.slice('level/'.length);
     openNewLevel(loaderKey);
+    return;
+  }
+  switch (id) {
+    case 'edit/duplicate':
+      duplicateCurrentSimulation();
+      break;
   }
 });
 

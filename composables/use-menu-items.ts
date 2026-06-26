@@ -92,6 +92,12 @@ export function useMenuItems() {
         },
         'divider',
         {
+          id: 'edit/duplicate',
+          label: 'Duplicate',
+          disabled: !fieldGraph.value,
+        },
+        'divider',
+        {
           id: 'edit/clear-probes',
           label: 'Clear All Probes',
           disabled: isRunning.value || !fieldGraph.value,

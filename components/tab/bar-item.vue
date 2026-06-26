@@ -10,12 +10,14 @@
   >
     <slot name="before" />
     <slot name="label">
-      <span @dblclick="emit('labelDblClick')">{{ props.item.label }}</span>
+      <span class="select-none" @dblclick="emit('labelDblClick')">{{
+        props.item.label
+      }}</span>
     </slot>
     <slot name="close">
       <span
         v-if="props.item.closeable"
-        class="ml-2 cursor-pointer hover:text-gray-100"
+        class="ml-2 cursor-pointer hover:text-gray-100 select-none"
         @click.stop="emit('close')"
       >
         🗙
