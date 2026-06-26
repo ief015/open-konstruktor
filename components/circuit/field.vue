@@ -15,6 +15,7 @@
       v-if="dialogLabelProbe.probe"
       v-model="dialogLabelProbe.open"
       v-model:probe="dialogLabelProbe.probe"
+      @save="(e) => dialogLabelProbe.onSave(e)"
     />
   </div>
 </template>
@@ -39,6 +40,7 @@ import {
   stepViewScale,
   zoomAtPoint,
 } from '@/utils/field-view';
+import { dispatchFieldProbeAction } from '@/components/circuit/field-events';
 
 const canvas = useTemplateRef('canvas');
 const canvasDirty = ref(false);
@@ -65,6 +67,9 @@ const selectionFieldRenderer = new FieldRenderer().setCanvas(
 const dialogLabelProbe = reactive({
   probe: null as ProbeInfo | null,
   open: false,
+  onSave: (probe: ProbeInfo) => {
+    dispatchFieldProbeAction('renamed', [probe]);
+  },
 });
 
 const circuitSimulation = injectCircuitSimulation();
@@ -417,20 +422,32 @@ function draw(mode: ToolboxMode, coordA: Point, coordB: Point) {
 }
 
 function toggleProbe(coord: Point, layer?: GraphLayer, named?: boolean) {
+  if (!sim.value) return;
   if (!field.value.isInBounds(coord)) return;
-  const existing = sim.value?.getProbesAt(coord, layer);
+  const existing = sim.value.getProbesAt(coord, layer);
   if (existing.length) {
     for (const probe of existing) {
-      sim.value?.removeProbe(probe);
+      sim.value.removeProbe(probe);
     }
+    dispatchFieldProbeAction('removed', existing);
   } else {
-    const probe = sim.value?.addProbeAt(coord, layer);
-    if (probe && named) {
+    const probe = sim.value.addProbeAt(coord, layer);
+    if (named) {
       dialogLabelProbe.probe = probe;
       dialogLabelProbe.open = true;
     }
+    dispatchFieldProbeAction('added', [probe]);
   }
   queueAnimFuncs.add(renderOverlay);
+}
+
+function clearProbes(silent: boolean = false) {
+  if (!sim.value) return;
+  const probes = sim.value.getProbes() as ProbeInfo[];
+  sim.value.clearProbes();
+  if (!silent) {
+    dispatchFieldProbeAction('removed', probes);
+  }
 }
 
 function clear() {
@@ -442,7 +459,7 @@ function clear() {
       enforceBounds: true,
     },
   );
-  sim.value?.clearProbes();
+  clearProbes();
   updateDesignScore.value();
   resetVerificationResult.value();
   queueAnimFuncs.add(renderAll);
@@ -1009,7 +1026,7 @@ useMenuBarListener((event) => {
       queueAnimFuncs.add(renderAll);
       break;
     case 'edit/clear-probes':
-      sim.value?.clearProbes();
+      clearProbes();
       queueAnimFuncs.add(renderOverlay);
       break;
     case 'edit/clear':

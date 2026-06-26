@@ -49,12 +49,12 @@ watch(
 );
 
 const emit = defineEmits<{
-  save: [label: string];
+  save: [probe: ProbeInfo];
 }>();
 
 function onSave() {
   if (!model.value) return;
   model.value.label = formData.label;
-  emit('save', model.value.label);
+  emit('save', model.value);
 }
 </script>
