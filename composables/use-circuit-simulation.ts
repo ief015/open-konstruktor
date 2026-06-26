@@ -14,19 +14,26 @@ export type StepMode = 'fixed' | 'vsync' | 'realtime';
 let nextID = 0;
 
 export function useCircuitSimulation() {
+  const id = nextID++;
+  const name = ref('');
+  const network = shallowRef<Network>(new Network());
+  const sim = shallowRef<CircuitSimulation>(
+    new CircuitSimulation(network.value),
+  );
+  const field = useFieldGraph();
+
+  const defaultFactory: CircuitSimulationFactory = {
+    key: '',
+    setup: (network) => new CircuitSimulation(network),
+  };
+  const currentFactory = shallowRef<CircuitSimulationFactory>(defaultFactory);
+
   let lastFrameTime = 0;
   let accumulatedTime = 0;
   const profiler = reactive({
     steps: 0,
     elapsed: 0,
   });
-
-  const id = nextID++;
-  const network = shallowRef<Network>(new Network());
-  const sim = shallowRef<CircuitSimulation>(
-    new CircuitSimulation(network.value),
-  );
-  const field = useFieldGraph();
   const isRunning = ref(false);
   const isPaused = ref(false);
   const loop = ref(false);
@@ -49,12 +56,6 @@ export function useCircuitSimulation() {
       return 1000 / stepRate.value;
     }
   });
-
-  const defaultFactory: CircuitSimulationFactory = {
-    key: '',
-    setup: (network) => new CircuitSimulation(network),
-  };
-  const currentFactory = shallowRef<CircuitSimulationFactory>(defaultFactory);
 
   const handlers = {
     onStepAnim: [] as OnStepAnimHandler[],
@@ -97,6 +98,7 @@ export function useCircuitSimulation() {
     const { field: fieldGraph } = field;
     network.value = Network.from(fieldGraph.value);
     sim.value = setup(network.value);
+    name.value = simFactory.label ?? '';
   }
 
   function updateNetwork() {
@@ -237,6 +239,7 @@ export function useCircuitSimulation() {
 
   return {
     id: computed(() => id),
+    name,
     sim,
     field,
     network,
