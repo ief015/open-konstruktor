@@ -10,7 +10,7 @@
   >
     <slot name="before" />
     <slot name="label">
-      <span>{{ props.item.label }}</span>
+      <span @dblclick="emit('labelDblClick')">{{ props.item.label }}</span>
     </slot>
     <slot name="close">
       <span
@@ -40,6 +40,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  labelDblClick: [];
   close: [];
 }>();
 </script>

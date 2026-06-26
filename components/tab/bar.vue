@@ -9,6 +9,7 @@
       :active="item.name === name"
       @click="onSelected(item)"
       @close="onClose(item)"
+      @labelDblClick="onLabelDblClick(item)"
     >
       <template #before>
         <slot name="before" v-bind="item" />
@@ -35,6 +36,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   selected: [name: string, from?: string];
   close: [name: string];
+  labelDblClick: [name: string];
 }>();
 
 function onSelected(item: TabBarItem) {
@@ -45,5 +47,9 @@ function onSelected(item: TabBarItem) {
 
 function onClose(item: TabBarItem) {
   emit('close', item.name);
+}
+
+function onLabelDblClick(item: TabBarItem) {
+  emit('labelDblClick', item.name);
 }
 </script>
