@@ -299,18 +299,18 @@ function renderScope() {
     // draw scopes for probed paths
     ctx.strokeStyle = COLOR_SCOPE_LINE;
     for (const probe of vsim.getProbes()) {
-        ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
-        if (probe.label) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(0, baseline);
-          ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
-          ctx.stroke();
-          ctx.translate(translateX.value, 0);
-          ctx.font = FONT;
-          ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
-          ctx.restore();
-        }
+      ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
+      if (probe.label) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
+        ctx.stroke();
+        ctx.translate(translateX.value, 0);
+        ctx.font = FONT;
+        ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+        ctx.restore();
+      }
       const rec = vsim.getProbeRecording(probe);
       if (rec) {
         ctx.save();

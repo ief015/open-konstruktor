@@ -260,7 +260,9 @@ export class CircuitSimulation implements ISimulation {
     this.probedNodes.clear();
     for (const probe of this.probes) {
       const nodes = this.network.getNodesAt(probe.layerPosition, probe.layer);
-      this.probedNodes.set(probe, (frame) => nodes.some(getNodeState));
+      const recordable: RecordableFn = (frame) => nodes.some(getNodeState);
+      this.probedNodes.set(probe, recordable);
+      this.recorder.add(recordable);
     }
   }
 
