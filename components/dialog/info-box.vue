@@ -43,6 +43,8 @@
 </template>
 
 <script setup lang="ts">
+const circuitSimulation = injectCircuitSimulation();
+const { load: loadSim, field, levelInfo } = toShallowRefs(circuitSimulation);
 const {
   isOpen,
   page,
@@ -54,9 +56,7 @@ const {
   previous,
   open,
   close,
-} = useLevelInfo();
-const circuitSimulation = injectCircuitSimulation();
-const { load: loadSim, field } = toShallowRefs(circuitSimulation);
+} = toShallowRefs(levelInfo);
 const { getLoader } = useCircuitLoaders();
 
 function loadLevel(id: string) {

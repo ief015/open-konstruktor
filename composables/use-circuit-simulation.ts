@@ -27,6 +27,7 @@ export function useCircuitSimulation() {
     setup: (network) => new CircuitSimulation(network),
   };
   const currentFactory = shallowRef<CircuitSimulationFactory>(defaultFactory);
+  const levelInfo = useLevelInfo(currentFactory);
 
   let lastFrameTime = 0;
   let accumulatedTime = 0;
@@ -244,6 +245,7 @@ export function useCircuitSimulation() {
     field,
     network,
     circuitFactory: currentFactory,
+    levelInfo,
     isRunning,
     isPaused,
     loop,

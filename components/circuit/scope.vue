@@ -96,6 +96,7 @@ const {
   onStepAnim,
   onComplete,
   field: fieldGraph,
+  levelInfo,
 } = toShallowRefs(circuitSimulation);
 const {
   designScore,
@@ -106,7 +107,7 @@ const {
 const {
   openCompleted: levelInfoOpenCompleted,
   completedAvailable: hasOpenedCompleted,
-} = useLevelInfo();
+} = toShallowRefs(levelInfo);
 const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
 const editable = ref(false);
@@ -395,7 +396,7 @@ watchImmediate(onComplete, (onComplete) => {
     if (result) {
       setVerificationResult.value(result);
       if (result.passed && !hasOpenedCompleted.value) {
-        levelInfoOpenCompleted();
+        levelInfoOpenCompleted.value();
       }
     } else {
       resetVerificationResult.value();
