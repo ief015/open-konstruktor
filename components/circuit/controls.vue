@@ -68,7 +68,7 @@
       />
     </div>
     <div title="Set the step rate of the simulation.">
-      <select v-model="selectedRate">
+      <select v-model="currentState.selectedRate">
         <option value="10">10 Hz</option>
         <option value="20">20 Hz</option>
         <option value="40" title="The original step rate of KOHCTPYKTOP.">
@@ -94,7 +94,7 @@
       </select>
     </div>
     <div
-      v-if="selectedRate == 'custom'"
+      v-if="currentState.selectedRate == 'custom'"
       class="flex flex-row items-center gap-1"
     >
       <input
@@ -103,13 +103,13 @@
         placeholder="Hz"
         type="number"
         min="0"
-        v-model="customRate"
+        v-model="currentState.customRate"
         title="Set the target step rate."
       />
       <label for="circuit-controls-custom-rate">Hz</label>
     </div>
     <div
-      v-if="selectedRate == 'realtime'"
+      v-if="currentState.selectedRate == 'realtime'"
       class="flex flex-row items-center gap-1"
       title="Set the target frame rate for real-time mode."
     >
@@ -119,7 +119,7 @@
         placeholder="Hz"
         type="number"
         min="1"
-        v-model="realtimeRate"
+        v-model="currentState.realtimeRate"
       />
       <label for="circuit-controls-realtime-rate">FPS</label>
     </div>
@@ -129,6 +129,7 @@
 <script setup lang="ts">
 const circuitSimulation = injectCircuitSimulation();
 const {
+  id: simId,
   isRunning,
   isPaused,
   stepRate,
@@ -144,55 +145,73 @@ const {
   resetProfiler,
 } = toShallowRefs(circuitSimulation);
 
-const customRate = ref(40);
-const realtimeRate = ref(60);
-const selectedRate = ref('40');
+function useControlsState() {
+  const customRate = ref(40);
+  const realtimeRate = ref(60);
+  const selectedRate = ref('40');
 
-watchDebounced(
-  customRate,
-  (rate) => {
-    if (selectedRate.value === 'custom') {
-      stepRate.value = Math.max(0, rate);
-    }
-    resetProfiler.value();
-  },
-  { debounce: 500 },
-);
+  watchDebounced(
+    customRate,
+    (rate) => {
+      if (selectedRate.value === 'custom') {
+        stepRate.value = Math.max(0, rate);
+      }
+      resetProfiler.value();
+    },
+    { debounce: 500 },
+  );
 
-watchDebounced(
-  realtimeRate,
-  (rate) => {
-    if (selectedRate.value === 'realtime') {
-      realTimeTargetFrameRate.value = Math.max(1, rate);
-    }
-    resetProfiler.value();
-  },
-  { debounce: 500 },
-);
+  watchDebounced(
+    realtimeRate,
+    (rate) => {
+      if (selectedRate.value === 'realtime') {
+        realTimeTargetFrameRate.value = Math.max(1, rate);
+      }
+      resetProfiler.value();
+    },
+    { debounce: 500 },
+  );
 
-watch(
-  selectedRate,
-  (rate) => {
-    switch (rate) {
-      default:
-        stepRate.value = Math.max(0, parseInt(rate));
-        stepMode.value = 'fixed';
-        break;
-      case 'vsync':
-        stepMode.value = 'vsync';
-        break;
-      case 'realtime':
-        stepMode.value = 'realtime';
-        break;
-      case 'custom':
-        stepRate.value = Math.max(0, customRate.value);
-        stepMode.value = 'fixed';
-        break;
-    }
-    resetProfiler.value();
-  },
-  { immediate: true },
-);
+  watch(
+    selectedRate,
+    (rate) => {
+      switch (rate) {
+        default:
+          stepRate.value = Math.max(0, parseInt(rate));
+          stepMode.value = 'fixed';
+          break;
+        case 'vsync':
+          stepMode.value = 'vsync';
+          break;
+        case 'realtime':
+          stepMode.value = 'realtime';
+          break;
+        case 'custom':
+          stepRate.value = Math.max(0, customRate.value);
+          stepMode.value = 'fixed';
+          break;
+      }
+      resetProfiler.value();
+    },
+    { immediate: true },
+  );
+
+  return reactive({
+    customRate,
+    realtimeRate,
+    selectedRate,
+  });
+}
+
+const stateMap = new Map<number, ReturnType<typeof useControlsState>>();
+
+const currentState = computed(() => {
+  const id = simId.value;
+  if (!stateMap.has(id)) {
+    stateMap.set(id, useControlsState());
+  }
+  return stateMap.get(id)!;
+});
 
 function onStart() {
   if (isRunning.value) return;
@@ -222,18 +241,3 @@ function onStep(n?: number) {
   }
 }
 </script>
-
-<style scoped>
-.green-light {
-  color: #4ae681;
-  filter: drop-shadow(0 0 0.25em #4ae681);
-}
-.yellow-light {
-  color: #f7d82b;
-  filter: drop-shadow(0 0 0.25em #f7d82b);
-}
-.red-light {
-  color: #f63535;
-  filter: drop-shadow(0 0 0.25em #f63535);
-}
-</style>
