@@ -29,12 +29,22 @@
         :items="tabItems"
         @selected="onSelectedTab"
         @close="onCloseTab"
+        @label-dbl-click="onLabelDblClick"
       >
         <template #before="{ name }">
           <CircuitStatusLight
             class="px-1"
             :is-running="unref(getSimulationByName(name)?.isRunning)"
             :is-paused="unref(getSimulationByName(name)?.isPaused)"
+          />
+        </template>
+        <template #label="{ name }">
+          <input
+            v-if="editTab === name"
+            v-model="editTabModel"
+            autofocus
+            @blur="onSubmitEditTab"
+            @keydown.enter="onSubmitEditTab"
           />
         </template>
       </TabBar>
@@ -116,13 +126,18 @@ provideCircuitSimulation(
 );
 
 const currentTab = ref<string>();
-const tabItems = computed<TabBarItem[]>(() => {
-  const items: TabBarItem[] = allSimulations.value.map((sim) => ({
-    name: String(sim.id.value),
-    label: sim.circuitFactory.value?.label ?? `Untitled (${sim.id.value})`,
-    closeable: true,
-  }));
-  return items;
+const editTab = ref<string>();
+const editTabModel = ref<string>('');
+const tabItems = computed(() => {
+  const items = allSimulations.value.map(
+    (sim) =>
+      ({
+        name: String(sim.id.value),
+        label: sim.name.value || `Untitled ${sim.id.value}`,
+        closeable: true,
+      }) as TabBarItem,
+  );
+  return reactive(items);
 });
 
 function getSimulationByName(name: string) {
@@ -141,6 +156,29 @@ function onCloseTab(name: string) {
   if (sim) {
     removeSimulation(sim);
   }
+}
+
+function onLabelDblClick(name: string) {
+  const sim = allSimulations.value.find((sim) => String(sim.id.value) === name);
+  if (sim) {
+    editTab.value = name;
+    editTabModel.value = sim.name.value;
+  }
+}
+
+function onSubmitEditTab() {
+  if (editTab.value) {
+    const sim = allSimulations.value.find(
+      (sim) => String(sim.id.value) === editTab.value,
+    );
+    if (sim) {
+      const newName = editTabModel.value.trim();
+      if (newName) {
+        sim.name.value = newName;
+      }
+    }
+  }
+  editTab.value = undefined;
 }
 
 useMenuBarListener((event) => {
