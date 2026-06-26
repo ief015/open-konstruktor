@@ -92,7 +92,8 @@ const {
   isSnippet: selectionIsSnippet,
   computeTranslationFromMouse,
 } = useSelection();
-const { isRunning } = useCircuitSimulator();
+const circuitSimulation = injectCircuitSimulation();
+const { isRunning } = toShallowRefs(circuitSimulation);
 const { mode: toolboxMode } = useToolbox();
 const selected = ref<SnippetRecord[]>([]);
 const groupsSorted = computed(() => {

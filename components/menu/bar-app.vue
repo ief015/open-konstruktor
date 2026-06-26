@@ -66,13 +66,19 @@
 </template>
 
 <script setup lang="ts">
+import { toRefs as toRefsX } from '@vueuse/core';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
 import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
 import type { CircuitDesignData } from '@/serialization';
 
 const { items: menuItems } = useMenuItems();
-const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
-const { load: loadSim, circuitFactory } = useCircuitSimulator();
+const circuitSimulation = injectCircuitSimulation();
+const { load: loadSim, field: fieldGraph } = toShallowRefs(circuitSimulation);
+const {
+  field,
+  loadBlank: loadFieldBlank,
+  load: loadField,
+} = toShallowRefs(fieldGraph);
 const { getLoader } = useCircuitLoaders();
 const { ignoreKeyShortcuts } = useToolbox();
 const designs = useSavedDesigns();
@@ -95,8 +101,8 @@ function loadLevel(levelName: string) {
   if (!loader) {
     throw new Error(`Unknown loader: ${levelName}`);
   }
-  loadBlankDesign(loader.width, loader.height, loader.pinRows);
-  loadSim(field.value, loader);
+  loadFieldBlank.value(loader.width, loader.height, loader.pinRows);
+  loadSim.value(loader);
 }
 
 function onShowImportDialog() {
@@ -134,8 +140,8 @@ function onCopyExport() {
 function onImport() {
   if (!importCode.value) return;
   try {
-    loadDesign(importCode.value);
-    loadSim(field.value);
+    loadField.value(importCode.value);
+    loadSim.value();
     showImportDialog.value = false;
   } catch (e: any) {
     alert(`Failed to import:\n${e.message ?? e}`);

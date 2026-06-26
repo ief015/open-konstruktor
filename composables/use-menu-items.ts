@@ -23,8 +23,9 @@ export function useMenuItems() {
   const { loaders } = useCircuitLoaders();
   const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
   const selection = useSelection();
-  const { history } = useFieldGraph();
-  const { isRunning } = useCircuitSimulator();
+  const circuitSimulation = injectCircuitSimulation();
+  const { isRunning, field: fieldGraph } = toShallowRefs(circuitSimulation);
+  const { history } = toShallowRefs(fieldGraph);
   const levelItems = computed((): MenuBarItem[] =>
     loaders.map(mapLoaderToMenuItem),
   );
@@ -61,12 +62,12 @@ export function useMenuItems() {
         {
           id: 'edit/undo',
           label: 'Undo',
-          disabled: isRunning.value || !history.canUndo.value,
+          disabled: isRunning.value || !history.value.canUndo.value,
         },
         {
           id: 'edit/redo',
           label: 'Redo',
-          disabled: isRunning.value || !history.canRedo.value,
+          disabled: isRunning.value || !history.value.canRedo.value,
         },
         'divider',
         {

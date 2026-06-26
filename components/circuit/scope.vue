@@ -86,14 +86,23 @@ const FONT = '10px Georgia10';
 const canvasContainer = useTemplateRef('canvasContainer');
 const canvas = useTemplateRef('canvas');
 const canvasWidth = ref(0);
+
+const circuitSimulation = injectCircuitSimulation();
+const {
+  network,
+  sim,
+  isRunning,
+  currentFrame,
+  onStepAnim,
+  onComplete,
+  field: fieldGraph,
+} = toShallowRefs(circuitSimulation);
 const {
   designScore,
   setVerificationResult,
   resetVerificationResult,
   verificationResult,
-} = useFieldGraph();
-const { network, sim, isRunning, currentFrame, onStepAnim, onComplete } =
-  useCircuitSimulator();
+} = toShallowRefs(fieldGraph);
 const {
   openCompleted: levelInfoOpenCompleted,
   completedAvailable: hasOpenedCompleted,
@@ -372,18 +381,31 @@ function mouseToGrid(mx: number, my: number, xInterval = 1): Point {
   return [x, y];
 }
 
-onStepAnim(() => renderScope());
+const onStepAnimHandler = ref<OnStepAnimHandler>();
+watchImmediate(onStepAnim, (onStepAnim) => {
+  onStepAnimHandler.value?.();
+  onStepAnimHandler.value = onStepAnim(() => renderScope());
+});
 
-onComplete((result) => {
-  verifyResult.value = result;
-  if (result) {
-    setVerificationResult(result);
-    if (result.passed && !hasOpenedCompleted.value) {
-      levelInfoOpenCompleted();
+const onCompleteHandler = ref<OnCompleteHandler>();
+watchImmediate(onComplete, (onComplete) => {
+  onCompleteHandler.value?.();
+  onCompleteHandler.value = onComplete((result) => {
+    verifyResult.value = result;
+    if (result) {
+      setVerificationResult.value(result);
+      if (result.passed && !hasOpenedCompleted.value) {
+        levelInfoOpenCompleted();
+      }
+    } else {
+      resetVerificationResult.value();
     }
-  } else {
-    resetVerificationResult();
-  }
+  });
+});
+
+onUnmounted(() => {
+  onStepAnimHandler.value?.();
+  onCompleteHandler.value?.();
 });
 
 useEventListener(canvas, 'mousemove', (e) => {
@@ -421,7 +443,7 @@ useEventListener(canvas, 'contextmenu', (e) => {
 watch(isRunning, (running) => {
   if (running) {
     isDrawing.value = false;
-    resetVerificationResult();
+    resetVerificationResult.value();
     verifyResult.value = undefined;
   }
   renderScope();
@@ -429,7 +451,7 @@ watch(isRunning, (running) => {
 
 watch(sim, (sim) => {
   verifyResult.value = undefined;
-  resetVerificationResult();
+  resetVerificationResult.value();
   renderScope();
 });
 

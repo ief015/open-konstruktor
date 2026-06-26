@@ -68,13 +68,18 @@ import type { SaveDesignFormData } from '@/components/dialog/designs/save.vue';
 
 const { groups, designs, categories, saveDesign, deleteDesign } =
   useSavedDesigns();
+const circuitSimulation = injectCircuitSimulation();
 const {
-  load: loadField,
+  load: loadSim,
+  circuitFactory,
+  field: fieldGraph,
+} = toShallowRefs(circuitSimulation);
+const {
   field,
+  load: loadField,
   verificationResult,
   designScore,
-} = useFieldGraph();
-const { load: loadSim, circuitFactory } = useCircuitSimulator();
+} = toShallowRefs(fieldGraph);
 
 const selected = ref<DesignRecord[]>([]);
 
@@ -119,8 +124,8 @@ const saveDialog = reactive({
 });
 
 function loadOption(opt: DesignRecord) {
-  loadField(opt.data);
-  loadSim(field.value);
+  loadField.value(opt.data);
+  loadSim.value();
 }
 
 function confirmLoad(opt: DesignRecord) {

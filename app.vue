@@ -66,6 +66,9 @@ const status = useStatusBar();
 // FIXME: useClipboard does not appear to be reliable when called in many places
 const clipboard = useClipboard();
 provide('clipboard', clipboard);
+
+const currentSimulation = shallowRef(useCircuitSimulation());
+provideCircuitSimulation(currentSimulation);
 </script>
 
 <style scoped>
