@@ -102,7 +102,7 @@ export class CircuitSimulation implements ISimulation {
   /** Reset the simulation. */
   public reset(resetRecordings: boolean = true) {
     this.sequencer.reset();
-    this.updateProbedNodes();
+    resetRecordings && this.updateProbedNodes();
     this.network.reset();
     resetRecordings && this.recorder.reset();
   }
