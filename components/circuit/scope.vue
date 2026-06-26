@@ -124,7 +124,7 @@ const scopeHeight = computed<number>(() => {
   return numRows.value * SCOPE_ROW_HEIGHT_PX;
 });
 const maxScopeHeight = computed<number>(() => {
-  return 8 * SCOPE_ROW_HEIGHT_PX;
+  return 10 * SCOPE_ROW_HEIGHT_PX;
 });
 const minScopeHeight = computed<number>(() => {
   return 4 * SCOPE_ROW_HEIGHT_PX;
