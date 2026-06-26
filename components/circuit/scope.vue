@@ -124,7 +124,7 @@ const scopeHeight = computed<number>(() => {
   return numRows.value * SCOPE_ROW_HEIGHT_PX;
 });
 const maxScopeHeight = computed<number>(() => {
-  return 8 * SCOPE_ROW_HEIGHT_PX;
+  return 10 * SCOPE_ROW_HEIGHT_PX;
 });
 const minScopeHeight = computed<number>(() => {
   return 4 * SCOPE_ROW_HEIGHT_PX;
@@ -299,20 +299,20 @@ function renderScope() {
     // draw scopes for probed paths
     ctx.strokeStyle = COLOR_SCOPE_LINE;
     for (const probe of vsim.getProbes()) {
+      ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
+      if (probe.label) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
+        ctx.stroke();
+        ctx.translate(translateX.value, 0);
+        ctx.font = FONT;
+        ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+        ctx.restore();
+      }
       const rec = vsim.getProbeRecording(probe);
       if (rec) {
-        ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
-        if (probe.label) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(0, baseline);
-          ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
-          ctx.stroke();
-          ctx.translate(translateX.value, 0);
-          ctx.font = FONT;
-          ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
-          ctx.restore();
-        }
         ctx.save();
         ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
         strokeSequenceLine(rec, currentX);
@@ -457,7 +457,7 @@ watch(sim, (sim) => {
 });
 
 watch(network, (network) => updateCanvasSize());
-
+watch(scopeHeight, (height) => updateCanvasSize());
 useResizeObserver(canvasContainer, (e, o) => updateCanvasSize());
 useEventListener('resize', (e) => updateCanvasSize());
 
