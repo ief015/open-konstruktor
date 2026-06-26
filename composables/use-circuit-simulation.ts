@@ -11,6 +11,8 @@ export type OnCompleteHandler = (result?: VerificationResult) => void;
 
 export type StepMode = 'fixed' | 'vsync' | 'realtime';
 
+let nextID = 0;
+
 export function useCircuitSimulation() {
   let lastFrameTime = 0;
   let accumulatedTime = 0;
@@ -19,6 +21,7 @@ export function useCircuitSimulation() {
     elapsed: 0,
   });
 
+  const id = nextID++;
   const network = shallowRef<Network>(new Network());
   const sim = shallowRef<CircuitSimulation>(
     new CircuitSimulation(network.value),
@@ -233,6 +236,7 @@ export function useCircuitSimulation() {
   }
 
   return {
+    id,
     sim,
     field,
     network,
@@ -265,6 +269,12 @@ export function provideCircuitSimulation(
   circuitSim: ShallowRef<ReturnType<typeof useCircuitSimulation>>,
 ) {
   return provide('circuitSimulation', circuitSim);
+}
+
+export function injectCircuitSimulationOptional() {
+  return inject<
+    ShallowRef<ReturnType<typeof useCircuitSimulation> | undefined>
+  >('circuitSimulation')!;
 }
 
 export function injectCircuitSimulation() {
