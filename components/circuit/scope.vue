@@ -299,8 +299,6 @@ function renderScope() {
     // draw scopes for probed paths
     ctx.strokeStyle = COLOR_SCOPE_LINE;
     for (const probe of vsim.getProbes()) {
-      const rec = vsim.getProbeRecording(probe);
-      if (rec) {
         ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
         if (probe.label) {
           ctx.save();
@@ -313,6 +311,8 @@ function renderScope() {
           ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
           ctx.restore();
         }
+      const rec = vsim.getProbeRecording(probe);
+      if (rec) {
         ctx.save();
         ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
         strokeSequenceLine(rec, currentX);
