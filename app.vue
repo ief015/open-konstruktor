@@ -118,26 +118,26 @@ provideCircuitSimulation(
 const currentTab = ref<string>();
 const tabItems = computed<TabBarItem[]>(() => {
   const items: TabBarItem[] = allSimulations.value.map((sim) => ({
-    name: String(sim.id),
-    label: sim.circuitFactory.value?.label ?? `Untitled (${sim.id})`,
+    name: String(sim.id.value),
+    label: sim.circuitFactory.value?.label ?? `Untitled (${sim.id.value})`,
     closeable: true,
   }));
   return items;
 });
 
 function getSimulationByName(name: string) {
-  return allSimulations.value.find((sim) => String(sim.id) === name);
+  return allSimulations.value.find((sim) => String(sim.id.value) === name);
 }
 
 function onSelectedTab(name: string) {
-  const sim = allSimulations.value.find((sim) => String(sim.id) === name);
+  const sim = allSimulations.value.find((sim) => String(sim.id.value) === name);
   if (sim) {
     openSimulation(sim);
   }
 }
 
 function onCloseTab(name: string) {
-  const sim = allSimulations.value.find((sim) => String(sim.id) === name);
+  const sim = allSimulations.value.find((sim) => String(sim.id.value) === name);
   if (sim) {
     removeSimulation(sim);
   }
@@ -161,7 +161,7 @@ useWelcomeDialogListener((event) => {
 });
 
 watch(currentSimulation, (sim) => {
-  currentTab.value = sim ? String(sim.id) : undefined;
+  currentTab.value = sim ? String(sim.id.value) : undefined;
 });
 </script>
 

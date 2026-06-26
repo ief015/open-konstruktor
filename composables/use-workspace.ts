@@ -8,15 +8,21 @@ export type WorkspaceAction =
 
 export class WorkspaceActionEvent extends Event {
   static readonly eventType = 'ok/workspace-action';
-  constructor(public action: WorkspaceAction) {
+  constructor(
+    public action: WorkspaceAction,
+    public simulation: UseCircuitSimulationReturn | null = null,
+  ) {
     super(WorkspaceActionEvent.eventType);
   }
 }
 
 export type WorkspaceActionListener = (event: WorkspaceActionEvent) => void;
 
-function dispatchWorkspaceAction(action: WorkspaceAction) {
-  const event = new WorkspaceActionEvent(action);
+function dispatchWorkspaceAction(
+  action: WorkspaceAction,
+  simulation: UseCircuitSimulationReturn | null = null,
+) {
+  const event = new WorkspaceActionEvent(action, simulation);
   document.dispatchEvent(event);
 }
 
@@ -36,13 +42,13 @@ export function useWorkspace() {
       simulations.value.push(sim);
     }
     currentSimulation.value = sim;
-    dispatchWorkspaceAction('context-changed');
+    dispatchWorkspaceAction('context-changed', sim);
   }
 
   function addNewSimulation(open: boolean = false) {
     const sim = useCircuitSimulation();
     simulations.value.push(sim);
-    dispatchWorkspaceAction('simulation-created');
+    dispatchWorkspaceAction('simulation-created', sim);
     if (open) {
       openSimulation(sim);
     }
@@ -58,7 +64,7 @@ export function useWorkspace() {
           simulations.value[index] ?? simulations.value[index - 1] ?? undefined;
         openSimulation(nextSim);
       }
-      dispatchWorkspaceAction('simulation-deleted');
+      dispatchWorkspaceAction('simulation-deleted', sim);
     }
   }
 

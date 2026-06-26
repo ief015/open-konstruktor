@@ -236,7 +236,7 @@ export function useCircuitSimulation() {
   }
 
   return {
-    id,
+    id: computed(() => id),
     sim,
     field,
     network,
