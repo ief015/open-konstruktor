@@ -1,17 +1,7 @@
 <template>
   <div class="flex flex-row items-baseline gap-2 px-2">
     <div>
-      <svg
-        viewBox="0 0 1 1"
-        class="w-[0.5em] h-[0.5em]"
-        :class="{
-          'green-light': isRunning && !isPaused,
-          'yellow-light': isRunning && isPaused,
-          'red-light': !isRunning,
-        }"
-      >
-        <circle cx="0.5" cy="0.5" r="0.5" fill="currentColor" />
-      </svg>
+      <CircuitStatusLight :isRunning :isPaused />
     </div>
     <div>
       <button
