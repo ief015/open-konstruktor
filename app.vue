@@ -60,9 +60,7 @@
             <CircuitControls class="w-full h-full" />
           </div>
         </div>
-        <div
-          class="absolute inset-x-0 top-[1.5em] flex flex-row justify-center"
-        >
+        <div class="absolute inset-x-0 top-0 flex flex-row justify-center">
           <DialogInfoBox class="m-2 w-[1000px]" v-if="currentSimulation" />
           <DialogWelcome />
         </div>

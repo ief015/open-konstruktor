@@ -114,7 +114,6 @@ export default function useLevelInfo(
   watch(circuitFactory, () => {
     page.value = 0;
     completedAvailable.value = false;
-    console.log('huh?');
     if (circuitFactory.value.info) {
       open();
     } else {
