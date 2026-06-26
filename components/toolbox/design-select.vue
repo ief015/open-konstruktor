@@ -70,6 +70,7 @@ const { groups, designs, categories, saveDesign, deleteDesign } =
   useSavedDesigns();
 const circuitSimulation = injectCircuitSimulation();
 const {
+  name: simName,
   load: loadSim,
   circuitFactory,
   field: fieldGraph,
@@ -126,6 +127,7 @@ const saveDialog = reactive({
 function loadOption(opt: DesignRecord) {
   loadField.value(opt.data);
   loadSim.value();
+  simName.value = opt.name;
 }
 
 function confirmLoad(opt: DesignRecord) {
