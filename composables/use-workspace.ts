@@ -32,14 +32,12 @@ export function useWorkspaceActionListener(listener: WorkspaceActionListener) {
 
 export function useWorkspace() {
   const { getLoader } = useCircuitLoaders();
-  const simulations = shallowRef<UseCircuitSimulationReturn[]>(
-    shallowReactive([]),
-  );
+  const simulations = shallowReactive<UseCircuitSimulationReturn[]>([]);
   const currentSimulation = shallowRef<UseCircuitSimulationReturn>();
 
   function openSimulation(sim: UseCircuitSimulationReturn) {
-    if (!simulations.value.includes(sim)) {
-      simulations.value.push(sim);
+    if (!simulations.includes(sim)) {
+      simulations.push(sim);
     }
     currentSimulation.value = sim;
     dispatchWorkspaceAction('context-changed', sim);
@@ -47,7 +45,7 @@ export function useWorkspace() {
 
   function addNewSimulation(open: boolean = false) {
     const sim = useCircuitSimulation();
-    simulations.value.push(sim);
+    simulations.push(sim);
     dispatchWorkspaceAction('simulation-created', sim);
     if (open) {
       openSimulation(sim);
@@ -56,13 +54,17 @@ export function useWorkspace() {
   }
 
   function removeSimulation(sim: UseCircuitSimulationReturn) {
-    const index = simulations.value.indexOf(sim);
+    const index = simulations.indexOf(sim);
     if (index !== -1) {
-      simulations.value.splice(index, 1);
+      simulations.splice(index, 1);
       if (currentSimulation.value === sim) {
         const nextSim =
-          simulations.value[index] ?? simulations.value[index - 1] ?? undefined;
-        openSimulation(nextSim);
+          simulations[index] ?? simulations[index - 1] ?? undefined;
+        if (nextSim) {
+          openSimulation(nextSim);
+        } else {
+          currentSimulation.value = undefined;
+        }
       }
       dispatchWorkspaceAction('simulation-deleted', sim);
     }
@@ -79,7 +81,7 @@ export function useWorkspace() {
   }
 
   return {
-    allSimulations: computed(() => simulations.value),
+    allSimulations: computed(() => simulations),
     currentSimulation: computed(() => currentSimulation.value),
     addNewSimulation,
     removeSimulation,
