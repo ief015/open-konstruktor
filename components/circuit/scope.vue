@@ -61,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import { useFieldProbeActionListener } from '@/components/circuit/field-events';
 import type {
   PinNode,
   Sequence,
@@ -460,6 +461,12 @@ watch(network, (network) => updateCanvasSize());
 watch(scopeHeight, (height) => updateCanvasSize());
 useResizeObserver(canvasContainer, (e, o) => updateCanvasSize());
 useEventListener('resize', (e) => updateCanvasSize());
+
+useFieldProbeActionListener((e) => {
+  if (e.action === 'renamed') {
+    renderScope();
+  }
+});
 
 onMounted(async () => {
   const ctx = getContext();
