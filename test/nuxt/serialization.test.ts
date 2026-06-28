@@ -79,16 +79,12 @@ test('4-input-and-or-gate imported', () => {
   assertEqual(!!pinX.path, true, 'pinX.path');
   assertEqual(!!pinY.path, true, 'pinY.path');
 
-  assertEqual(gates.filter((g) => g.gatedPaths.includes(paths[0])).length, 2);
+  assertEqual(gates.filter((g) => g.currentPaths.includes(paths[0])).length, 2);
 
   for (const k in gates) {
     const gate = gates[k];
-    assertEqual(gate.gatedPaths.length, 2, `gates[${k}].gatedPaths.length`);
-    assertEqual(
-      gate.switchingPaths.length,
-      1,
-      `gate[${k}].switchingPaths.length`,
-    );
+    assertEqual(gate.currentPaths.length, 2, `gates[${k}].currentPaths.length`);
+    assertEqual(gate.basePaths.length, 1, `gates[${k}].basePaths.length`);
   }
 
   pinVCC.label = 'VCC';
