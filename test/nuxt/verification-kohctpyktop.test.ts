@@ -696,4 +696,21 @@ describe('19 X903 GATLING CANNON FIRE CONTROLLER', () => {
     assertEqual(grade, 99, '19 grade');
     assertEqual(designScore, 424, '19 design score');
   });
+
+  test('passing 2', () => {
+    const saveString =
+      'eNrtWtF1wyAMDFx+OkNX6H9n6f6L9D0bgSQkgiGNk5S4teOcDykYHxLK9ev6+fETPr7D9TKyvQUxVFvstRjzFtLxgKtDFnfiZbO4ezBgcYD4/hblfV3ERXx2YhgnKqk6QgxjgtxNJB0tR4cYDSW1zwUxpFapB4OyGHLPGkRqNWQr3OJFkEMhig9165UXgVvUEwx3lX+ePCBiYC75ncPec1d5R1idIzqKE3s6J9REOaC9gV71avButDO1X/5FnLOFc9F/bSgA838eza/tow1jdjmcLjHR/YIGWjCHG8/gVv280MeiKC8L1W8MtFBN1LfLxzo9KexJ4A1vKJ0jcaGf0IRku+lr7XZRGk5I3K6lJzTR5Z645E/ZR4FCeJV8S98X0dwTmppjPnM0KpRxH6BI1cjpkspXQbEe/4XeG8VMy7ibV1j36GT0aaQSN7hw5/f5+O0VuQt9YRRqwB+ISD0uerjaCMWcqPYRnZGhCPt0y7e4SyqHBg/YwU7AW3M04kQCPiFoWGL4DnFjMx9BiwsMJP55M+NGGOMZOYvemUYCbngtEvB8BcgDsmtsaIshS8C308JS3Il7BPtGrKiSlBJuVInGkEZzwD8nt2fRYKEPQDGTgLel0lnJRJ79tVRC6hFbq0wKl9cMIYVUaQuYVPJ4kYclyCJMehe52jGJVl6BtbyrJPNq33teReZVC11RpR9VAmiVZtKSsR/dIY7M73I8P5YLrJjzFWLOmfVGmyvGskRF+aYSQ59LrM4xCfCItJRjaJ8LN6JWI85yaUZ6BTS9QmdkyIttQiGeXCrvU+NWCy1Gij2zSL7WGxd6PBHuQkdq3G0U0fjNBmQ8iEMti+UrXS+uE/B0qOSO3vIat7GS2V/jvrFWCSO//+sK+B9Lpf0/jyohbSY7TRQTj9JZ3IWeLZXqt0IDE+VYfRxKpjkKcwouPppcqCQl5+qsZUAGrpyr/zyZNcRfrRcc+RWKCo9kRHq2IunXL95Aye0=';
+    const field = FieldGraph.from(saveString, 'circuit');
+    const net = Network.from(field);
+    const sim = findLoaderById(
+      kohctpyktop,
+      '19 X903 GATLING CANNON FIRE CONTROLLER',
+    )!.setup(net);
+    sim.run(280);
+    const verification = sim.verify();
+    const grade = verification.gradePercent;
+    const designScore = field.getDesignScore();
+    assertEqual(grade, 100, '19 grade');
+    assertEqual(designScore, 391, '19 design score');
+  });
 });

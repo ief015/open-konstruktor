@@ -34,6 +34,7 @@ export class Network {
   private pins: PinNode[] = [];
 
   private graph: Map<string, NetworkNode[]> = new Map();
+  private dirty = true;
 
   constructor();
   constructor(nodes: NetworkNode[]);
@@ -89,14 +90,33 @@ export class Network {
     for (const gate of this.gates) {
       gate.active = false;
     }
+    for (const pin of this.pins) {
+      pin.lastActive = false;
+    }
+    this.dirty = true;
   }
 
   public step() {
+    for (const pin of this.pins) {
+      if (pin.active === pin.lastActive) continue;
+      this.dirty = true;
+      pin.lastActive = pin.active;
+    }
+
     // Check for gates that should be toggled.
     // This is done outside gated path propagation to introduce propagation delay.
     for (const gate of this.gates) {
-      gate.active = gate.basePaths.some((p) => p.state);
+      const nextState = gate.basePaths.some((p) => p.state);
+      if (nextState !== gate.active) {
+        this.dirty = true;
+      }
+      gate.active = nextState;
     }
+
+    if (!this.dirty) {
+      return false;
+    }
+    this.dirty = false;
 
     // Reset state of all paths and pins
     for (const path of this.paths) {
@@ -108,9 +128,9 @@ export class Network {
       }
     }
 
+    // Propagate path states from gates
     while (true) {
       let anyChange = false;
-      // Propagate path states from gates
       for (const { active, isNPN, currentPaths } of this.gates) {
         // TODO: Gates that have already passed current could be skipped for performance?
         // Needs investigation after more unit tests are written.
@@ -127,6 +147,7 @@ export class Network {
         break;
       }
     }
+    return this.dirty;
   }
 
   private setGraphNode(point: Point, layer: GraphLayer, node: NetworkNode) {

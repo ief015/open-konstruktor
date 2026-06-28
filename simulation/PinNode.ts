@@ -6,6 +6,8 @@ import { PathNode } from '@/simulation';
 export class PinNode {
   /** When active, the connected path node will become high every step */
   public active: boolean;
+  /** Network will set this to the previous step's active state */
+  public lastActive: boolean;
   /** Label for the pin */
   public label: string;
   /** Path node connected to this pin */
@@ -28,6 +30,7 @@ export class PinNode {
     this.path = path;
     this.label = label || 'N/C';
     this.active = active;
+    this.lastActive = false;
   }
 }
 
