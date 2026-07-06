@@ -97,3 +97,5 @@ export function useWorkspace() {
     openNewLevel,
   };
 }
+
+export type UseWorkspaceReturn = ReturnType<typeof useWorkspace>;

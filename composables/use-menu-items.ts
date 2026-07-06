@@ -40,7 +40,7 @@ export function useMenuItems() {
         { id: 'file/import', label: 'Import', disabled: !fieldGraph.value },
         { id: 'file/export', label: 'Export', disabled: !fieldGraph.value },
         'divider',
-        { id: 'file/copy-url', label: 'Copy URL' },
+        { id: 'file/copy-url', label: 'Copy URL', disabled: !fieldGraph.value },
         'divider',
         {
           label: 'Saved Designs',

@@ -141,7 +141,7 @@ export class DesignData {
       const metalColumn = this.layers[Layer.Metal][x];
       const siliconColumn = this.layers[Layer.Silicon][x];
       for (let y = minRow; y <= maxRow; y++) {
-        if (metalColumn[y] === MetalValue.Metal) return false;
+        if (metalColumn[y] !== MetalValue.None) return false;
         if (siliconColumn[y] !== SiliconValue.None) return false;
       }
     }

@@ -1,4 +1,6 @@
-import { type WatchHandle } from 'vue';
+import type { UseCircuitSimulationReturn } from '@/composables/use-circuit-simulation';
+import type { UseWorkspaceReturn } from '@/composables/use-workspace';
+import { type ShallowRef, type WatchHandle } from 'vue';
 
 export type RouteLoaderParams = {
   levelKey?: string;
@@ -7,24 +9,24 @@ export type RouteLoaderParams = {
 
 const watchHandler = ref<WatchHandle>();
 
-export function useRouteLoader() {
+export function useRouteLoader(workspace: MaybeRef<UseWorkspaceReturn>) {
   const route = useRoute();
   const loaders = useCircuitLoaders();
-  const { currentSimulation, openNewLevel } = useWorkspace();
-  const field = useFieldGraph();
 
   function loadRoute(params: RouteLoaderParams) {
     if (params.levelKey) {
       try {
         const loader = loaders.getLoader(params.levelKey);
-        openNewLevel(loader.key, params.designString);
+        unref(workspace).openNewLevel(loader.key, params.designString);
       } catch (e) {
         console.warn(`Failed to load level with key: ${params.levelKey}`, e);
       }
     } else {
       if (params.designString) {
         try {
-          field.load(params.designString);
+          const sim = unref(workspace).currentSimulation.value;
+          const field = unref(sim?.field);
+          field?.load(params.designString);
         } catch (e) {
           console.warn(`Failed to load design from URL`, e);
         }
@@ -52,13 +54,12 @@ export function useRouteLoader() {
   }
 
   function getCurrentURL() {
-    const sim = currentSimulation.value;
+    const sim = unref(workspace).currentSimulation.value;
     if (!sim) throw new Error('No current simulation to get URL from');
     const level = sim.circuitFactory.value?.key;
+    const field = unref(sim.field.field.value);
     const design =
-      field.field.value && !field.field.value.isEmpty(true)
-        ? field.field.value.toSaveString()
-        : undefined;
+      field && !field.isEmpty(true) ? field.toSaveString() : undefined;
     return buildURL({ levelKey: level, designString: design });
   }
 
