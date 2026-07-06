@@ -23,8 +23,12 @@ export function useMenuItems() {
   const { loaders } = useCircuitLoaders();
   const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
   const selection = useSelection();
-  const { history } = useFieldGraph();
-  const { isRunning } = useCircuitSimulator();
+  const circuitSimulation = injectCircuitSimulationOptional();
+  const isRunning = computed(
+    () => circuitSimulation.value?.isRunning.value ?? false,
+  );
+  const fieldGraph = computed(() => circuitSimulation.value?.field ?? null);
+  const history = computed(() => fieldGraph.value?.history ?? null);
   const levelItems = computed((): MenuBarItem[] =>
     loaders.map(mapLoaderToMenuItem),
   );
@@ -33,8 +37,8 @@ export function useMenuItems() {
       id: 'file',
       label: 'File',
       items: [
-        { id: 'file/import', label: 'Import' },
-        { id: 'file/export', label: 'Export' },
+        { id: 'file/import', label: 'Import', disabled: !fieldGraph.value },
+        { id: 'file/export', label: 'Export', disabled: !fieldGraph.value },
         'divider',
         { id: 'file/copy-url', label: 'Copy URL' },
         'divider',
@@ -63,12 +67,12 @@ export function useMenuItems() {
         {
           id: 'edit/undo',
           label: 'Undo',
-          disabled: isRunning.value || !history.canUndo.value,
+          disabled: isRunning.value || !history.value?.canUndo.value,
         },
         {
           id: 'edit/redo',
           label: 'Redo',
-          disabled: isRunning.value || !history.canRedo.value,
+          disabled: isRunning.value || !history.value?.canRedo.value,
         },
         'divider',
         {
@@ -89,18 +93,38 @@ export function useMenuItems() {
           disabled: isRunning.value || !selection.bounds.value,
         },
         'divider',
-        { id: 'edit/clear', label: 'Clear', disabled: isRunning.value },
+        {
+          id: 'edit/duplicate',
+          label: 'Duplicate',
+          disabled: !fieldGraph.value,
+        },
+        'divider',
+        {
+          id: 'edit/clear-probes',
+          label: 'Clear All Probes',
+          disabled: isRunning.value || !fieldGraph.value,
+        },
+        'divider',
+        {
+          id: 'edit/clear',
+          label: 'Clear',
+          disabled: isRunning.value || !fieldGraph.value,
+        },
       ],
     },
     {
       id: 'view',
       label: 'View',
       items: [
-        { id: 'view/reset', label: 'Center' },
+        { id: 'view/reset', label: 'Center', disabled: !fieldGraph.value },
         'divider',
-        { id: 'view/zoom-in', label: 'Zoom In' },
-        { id: 'view/zoom-out', label: 'Zoom Out' },
-        { id: 'view/zoom-reset', label: 'Reset Zoom' },
+        { id: 'view/zoom-in', label: 'Zoom In', disabled: !fieldGraph.value },
+        { id: 'view/zoom-out', label: 'Zoom Out', disabled: !fieldGraph.value },
+        {
+          id: 'view/zoom-reset',
+          label: 'Reset Zoom',
+          disabled: !fieldGraph.value,
+        },
         'divider',
         { id: 'view/toggle-debug', label: 'Toggle Debug' },
       ],

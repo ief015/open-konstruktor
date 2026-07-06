@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
-import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
+import { useMenuBarListener } from '@/components/menu/bar-app-events';
 
 const dialog = useTemplateRef('dialog');
 
@@ -60,13 +60,9 @@ function onClickClose() {
   document.dispatchEvent(new WelcomeDialogActionEvent('close'));
 }
 
-useEventListener(
-  document,
-  MenuBarActionEvent.eventType,
-  (event: MenuBarActionEvent) => {
-    if (event.id === 'file/welcome') {
-      dialog.value?.show();
-    }
-  },
-);
+useMenuBarListener((event) => {
+  if (event.id === 'file/welcome') {
+    dialog.value?.show();
+  }
+});
 </script>

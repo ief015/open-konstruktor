@@ -1,7 +1,7 @@
 import { type CircuitSimulationFactories } from '@/circuits';
 import { CircuitSimulation, Sequence } from '@/simulation';
 import { assignVCC } from '@/simulation/PinNode';
-import createSequencesFromInputs from '@/utils/createSequencesFromInputs';
+import { createSequencesFromInputs } from '@/utils/sequence';
 
 /*
 
@@ -510,7 +510,6 @@ const kohctpyktop: CircuitSimulationFactories = {
             seqS1.addPulseRange(200, 240);
             sim.setInputSequence(pinS1, seqS1);
             // OSC0, OSC1
-
             const [seqOSC0, seqOSC1] = createSequencesFromInputs(
               [seqS0, seqS1],
               ({ inputs: [S0, S1], frame }) => [
@@ -641,11 +640,11 @@ const kohctpyktop: CircuitSimulationFactories = {
             const [seqS0, seqS1, seqC] = createSequencesFromInputs(
               [seqA0, seqA1, seqB0, seqB1],
               ({ inputs: [A0, A1, B0, B1] }) => {
-                const a = (A0 ? 1 : 0) + (A1 ? 2 : 0);
-                const b = (B0 ? 1 : 0) + (B1 ? 2 : 0);
-                const sum = (a + b) % 4;
-                const carry = a + b >= 4;
-                return [sum % 2 === 1, sum >= 2, carry];
+                const a = (A0 ? 0b01 : 0) + (A1 ? 0b10 : 0);
+                const b = (B0 ? 0b01 : 0) + (B1 ? 0b10 : 0);
+                const sum = (a + b) % 0b100;
+                const carry = a + b > 0b11;
+                return [sum % 2 === 1, sum >= 0b10, carry];
               },
               280,
             );

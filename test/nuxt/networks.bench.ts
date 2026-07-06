@@ -1,5 +1,4 @@
 import { kohctpyktop } from '@/circuits/kohctpyktop';
-import { findLoaderById } from '@/composables/use-circuit-loaders';
 import { Network } from '@/simulation';
 import { bench } from 'vitest';
 

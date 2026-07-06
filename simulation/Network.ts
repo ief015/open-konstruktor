@@ -1,6 +1,10 @@
-import FieldGraph from '@/simulation/FieldGraph';
-import type { QueryResult } from '@/simulation/FieldGraph';
-import { GateNode, PathNode, PinNode } from '@/simulation';
+import {
+  FieldGraph,
+  GateNode,
+  PathNode,
+  PinNode,
+  type QueryResult,
+} from '@/simulation';
 import type { NetworkNode, Point } from '@/simulation';
 
 type FoundGate = {
@@ -14,7 +18,17 @@ export function getGraphKey(point: Point, layer: GraphLayer): string {
   return `${point[0]},${point[1]}:${layer === 'metal' ? 'm' : 's'}`;
 }
 
-export default class Network {
+export function getNodeState(node: NetworkNode): boolean {
+  if (node instanceof PathNode) {
+    return node.state;
+  } else if (node instanceof GateNode) {
+    return node.active === node.isNPN && node.currentPaths.some((p) => p.state);
+  } else {
+    return node.active || node.path?.state || false;
+  }
+}
+
+export class Network {
   private paths: PathNode[] = [];
   private gates: GateNode[] = [];
   private pins: PinNode[] = [];
@@ -81,7 +95,7 @@ export default class Network {
     // Check for gates that should be toggled.
     // This is done outside gated path propagation to introduce propagation delay.
     for (const gate of this.gates) {
-      gate.active = gate.switchingPaths.some((p) => p.state);
+      gate.active = gate.basePaths.some((p) => p.state);
     }
 
     // Reset state of all paths and pins
@@ -97,12 +111,11 @@ export default class Network {
     while (true) {
       let anyChange = false;
       // Propagate path states from gates
-      for (const { active, isNPN, gatedPaths } of this.gates) {
+      for (const { active, isNPN, currentPaths } of this.gates) {
         // TODO: Gates that have already passed current could be skipped for performance?
         // Needs investigation after more unit tests are written.
-        const open = isNPN ? active : !active;
-        if (open && gatedPaths.some((p) => p.state)) {
-          for (const path of gatedPaths) {
+        if (active === isNPN && currentPaths.some((p) => p.state)) {
+          for (const path of currentPaths) {
             if (!path.state) {
               path.state = true;
               anyChange = true;
@@ -213,7 +226,7 @@ export default class Network {
         if (!adjNode[0]) {
           const path = new PathNode();
           this.paths.push(path);
-          gate.gatedPaths.push(path);
+          gate.currentPaths.push(path);
           const { foundGates: more, newGate } = this.buildGate(field, {
             query: adjQuery,
             point: adjSilicon.point,
@@ -222,9 +235,9 @@ export default class Network {
             throw new Error('Failed to build gate');
           }
           if (query.gate === adjSilicon.direction) {
-            newGate.switchingPaths.push(path);
+            newGate.basePaths.push(path);
           } else {
-            newGate.gatedPaths.push(path);
+            newGate.currentPaths.push(path);
           }
           foundGates.push(...more);
         }
@@ -232,9 +245,9 @@ export default class Network {
         const adjPathNode = adjNode[0] as PathNode;
         if (adjPathNode) {
           if (query.gate === adjSilicon.direction) {
-            gate.switchingPaths.push(adjPathNode);
+            gate.basePaths.push(adjPathNode);
           } else {
-            gate.gatedPaths.push(adjPathNode);
+            gate.currentPaths.push(adjPathNode);
           }
         } else {
           const path = new PathNode();
@@ -243,9 +256,9 @@ export default class Network {
             this.paths.push(path);
             foundGates.push(...more);
             if (query.gate === adjSilicon.direction) {
-              gate.switchingPaths.push(path);
+              gate.basePaths.push(path);
             } else {
-              gate.gatedPaths.push(path);
+              gate.currentPaths.push(path);
             }
           }
         }

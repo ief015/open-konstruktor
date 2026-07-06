@@ -7,7 +7,7 @@ import {
   SiliconValue,
   ViaValue,
 } from '@/serialization';
-import { GateNode, PathNode, FieldGraph, Network } from '@/simulation';
+import { FieldGraph, Network, getNodeState } from '@/simulation';
 import { TILE_SIZE, applyFieldViewTransform } from '@/utils/field-view';
 
 export type TileBounds = [
@@ -362,27 +362,14 @@ export class FieldRenderer implements IDrawable {
         const y = row * TILE_SIZE;
         if (silicon) {
           const nodes = net.getNodesAt([col, row], 'silicon');
-          const hot = nodes.some((n) => {
-            if (n instanceof PathNode) {
-              return n.state;
-            } else if (n instanceof GateNode) {
-              const open = n.isNPN ? n.active : !n.active;
-              return open && n.gatedPaths.some((p) => p.state);
-            }
-            return false;
-          });
+          const hot = nodes.some(getNodeState);
           if (hot) {
             ctxSiliconHot.drawImage(imgHot, x, y);
           }
         }
         if (metal) {
           const nodes = net.getNodesAt([col, row], 'metal');
-          const hot = nodes.some((n) => {
-            if (n instanceof PathNode) {
-              return n.state;
-            }
-            return false;
-          });
+          const hot = nodes.some(getNodeState);
           if (hot) {
             ctxMetalHot.drawImage(imgHot, x, y);
           }

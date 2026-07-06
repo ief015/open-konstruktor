@@ -36,7 +36,13 @@
           class="max-w-sm w-[50vw] h-32 break-words text-sm"
           :value="exportCode"
         />
-        <div class="flex flex-row gap-2 justify-end">
+        <div class="flex flex-row justify-end items-center gap-2">
+          <div
+            v-if="!exportIsKOHCTPYKTOPCompatible"
+            class="text-xs text-neutral-400 text-right"
+          >
+            KOHCTPYKTOP Incompatible
+          </div>
           <button @click="onCopyExport" class="font-medium">
             {{ exportCopied ? 'Copied!' : 'Copy' }}
           </button>
@@ -60,80 +66,80 @@
 </template>
 
 <script setup lang="ts">
-import { useMenuItems } from '@/composables/menu-items';
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
-import { WelcomeDialogActionEvent } from '@/components/dialog/welcome/welcome-events';
-import type { SavedDesignsExport } from '@/composables/use-saved-designs';
+import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
+import type { CircuitDesignData } from '@/serialization';
 
 const { items: menuItems } = useMenuItems();
-const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
-const { load: loadSim, circuitFactory } = useCircuitSimulator();
-const { getLoader } = useCircuitLoaders();
+const circuitSimulation = injectCircuitSimulationOptional();
 const { ignoreKeyShortcuts } = useToolbox();
 const designs = useSavedDesigns();
 const snippets = useSavedSnippets();
 const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
-const showImportDialog = ref(false);
-const showExportDialog = ref(false);
+
+const menuBar = useTemplateRef('menuBar');
 const importTextArea = useTemplateRef('importTextArea');
 const exportTextArea = useTemplateRef('exportTextArea');
 const fileInputImportDesigns = useTemplateRef('fileInputImportDesigns');
 const fileInputImportSnippets = useTemplateRef('fileInputImportSnippets');
+
+const showImportDialog = ref(false);
+const showExportDialog = ref(false);
 const exportCode = ref('');
+const exportIsKOHCTPYKTOPCompatible = ref(false);
 const exportCopied = ref(false);
 const importCode = ref('');
-const menuBar = useTemplateRef('menuBar');
 
-const loadLevel = (levelName: string) => {
-  const loader = getLoader(levelName);
-  if (!loader) {
-    throw new Error(`Unknown loader: ${levelName}`);
-  }
-  loadBlankDesign(loader.width, loader.height, loader.pinRows);
-  loadSim(field.value, loader);
-};
-
-const onShowImportDialog = () => {
+function onShowImportDialog() {
   importCode.value = '';
   showImportDialog.value = true;
   nextTick(() => {
     importTextArea.value?.focus();
   });
-};
+}
 
-const onShowExportDialog = () => {
-  exportCode.value = field.value.toSaveString() ?? '';
+function onShowExportDialog() {
+  const sim = circuitSimulation.value;
+  if (!sim) return;
+  const field = sim.field.field.value;
+  if (!field) return;
+  exportCode.value = field.toSaveString() ?? '';
+  exportIsKOHCTPYKTOPCompatible.value = !!(
+    field.getData() as CircuitDesignData
+  ).isKOHCTPYKTOPCompatible?.();
   showExportDialog.value = true;
   exportCopied.value = false;
   nextTick(() => {
     exportTextArea.value?.focus();
     exportTextArea.value?.select();
   });
-};
+}
 
-const closeAllDialogs = () => {
+function closeAllDialogs() {
   showImportDialog.value = false;
   showExportDialog.value = false;
-};
+}
 
-const onCopyExport = () => {
+function onCopyExport() {
   if (!clipboard) return;
   clipboard.copy(exportCode.value);
   exportCopied.value = true;
-};
+}
 
-const onImport = () => {
+function onImport() {
   if (!importCode.value) return;
   try {
-    loadDesign(importCode.value);
-    loadSim(field.value);
+    const sim = circuitSimulation.value;
+    if (!sim) return;
+    sim.field.load(importCode.value);
+    sim.load();
     showImportDialog.value = false;
   } catch (e: any) {
     alert(`Failed to import:\n${e.message ?? e}`);
   }
-};
+}
 
-const onFileSelectedDesigns = async (ev: Event) => {
+async function onFileSelectedDesigns(ev: Event) {
   const input = ev.target as HTMLInputElement;
   if (!input.files?.[0]) return;
   const file = input.files[0];
@@ -151,9 +157,9 @@ const onFileSelectedDesigns = async (ev: Event) => {
     alert('Designs imported successfully!');
   }
   fileInputImportDesigns.value!.value = '';
-};
+}
 
-const onFileSelectedSnippets = async (ev: Event) => {
+async function onFileSelectedSnippets(ev: Event) {
   const input = ev.target as HTMLInputElement;
   if (!input.files?.[0]) return;
   const file = input.files[0];
@@ -171,9 +177,9 @@ const onFileSelectedSnippets = async (ev: Event) => {
     alert('Snippets imported successfully!');
   }
   fileInputImportSnippets.value!.value = '';
-};
+}
 
-const onSelected = async (id?: string) => {
+async function onSelected(id?: string) {
   if (!id) return;
   document.dispatchEvent(new MenuBarActionEvent(id));
   switch (id) {
@@ -206,11 +212,7 @@ const onSelected = async (id?: string) => {
       return;
     }
   }
-  if (id.startsWith('level/')) {
-    const loaderKey = id.slice('level/'.length);
-    loadLevel(loaderKey);
-  }
-};
+}
 
 useEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -218,20 +220,13 @@ useEventListener('keydown', (e) => {
   }
 });
 
-useEventListener(
-  document,
-  WelcomeDialogActionEvent.eventType,
-  (event: WelcomeDialogActionEvent) => {
-    switch (event.action) {
-      case 'start-tutorial':
-        loadLevel('Tutorial 01 Introduction');
-        break;
-      case 'play-levels':
-        menuBar.value?.openMenu('levels');
-        break;
-    }
-  },
-);
+useWelcomeDialogListener((event) => {
+  switch (event.action) {
+    case 'play-levels':
+      menuBar.value?.openMenu('levels');
+      break;
+  }
+});
 
 watch(importCode, (code) => {
   // remove newlines

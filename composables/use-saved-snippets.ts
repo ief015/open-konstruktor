@@ -97,8 +97,8 @@ const groups = computed<SnippetGroup[]>(() => {
 
 const loading = ref(true);
 
-const getDB = () =>
-  new Promise<IDBDatabase>((resolve, reject) => {
+function getDB() {
+  return new Promise<IDBDatabase>((resolve, reject) => {
     if (db.readyState === 'done') {
       resolve(db.result);
       return;
@@ -106,6 +106,7 @@ const getDB = () =>
     db.onsuccess = () => resolve(db.result);
     db.onerror = () => reject(db.error);
   });
+}
 
 db.onupgradeneeded = async () => {
   const DB = db.result;
@@ -113,16 +114,16 @@ db.onupgradeneeded = async () => {
   DB.createObjectStore('categories');
 };
 
-const fetchSnippetRecords = async (): Promise<SnippetRecord[]> => {
+async function fetchSnippetRecords(): Promise<SnippetRecord[]> {
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readonly');
   const store = transaction.objectStore('snippets');
   const request = store.openCursor();
   const results = await idbCursorGetAll<SnippetRecord>(request);
   return results;
-};
+}
 
-const reload = async () => {
+async function reload() {
   loading.value = true;
   try {
     const snippetsRecords = await fetchSnippetRecords();
@@ -130,9 +131,9 @@ const reload = async () => {
   } finally {
     loading.value = false;
   }
-};
+}
 
-const saveSnippet = async (snippet: SnippetRecord): Promise<SnippetRecord> => {
+async function saveSnippet(snippet: SnippetRecord): Promise<SnippetRecord> {
   if (!isSnippetRecord(snippet)) {
     throw new Error('Invalid snippet record');
   }
@@ -154,9 +155,9 @@ const saveSnippet = async (snippet: SnippetRecord): Promise<SnippetRecord> => {
     };
     request.onerror = () => reject(request.error);
   });
-};
+}
 
-const deleteSnippet = async (id: string) => {
+async function deleteSnippet(id: string) {
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readwrite');
   const store = transaction.objectStore('snippets');
@@ -171,14 +172,14 @@ const deleteSnippet = async (id: string) => {
     };
     request.onerror = () => reject(request.error);
   });
-};
+}
 
 export interface SavedSnippetsExport {
   version: number;
   snippets: SnippetRecord[];
 }
 
-const importSnippetRecords = async (snippets: SnippetRecord[]) => {
+async function importSnippetRecords(snippets: SnippetRecord[]) {
   const invalids = snippets.filter((snippet) => !isSnippetRecord(snippet));
   if (invalids.length > 0) {
     throw new Error(
@@ -196,9 +197,9 @@ const importSnippetRecords = async (snippets: SnippetRecord[]) => {
   );
   await reload();
   return results;
-};
+}
 
-const importSnippets = async (data: SavedSnippetsExport) => {
+async function importSnippets(data: SavedSnippetsExport) {
   if (!data.version || data.version !== 1) {
     throw new Error('Unsupported snippets export version');
   }
@@ -206,16 +207,16 @@ const importSnippets = async (data: SavedSnippetsExport) => {
     throw new Error('Invalid snippets export format');
   }
   return importSnippetRecords(data.snippets);
-};
+}
 
 export interface ExportSnippetsOptions {
   download?: boolean;
   downloadFilename?: string;
 }
 
-const exportSnippets = async (
+async function exportSnippets(
   opts: ExportSnippetsOptions = {},
-): Promise<SavedSnippetsExport> => {
+): Promise<SavedSnippetsExport> {
   const { download = false, downloadFilename = 'exported-snippets.json' } =
     opts;
   const records = await fetchSnippetRecords();
@@ -227,7 +228,7 @@ const exportSnippets = async (
     downloadJSON(data, downloadFilename, true);
   }
   return data;
-};
+}
 
 reload();
 

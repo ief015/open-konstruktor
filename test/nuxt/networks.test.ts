@@ -1,29 +1,30 @@
-import { test } from "vitest";
-import { assertEqual, assertPin } from "@/utils/assert";
-import { GateNode, PinNode, Network, PathNode, CircuitSimulation, Sequence } from "@/simulation";
-
+import { test } from 'vitest';
+import { assertEqual, assertPin } from '@/test/utils/assert';
+import {
+  GateNode,
+  PinNode,
+  Network,
+  PathNode,
+  CircuitSimulation,
+  Sequence,
+} from '@/simulation';
 
 test('npn', () => {
-
   const pathVCC = new PathNode();
   const pathA = new PathNode();
   const pathY = new PathNode();
 
   const npn = new GateNode('npn');
 
-  npn.gatedPaths.push(pathVCC);
-  npn.gatedPaths.push(pathY);
-  npn.switchingPaths.push(pathA);
+  npn.currentPaths.push(pathVCC);
+  npn.currentPaths.push(pathY);
+  npn.basePaths.push(pathA);
 
   const pinVCC = new PinNode(pathVCC, true);
   const pinA = new PinNode(pathA);
   const pinY = new PinNode(pathY);
 
-  const network = new Network([
-    pinVCC, pinA, pinY,
-    pathVCC, pathA, pathY,
-    npn,
-  ]);
+  const network = new Network([pinVCC, pinA, pinY, pathVCC, pathA, pathY, npn]);
 
   // Inactivity
   network.step();
@@ -75,12 +76,9 @@ test('npn', () => {
   assertEqual(pathVCC.state, true);
   assertEqual(pathA.state, false);
   assertEqual(pathY.state, false);
-
 });
 
-
 test('pnp', () => {
-
   const pathVCC = new PathNode();
   const pathA = new PathNode();
   const pathY = new PathNode();
@@ -91,15 +89,11 @@ test('pnp', () => {
 
   const pnp = new GateNode('pnp');
 
-  pnp.gatedPaths.push(pathVCC);
-  pnp.gatedPaths.push(pathY);
-  pnp.switchingPaths.push(pathA);
+  pnp.currentPaths.push(pathVCC);
+  pnp.currentPaths.push(pathY);
+  pnp.basePaths.push(pathA);
 
-  const network = new Network([
-    pinVCC, pinA, pinY,
-    pathVCC, pathA, pathY,
-    pnp,
-  ]);
+  const network = new Network([pinVCC, pinA, pinY, pathVCC, pathA, pathY, pnp]);
 
   // inactivity
   network.step();
@@ -150,12 +144,9 @@ test('pnp', () => {
   assertEqual(pathVCC.state, true);
   assertEqual(pathA.state, false);
   assertEqual(pathY.state, true);
-
 });
 
-
 test('sr-latch', () => {
-
   const pathVCC = new PathNode();
   const pathS = new PathNode();
   const pathR = new PathNode();
@@ -170,18 +161,25 @@ test('sr-latch', () => {
   const pinQ = new PinNode(pathQ);
 
   const network = new Network([
-    pinVCC, pinS, pinR, pinQ,
-    pathVCC, pathS, pathR, pathQ,
-    pnp, npn,
+    pinVCC,
+    pinS,
+    pinR,
+    pinQ,
+    pathVCC,
+    pathS,
+    pathR,
+    pathQ,
+    pnp,
+    npn,
   ]);
 
-  npn.gatedPaths.push(pathVCC);
-  npn.gatedPaths.push(pathQ);
-  npn.switchingPaths.push(pathS);
+  npn.currentPaths.push(pathVCC);
+  npn.currentPaths.push(pathQ);
+  npn.basePaths.push(pathS);
 
-  pnp.gatedPaths.push(pathS);
-  pnp.gatedPaths.push(pathQ);
-  pnp.switchingPaths.push(pathR);
+  pnp.currentPaths.push(pathS);
+  pnp.currentPaths.push(pathQ);
+  pnp.basePaths.push(pathR);
 
   network.step();
   assertEqual(pathQ.state, false);
@@ -217,12 +215,9 @@ test('sr-latch', () => {
   assertEqual(pathS.state, false);
   assertEqual(pathR.state, false);
   assertEqual(pathQ.state, false);
-
 });
 
-
 test('dual-fixed-freq-oscillator', () => {
-
   // Based on KO223 - DUAL FIXED FREQUENCY OSCILLATOR design:
   /*
   eNrtmkEOwiAQRdv5bHoGr+Des3j/iygkTbTC0EAxDHyaLszLyyjYz9jq7u62Pdft
@@ -259,35 +254,46 @@ test('dual-fixed-freq-oscillator', () => {
 
   for (let i = 0; i < 9; i++) {
     const cur = new GateNode('npn');
-    cur.gatedPaths.push(pathVCC);
+    cur.currentPaths.push(pathVCC);
     const prev = npnOscGates[npnOscGates.length - 1];
     npnOscGates.push(cur);
     if (prev) {
       const path = new PathNode();
-      cur.gatedPaths.push(path);
-      prev.switchingPaths.push(path);
+      cur.currentPaths.push(path);
+      prev.basePaths.push(path);
       npnOscPaths.push(path);
     }
   }
 
-  npnOscGates[0].gatedPaths.push(pathPnp);
-  npnOscGates[npnOscGates.length - 1].switchingPaths.push(pathOsc);
+  npnOscGates[0].currentPaths.push(pathPnp);
+  npnOscGates[npnOscGates.length - 1].basePaths.push(pathOsc);
 
-  npnEn0.gatedPaths.push(pathEn0, pathOsc0);
-  npnEn0.switchingPaths.push(pathOsc);
-  npnEn1.gatedPaths.push(pathEn1, pathOsc1);
-  npnEn1.switchingPaths.push(pathOsc);
+  npnEn0.currentPaths.push(pathEn0, pathOsc0);
+  npnEn0.basePaths.push(pathOsc);
+  npnEn1.currentPaths.push(pathEn1, pathOsc1);
+  npnEn1.basePaths.push(pathOsc);
 
-  pnpOsc.gatedPaths.push(pathVCC, pathOsc);
-  pnpOsc.switchingPaths.push(pathPnp);
-
+  pnpOsc.currentPaths.push(pathVCC, pathOsc);
+  pnpOsc.basePaths.push(pathPnp);
 
   const network = new Network([
-    pinVCC, pinEn0, pinOsc0, pinEn1, pinOsc1,
-    pathVCC, pathEn0, pathOsc0, pathEn1, pathOsc1,
-    npnEn0, npnEn1, pnpOsc, pathPnp, pathOsc,
+    pinVCC,
+    pinEn0,
+    pinOsc0,
+    pinEn1,
+    pinOsc1,
+    pathVCC,
+    pathEn0,
+    pathOsc0,
+    pathEn1,
+    pathOsc1,
+    npnEn0,
+    npnEn1,
+    pnpOsc,
+    pathPnp,
+    pathOsc,
     ...npnOscGates,
-    ...npnOscPaths
+    ...npnOscPaths,
   ]);
 
   const sim = new CircuitSimulation(network);
@@ -310,7 +316,7 @@ test('dual-fixed-freq-oscillator', () => {
     .setFrame(250, false);
   sim.setInputSequence(pinEn1, seqEn1);
 
-  sim.run(280, frame => {
+  sim.run(280, (frame) => {
     // Probe various frames for expected values
     switch (frame) {
       case 20:
@@ -355,12 +361,9 @@ test('dual-fixed-freq-oscillator', () => {
         break;
     }
   });
-
 });
 
-
 test('4-input-and-or-gate', () => {
-
   // Based on KT141AO - 4-INPUT AND/OR GATE design:
   /*
   eNrtmkEOgjAQRWU+G87gFdx7Fu9/EZMKgkCnhQoRfDRdmNcfkJCXKUN9q6/No2ru
@@ -405,35 +408,59 @@ test('4-input-and-or-gate', () => {
   const pn1 = new PathNode();
   const pn2 = new PathNode();
 
-  gn1.gatedPaths.push(pathA, pn1);
-  gn1.switchingPaths.push(pathB);
+  gn1.currentPaths.push(pathA, pn1);
+  gn1.basePaths.push(pathB);
 
-  gn2.gatedPaths.push(pn1, pn2);
-  gn2.switchingPaths.push(pathC);
+  gn2.currentPaths.push(pn1, pn2);
+  gn2.basePaths.push(pathC);
 
-  gn3.gatedPaths.push(pn2, pathX);
-  gn3.switchingPaths.push(pathD);
+  gn3.currentPaths.push(pn2, pathX);
+  gn3.basePaths.push(pathD);
 
-  gp1.gatedPaths.push(pathVCC, pp1);
-  gp1.switchingPaths.push(pathA);
-  
-  gp2.gatedPaths.push(pp1, pp2);
-  gp2.switchingPaths.push(pathB);
-  
-  gp3.gatedPaths.push(pp2, pp3);
-  gp3.switchingPaths.push(pathC);
-  
-  gp4.gatedPaths.push(pp3, pp4);
-  gp4.switchingPaths.push(pathD);
+  gp1.currentPaths.push(pathVCC, pp1);
+  gp1.basePaths.push(pathA);
 
-  gp5.gatedPaths.push(pathVCC, pathY);
-  gp5.switchingPaths.push(pp4);
+  gp2.currentPaths.push(pp1, pp2);
+  gp2.basePaths.push(pathB);
+
+  gp3.currentPaths.push(pp2, pp3);
+  gp3.basePaths.push(pathC);
+
+  gp4.currentPaths.push(pp3, pp4);
+  gp4.basePaths.push(pathD);
+
+  gp5.currentPaths.push(pathVCC, pathY);
+  gp5.basePaths.push(pp4);
 
   const network = new Network([
-    pinVCC, pinA, pinB, pinC, pinD, pinX, pinY,
-    pathVCC, pathA, pathB, pathC, pathD, pathX, pathY,
-    pp1, pp2, pp3, pp4, pn1, pn2,
-    gp1, gp2, gp3, gp4, gp5, gn1, gn2, gn3
+    pinVCC,
+    pinA,
+    pinB,
+    pinC,
+    pinD,
+    pinX,
+    pinY,
+    pathVCC,
+    pathA,
+    pathB,
+    pathC,
+    pathD,
+    pathX,
+    pathY,
+    pp1,
+    pp2,
+    pp3,
+    pp4,
+    pn1,
+    pn2,
+    gp1,
+    gp2,
+    gp3,
+    gp4,
+    gp5,
+    gn1,
+    gn2,
+    gn3,
   ]);
 
   const sim = new CircuitSimulation(network);
@@ -496,7 +523,7 @@ test('4-input-and-or-gate', () => {
     .setFrame(270, false);
   sim.setInputSequence(pinD, seqD);
 
-  sim.run(280, frame => {
+  sim.run(280, (frame) => {
     // Probe various frames for expected values
     switch (frame) {
       case 0:
@@ -552,12 +579,9 @@ test('4-input-and-or-gate', () => {
         break;
     }
   });
-
 });
 
-
 test('2-to-4 line decoder', () => {
-
   // Based on KD124 - 2-TO-4 LINE DECODER design:
   /*
   eNrtmUESgyAMRYW48Qy9Qvc9S+9/kVYUxQxELVYifhlHpo9IGsMHpX22j+5tupdp
@@ -597,28 +621,47 @@ test('2-to-4 line decoder', () => {
   const gn1 = new GateNode('npn');
   const gn2 = new GateNode('npn');
 
-  gp1.gatedPaths.push(pathVCC, p1);
-  gp1.switchingPaths.push(pathA);
+  gp1.currentPaths.push(pathVCC, p1);
+  gp1.basePaths.push(pathA);
 
-  gp2.gatedPaths.push(p1, pathY0);
-  gp2.switchingPaths.push(pathB);
+  gp2.currentPaths.push(p1, pathY0);
+  gp2.basePaths.push(pathB);
 
-  gp3.gatedPaths.push(pathA, pathY1);
-  gp3.switchingPaths.push(pathB);
+  gp3.currentPaths.push(pathA, pathY1);
+  gp3.basePaths.push(pathB);
 
-  gp4.gatedPaths.push(pathVCC, p2);
-  gp4.switchingPaths.push(pathA);
+  gp4.currentPaths.push(pathVCC, p2);
+  gp4.basePaths.push(pathA);
 
-  gn1.gatedPaths.push(p2, pathY2);
-  gn1.switchingPaths.push(pathB);
+  gn1.currentPaths.push(p2, pathY2);
+  gn1.basePaths.push(pathB);
 
-  gn2.gatedPaths.push(pathA, pathY3);
-  gn2.switchingPaths.push(pathB);
+  gn2.currentPaths.push(pathA, pathY3);
+  gn2.basePaths.push(pathB);
 
   const network = new Network([
-    pinVCC, pinA, pinB, pinY0, pinY1, pinY2, pinY3,
-    pathVCC, pathA, pathB, pathY0, pathY1, pathY2, pathY3, p1, p2,
-    gp1, gp2, gp3, gp4, gn1, gn2,
+    pinVCC,
+    pinA,
+    pinB,
+    pinY0,
+    pinY1,
+    pinY2,
+    pinY3,
+    pathVCC,
+    pathA,
+    pathB,
+    pathY0,
+    pathY1,
+    pathY2,
+    pathY3,
+    p1,
+    p2,
+    gp1,
+    gp2,
+    gp3,
+    gp4,
+    gn1,
+    gn2,
   ]);
 
   const sim = new CircuitSimulation(network);
@@ -649,7 +692,7 @@ test('2-to-4 line decoder', () => {
   seqB.setFrame(270, false);
   sim.setInputSequence(pinB, seqB);
 
-  sim.run(280, frame => {
+  sim.run(280, (frame) => {
     // Probe various frames for expected values
     switch (frame) {
       case 0:
@@ -732,25 +775,21 @@ test('2-to-4 line decoder', () => {
         break;
     }
   });
-
 });
-
 
 // https://trello.com/c/eFq2LFRg/8-low-pins-should-not-overwrite-high-pins-see-example
 test('bug-pin-to-pin-overwrite', () => {
-
   const path = new PathNode();
   const pinVCC = new PinNode(path, true);
   const pinNC = new PinNode(path);
 
   // Works as expected
-  const networkWorking = new Network([pinNC, pinVCC ]);
+  const networkWorking = new Network([pinNC, pinVCC]);
   networkWorking.step();
   assertEqual(path.state, true, 'networkWorking');
 
   // Bug: N/C state prioritized over VCC due to order
-  const networkBugged = new Network([ pinVCC, pinNC ]);
+  const networkBugged = new Network([pinVCC, pinNC]);
   networkBugged.step();
   assertEqual(path.state, true, 'networkBugged');
-
 });

@@ -1,7 +1,6 @@
 import { test, describe } from 'vitest';
-import { assertEqual } from '@/utils/assert';
-import { Network } from '@/simulation';
-import FieldGraph from '@/simulation/FieldGraph';
+import { assertEqual } from '@/test/utils/assert';
+import { Network, FieldGraph } from '@/simulation';
 import { kohctpyktop } from '@/circuits/kohctpyktop';
 
 describe('01 KT411I QUAD INVERTER GATE', () => {

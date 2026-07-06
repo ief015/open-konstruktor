@@ -12,6 +12,7 @@
       <button
         v-else
         @click="onClickTool(item)"
+        ref="buttons"
         class="relative flex items-center justify-center w-full h-[3em] rounded border-solid border-2"
         :class="{
           [item.classes ?? '']: true,
@@ -34,8 +35,6 @@
 </template>
 
 <script setup lang="ts">
-import type { ToolboxMode } from '@/composables/use-toolbox';
-
 interface ToolkitItem {
   name: string;
   icon?: string;
@@ -44,6 +43,8 @@ interface ToolkitItem {
   description?: string;
   key?: string;
 }
+
+const buttons = useTemplateRef('buttons');
 
 const props = withDefaults(
   defineProps<{
@@ -130,17 +131,26 @@ const toolkit: (ToolkitItem | 'divider')[] = [
     description: 'Gate eraser. Disconnects gates without removing silicon.',
     key: '0',
   },
+  'divider',
+  {
+    name: 'Probe',
+    mode: 'toggle-probe',
+    classes: 'bg-[#9cc] text-black font-semibold',
+    description:
+      'Probe tool. Place to inspect signals within the circuit. Hold shift to label. Click again to remove.',
+    key: 'p',
+  },
 ];
 
 const { mode, modifiers, ignoreKeyShortcuts } = useToolbox();
 
 const status = useStatusBar();
 
-const onChange = (mode: ToolboxMode, prevMode: ToolboxMode) => {
+function onChange(mode: ToolboxMode, prevMode: ToolboxMode) {
   emit('change', mode, prevMode);
-};
+}
 
-const onClickTool = (item: ToolkitItem) => {
+function onClickTool(item: ToolkitItem) {
   const toMode = item.mode === mode.value ? 'none' : item.mode;
   const prevMode = mode.value;
   mode.value = toMode;
@@ -149,18 +159,19 @@ const onClickTool = (item: ToolkitItem) => {
   } else {
     status.setText(item.description ?? '');
   }
+  buttons.value?.forEach((btn) => btn?.blur());
   onChange(toMode, prevMode);
-};
+}
 
 useEventListener('keypress', (ev) => {
   if (ignoreKeyShortcuts.value) return;
-  if (ev.key >= '0' && ev.key <= '9') {
-    const item = toolkit.find((item) => {
-      return item !== 'divider' && item.key === ev.key;
-    }) as ToolkitItem | undefined;
-    if (item) {
-      onClickTool(item);
-    }
+  if (ev.shiftKey || ev.ctrlKey || ev.altKey || ev.metaKey) return;
+  const k = ev.key.toLowerCase();
+  const item = toolkit.find((item) => {
+    return item !== 'divider' && item.key === k;
+  }) as ToolkitItem | undefined;
+  if (item) {
+    onClickTool(item);
   }
 });
 

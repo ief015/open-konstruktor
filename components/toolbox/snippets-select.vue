@@ -79,29 +79,27 @@
 
 <script setup lang="ts">
 import type { SaveSnippetFormData } from '@/components/dialog/snippets/save.vue';
-import type { SnippetRecord } from '@/composables/use-saved-snippets';
-import { DesignData } from '@/serialization';
 import { FieldGraph } from '@/simulation';
-import { TILE_SIZE } from '@/utils/field-view';
 
-const fieldCanvas = ref();
-const updateFieldCanvas = () => {
-  fieldCanvas.value = document.getElementById('field-canvas');
-  if (!fieldCanvas.value) {
-    console.warn('Field canvas not found, retrying...');
-    nextTick(updateFieldCanvas);
-  }
-};
-updateFieldCanvas();
-
-const { elementX: canvasMouseX, elementY: canvasMouseY } =
-  useMouseInElement(fieldCanvas);
-
-const coordMouseX = computed(() => {
-  return Math.floor(canvasMouseX.value / TILE_SIZE);
-});
-const coordMouseY = computed(() => {
-  return Math.floor(canvasMouseY.value / TILE_SIZE);
+const { groups, snippets, categories, saveSnippet, deleteSnippet } =
+  useSavedSnippets();
+const {
+  start: startSelection,
+  end: endSelection,
+  translate: translateSelection,
+  fieldGraph: selectionFieldGraph,
+  state: selectionState,
+  isSnippet: selectionIsSnippet,
+  computeTranslationFromMouse,
+} = useSelection();
+const circuitSimulation = injectCircuitSimulation();
+const { isRunning } = toShallowRefs(circuitSimulation);
+const { mode: toolboxMode } = useToolbox();
+const selected = ref<SnippetRecord[]>([]);
+const groupsSorted = computed(() => {
+  const sorted = [...groups.value];
+  sorted.sort((a, b) => a.label.localeCompare(b.label));
+  return sorted;
 });
 
 const saveDialog = reactive({
@@ -124,41 +122,18 @@ const saveDialog = reactive({
   },
 });
 
-const { groups, snippets, categories, saveSnippet, deleteSnippet } =
-  useSavedSnippets();
-const {
-  start: startSelection,
-  end: endSelection,
-  translate: translateSelection,
-  fieldGraph: selectionFieldGraph,
-  state: selectionState,
-  isSnippet: selectionIsSnippet,
-  fieldView: selectionFieldView,
-} = useSelection();
-const { mode: toolboxMode } = useToolbox();
-const selected = ref<SnippetRecord[]>([]);
-const groupsSorted = computed(() => {
-  const sorted = [...groups.value];
-  sorted.sort((a, b) => a.label.localeCompare(b.label));
-  return sorted;
-});
-
-const loadOption = async (opt: SnippetRecord) => {
+async function loadOption(opt: SnippetRecord) {
+  if (isRunning.value) return;
   const field = FieldGraph.from(opt.data, 'snippet');
   const { columns, rows } = field.getDimensions();
   selectionFieldGraph.value = field;
   startSelection.value = [0, 0];
   endSelection.value = [columns - 1, rows - 1];
-  const viewX = Math.ceil(selectionFieldView.value[0] / TILE_SIZE) || 0;
-  const viewY = Math.ceil(selectionFieldView.value[1] / TILE_SIZE) || 0;
-  translateSelection.value = [
-    coordMouseX.value + viewX - columns / 2,
-    coordMouseY.value + viewY - rows / 2,
-  ];
+  translateSelection.value = computeTranslationFromMouse();
   selectionIsSnippet.value = true;
   selectionState.value = 'dragging';
   toolboxMode.value = 'select';
-};
+}
 
 function getTooltip(snippet: SnippetRecord) {
   const { name, description } = snippet;
@@ -168,17 +143,17 @@ function getTooltip(snippet: SnippetRecord) {
   return name;
 }
 
-const onSelect = (opt: SnippetRecord) => {
+function onSelect(opt: SnippetRecord) {
   loadOption(opt);
-};
+}
 
-const onSave = () => {
+function onSave() {
   if (!selectionFieldGraph.value) return;
   if (selectionFieldGraph.value.isEmpty()) return;
   saveDialog.open();
-};
+}
 
-const onSaveSubmit = async (formData: SaveSnippetFormData) => {
+async function onSaveSubmit(formData: SaveSnippetFormData) {
   if (saveDialog.record) {
     // Save existing snippet
     await saveSnippet({
@@ -207,23 +182,23 @@ const onSaveSubmit = async (formData: SaveSnippetFormData) => {
       updatedAt: now,
     });
   }
-};
+}
 
-const onLoad = () => {
+function onLoad() {
   const opt = selected.value[0];
   if (opt) {
     loadOption(opt);
   }
-};
+}
 
-const onEdit = () => {
+function onEdit() {
   const opt = selected.value[0];
   if (opt) {
     saveDialog.open(opt);
   }
-};
+}
 
-const onDelete = async () => {
+async function onDelete() {
   const opt = selected.value[0];
   if (
     opt?.id &&
@@ -233,5 +208,5 @@ const onDelete = async () => {
     selected.value = [];
     saveDialog.close();
   }
-};
+}
 </script>

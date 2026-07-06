@@ -10,23 +10,24 @@ const watchHandler = ref<WatchHandle>();
 export function useRouteLoader() {
   const route = useRoute();
   const loaders = useCircuitLoaders();
-  const sim = useCircuitSimulator();
+  const { currentSimulation, openNewLevel } = useWorkspace();
   const field = useFieldGraph();
 
   function loadRoute(params: RouteLoaderParams) {
-    if (params.designString) {
-      try {
-        field.load(params.designString);
-      } catch (e) {
-        console.warn(`Failed to load design from URL`, e);
-      }
-    }
     if (params.levelKey) {
       try {
         const loader = loaders.getLoader(params.levelKey);
-        sim.load(field.field.value, loader);
+        openNewLevel(loader.key, params.designString);
       } catch (e) {
         console.warn(`Failed to load level with key: ${params.levelKey}`, e);
+      }
+    } else {
+      if (params.designString) {
+        try {
+          field.load(params.designString);
+        } catch (e) {
+          console.warn(`Failed to load design from URL`, e);
+        }
       }
     }
   }
@@ -51,6 +52,8 @@ export function useRouteLoader() {
   }
 
   function getCurrentURL() {
+    const sim = currentSimulation.value;
+    if (!sim) throw new Error('No current simulation to get URL from');
     const level = sim.circuitFactory.value?.key;
     const design =
       field.field.value && !field.field.value.isEmpty(true)
