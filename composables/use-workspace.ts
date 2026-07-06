@@ -70,13 +70,21 @@ export function useWorkspace() {
     }
   }
 
-  function openNewLevel(levelName: string, open: boolean = true) {
+  function openNewLevel(
+    levelName: string,
+    designString?: string,
+    open: boolean = true,
+  ) {
     const sim = addNewSimulation(open);
     const loader = getLoader(levelName);
     if (!loader) {
       throw new Error(`Unknown loader: ${levelName}`);
     }
-    sim.field.loadBlank(loader.width, loader.height, loader.pinRows);
+    if (designString) {
+      sim.field.load(designString);
+    } else {
+      sim.field.loadBlank(loader.width, loader.height, loader.pinRows);
+    }
     sim.load(loader);
   }
 
@@ -89,3 +97,5 @@ export function useWorkspace() {
     openNewLevel,
   };
 }
+
+export type UseWorkspaceReturn = ReturnType<typeof useWorkspace>;

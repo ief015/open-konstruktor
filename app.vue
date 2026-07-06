@@ -110,6 +110,7 @@ const status = useStatusBar();
 const clipboard = useClipboard();
 provide('clipboard', clipboard);
 
+const workspace = useWorkspace();
 const {
   allSimulations,
   currentSimulation,
@@ -117,7 +118,8 @@ const {
   removeSimulation,
   openSimulation,
   openNewLevel,
-} = useWorkspace();
+} = workspace;
+const routeLoader = useRouteLoader(workspace);
 
 provideCircuitSimulation(
   currentSimulation as ShallowRef<UseCircuitSimulationReturn>,
@@ -198,6 +200,13 @@ useMenuBarListener((event) => {
     return;
   }
   switch (id) {
+    case 'file/copy-url': {
+      const url = routeLoader.getCurrentURL();
+      clipboard.copy(url).then(() => {
+        console.log('Copied URL to clipboard', url);
+      });
+      break;
+    }
     case 'edit/duplicate':
       duplicateCurrentSimulation();
       break;

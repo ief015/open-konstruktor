@@ -1,7 +1,6 @@
 <template>
   <Dialog
     ref="dialog"
-    start-open
     title="Welcome to Open-Konstruktor!"
     title-class="font-ttw text-xl text-center"
     no-actions
