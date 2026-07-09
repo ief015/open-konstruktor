@@ -14,10 +14,6 @@
         :style="{
           height: `${scopeHeight}px`,
         }"
-        @mousemove="onMouseMove"
-        @mousedown="onMouseDown"
-        @mouseup="onMouseUp"
-        oncontextmenu="return false;"
       >
         Your browser must support the canvas tag.
       </canvas>
@@ -65,8 +61,13 @@
 </template>
 
 <script setup lang="ts">
-import type { PinNode, Sequence } from '@/simulation';
-import type { Point, VerificationResult } from '@/simulation';
+import { useFieldProbeActionListener } from '@/components/circuit/field-events';
+import type {
+  PinNode,
+  Sequence,
+  Point,
+  VerificationResult,
+} from '@/simulation';
 
 type DrawMode = 'high' | 'low';
 
@@ -86,18 +87,28 @@ const FONT = '10px Georgia10';
 const canvasContainer = useTemplateRef('canvasContainer');
 const canvas = useTemplateRef('canvas');
 const canvasWidth = ref(0);
+
+const circuitSimulation = injectCircuitSimulation();
+const {
+  network,
+  sim,
+  isRunning,
+  currentFrame,
+  onStepAnim,
+  onComplete,
+  field: fieldGraph,
+  levelInfo,
+} = toShallowRefs(circuitSimulation);
 const {
   designScore,
   setVerificationResult,
   resetVerificationResult,
   verificationResult,
-} = useFieldGraph();
-const { network, sim, isRunning, currentFrame, onStepAnim, onComplete } =
-  useCircuitSimulator();
+} = toShallowRefs(fieldGraph);
 const {
   openCompleted: levelInfoOpenCompleted,
   completedAvailable: hasOpenedCompleted,
-} = useLevelInfo();
+} = toShallowRefs(levelInfo);
 const isDrawing = ref(false);
 const drawMode = ref<DrawMode>('high');
 const editable = ref(false);
@@ -114,7 +125,7 @@ const scopeHeight = computed<number>(() => {
   return numRows.value * SCOPE_ROW_HEIGHT_PX;
 });
 const maxScopeHeight = computed<number>(() => {
-  return 8 * SCOPE_ROW_HEIGHT_PX;
+  return 10 * SCOPE_ROW_HEIGHT_PX;
 });
 const minScopeHeight = computed<number>(() => {
   return 4 * SCOPE_ROW_HEIGHT_PX;
@@ -169,9 +180,21 @@ function getContext(): CanvasRenderingContext2D {
   return ctx;
 }
 
+function updateCanvasSize() {
+  const ctx = getContext();
+  ctx.canvas.width = Math.trunc(ctx.canvas.clientWidth);
+  canvasWidth.value = ctx.canvas.width;
+  ctx.canvas.height = scopeHeight.value;
+  renderScope();
+}
+
 function renderScope() {
   const ctx = getContext();
   const vsim = sim.value;
+  const recorder = vsim.getRecorder();
+  const runningLength = vsim.getRunningLength();
+  const scopeWidth = runningLength * SCOPE_SCALE_X;
+  const currentX = recorder.getRecordingLength() * SCOPE_SCALE_X;
 
   ctx.save();
   ctx.fillStyle = COLOR_CHART;
@@ -180,14 +203,10 @@ function renderScope() {
   ctx.translate(-translateX.value, 0); // Translate for horizontal autoscrolling
   ctx.lineWidth = 1;
 
-  const runningLength = vsim.getRunningLength();
-  const scopeWidth = runningLength * SCOPE_SCALE_X;
-  const currentX = vsim.getRecordingLength() * SCOPE_SCALE_X;
-
-  // draw grid lines
-  ctx.strokeStyle = COLOR_GRID_LINE;
   ctx.save();
   {
+    // draw grid lines
+    ctx.strokeStyle = COLOR_GRID_LINE;
     ctx.setLineDash([2, 1]);
     ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
     ctx.beginPath();
@@ -209,14 +228,16 @@ function renderScope() {
     if (seq) {
       ctx.beginPath();
       ctx.moveTo(0, baseline);
-      let i = 0;
       let lastY = baseline;
-      for (const state of seq) {
-        const x = i * SCOPE_SCALE_X;
+      const frames = seq.getFrames();
+      for (const frame in frames) {
+        const state = frames[frame];
+        if (state === undefined) continue;
+        const x = Number(frame) * SCOPE_SCALE_X;
         const y = state ? highLine : baseline;
+        ctx.lineTo(x, lastY);
         ctx.lineTo(x, y);
         ctx.lineTo(x + SCOPE_SCALE_X, y);
-        i++;
         lastY = y;
       }
       ctx.lineTo(endX, lastY);
@@ -230,70 +251,74 @@ function renderScope() {
     }
   }
 
-  // draw scopes for each pin from top to bottom
-  const pins = filteredPins.value;
   ctx.save();
-  ctx.fillStyle = COLOR_SCOPE_LINE;
-  for (const offset of [0, 1]) {
-    for (let i = offset; i < pins.length; i += 2) {
-      const pin = pins[i];
-      const { input, output } = vsim.getSequence(pin);
-      ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
-
-      // draw label
-      ctx.strokeStyle = COLOR_SCOPE_LINE;
-      ctx.beginPath();
-      ctx.moveTo(0, baseline);
-      ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
-      ctx.stroke();
-      if (pin.label) {
+  {
+    // draw scopes for each pin from top to bottom
+    const pins = filteredPins.value;
+    ctx.fillStyle = COLOR_SCOPE_LINE;
+    for (const offset of [0, 1]) {
+      for (let i = offset; i < pins.length; i += 2) {
+        const pin = pins[i];
+        const { input, output } = vsim.getPinSequence(pin);
+        ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
+        // draw label
+        ctx.strokeStyle = COLOR_SCOPE_LINE;
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
+        ctx.stroke();
+        if (pin.label) {
+          ctx.save();
+          ctx.translate(translateX.value, 0);
+          ctx.font = FONT;
+          ctx.fillText(pin.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+          ctx.restore();
+        }
+        // draw scopes on graph
         ctx.save();
-        ctx.translate(translateX.value, 0);
-        ctx.font = FONT;
-        ctx.fillText(pin.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
+        ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
+        if (input) {
+          // input signal
+          ctx.strokeStyle = COLOR_SCOPE_LINE;
+          strokeSequenceLine(input);
+        } else if (output) {
+          // expected output signal
+          ctx.strokeStyle = COLOR_SCOPE_HINT;
+          strokeSequenceLine(output);
+          // recorded output signal
+          const rec = vsim.getPinRecording(pin);
+          if (rec) {
+            ctx.strokeStyle = COLOR_SCOPE_LINE;
+            strokeSequenceLine(rec, currentX);
+          }
+        } else {
+          strokeSequenceLine(null);
+        }
         ctx.restore();
       }
-
-      // draw scopes on graph
-      ctx.save();
-      ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
-      if (input) {
-        // input signal
-        ctx.strokeStyle = COLOR_SCOPE_LINE;
-        strokeSequenceLine(input);
-      } else if (output) {
-        // expected output signal
-        ctx.strokeStyle = COLOR_SCOPE_HINT;
-        strokeSequenceLine(output);
-        // recorded output signal
-        const rec = vsim.getRecording(pin);
-        if (rec) {
-          ctx.strokeStyle = COLOR_SCOPE_LINE;
-          strokeSequenceLine(rec, currentX);
-        }
-      } else {
-        strokeSequenceLine(null);
-      }
-      ctx.restore();
     }
-  }
-  // draw scopes for probed paths
-  ctx.strokeStyle = COLOR_SCOPE_LINE;
-  for (const probe of vsim.getProbes()) {
-    const rec = vsim.getRecording(probe);
-    if (rec) {
+    // draw scopes for probed paths
+    ctx.strokeStyle = COLOR_SCOPE_LINE;
+    for (const probe of vsim.getProbes()) {
       ctx.translate(0, SCOPE_ROW_HEIGHT_PX);
       if (probe.label) {
         ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, baseline);
+        ctx.lineTo(SCOPE_LABEL_WIDTH_PX, baseline);
+        ctx.stroke();
         ctx.translate(translateX.value, 0);
         ctx.font = FONT;
         ctx.fillText(probe.label, -0.5, baseline - 4, SCOPE_LABEL_WIDTH_PX);
         ctx.restore();
       }
-      ctx.save();
-      ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
-      strokeSequenceLine(rec, currentX);
-      ctx.restore();
+      const rec = vsim.getProbeRecording(probe);
+      if (rec) {
+        ctx.save();
+        ctx.translate(SCOPE_LABEL_WIDTH_PX, 0);
+        strokeSequenceLine(rec, currentX);
+        ctx.restore();
+      }
     }
   }
   ctx.restore();
@@ -332,7 +357,7 @@ function draw(mode: DrawMode, coordA: Point, coordB: Point) {
   for (let y = Math.max(minY, 0); y <= Math.min(maxY, numPins - 1); y++) {
     const pin = filteredPins.value[rowToPinIndex(y)];
     if (!pin) continue;
-    const { input, output } = sim.value.getSequence(pin);
+    const { input, output } = sim.value.getPinSequence(pin);
     const seq = input || output;
     if (!seq) continue;
     for (
@@ -358,16 +383,43 @@ function mouseToGrid(mx: number, my: number, xInterval = 1): Point {
   return [x, y];
 }
 
-function onMouseMove(e: MouseEvent) {
+const onStepAnimHandler = ref<OnStepAnimHandler>();
+watchImmediate(onStepAnim, (onStepAnim) => {
+  onStepAnimHandler.value?.();
+  onStepAnimHandler.value = onStepAnim(() => renderScope());
+});
+
+const onCompleteHandler = ref<OnCompleteHandler>();
+watchImmediate(onComplete, (onComplete) => {
+  onCompleteHandler.value?.();
+  onCompleteHandler.value = onComplete((result) => {
+    verifyResult.value = result;
+    if (result) {
+      setVerificationResult.value(result);
+      if (result.passed && !hasOpenedCompleted.value) {
+        levelInfoOpenCompleted.value();
+      }
+    } else {
+      resetVerificationResult.value();
+    }
+  });
+});
+
+onUnmounted(() => {
+  onStepAnimHandler.value?.();
+  onCompleteHandler.value?.();
+});
+
+useEventListener(canvas, 'mousemove', (e) => {
   if (isRunning.value) return;
   if (isDrawing.value) {
     const coords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
     draw(drawMode.value, prevDrawingCoords, coords);
     prevDrawingCoords = coords;
   }
-}
+});
 
-function onMouseDown(e: MouseEvent) {
+useEventListener(canvas, 'mousedown', (e) => {
   if (isRunning.value) return;
   if (e.button === 0) {
     drawMode.value = 'high';
@@ -379,39 +431,21 @@ function onMouseDown(e: MouseEvent) {
   isDrawing.value = true;
   prevDrawingCoords = mouseToGrid(e.clientX, e.clientY, GRID_LINE_INTERVAL);
   draw(drawMode.value, prevDrawingCoords, prevDrawingCoords);
-}
+});
 
-function onMouseUp(e: MouseEvent) {
+useEventListener(canvas, 'mouseup', (e) => {
   if (isRunning.value) return;
   isDrawing.value = false;
-}
+});
 
-function onResize() {
-  const ctx = getContext();
-  ctx.canvas.width = Math.trunc(ctx.canvas.clientWidth);
-  canvasWidth.value = ctx.canvas.width;
-  ctx.canvas.height = scopeHeight.value;
-  renderScope();
-}
-
-onStepAnim(() => renderScope());
-
-onComplete((result) => {
-  verifyResult.value = result;
-  if (result) {
-    setVerificationResult(result);
-    if (result.passed && !hasOpenedCompleted.value) {
-      levelInfoOpenCompleted();
-    }
-  } else {
-    resetVerificationResult();
-  }
+useEventListener(canvas, 'contextmenu', (e) => {
+  e.preventDefault();
 });
 
 watch(isRunning, (running) => {
   if (running) {
     isDrawing.value = false;
-    resetVerificationResult();
+    resetVerificationResult.value();
     verifyResult.value = undefined;
   }
   renderScope();
@@ -419,20 +453,24 @@ watch(isRunning, (running) => {
 
 watch(sim, (sim) => {
   verifyResult.value = undefined;
-  resetVerificationResult();
+  resetVerificationResult.value();
   renderScope();
 });
 
-watch(network, (network) => {
-  onResize();
-});
+watch(network, (network) => updateCanvasSize());
+watch(scopeHeight, (height) => updateCanvasSize());
+useResizeObserver(canvasContainer, (e, o) => updateCanvasSize());
+useEventListener('resize', (e) => updateCanvasSize());
 
-useResizeObserver(canvasContainer, () => onResize());
-useEventListener('resize', onResize);
+useFieldProbeActionListener((e) => {
+  if (e.action === 'renamed') {
+    renderScope();
+  }
+});
 
 onMounted(async () => {
   const ctx = getContext();
   ctx.imageSmoothingEnabled = false;
-  onResize();
+  updateCanvasSize();
 });
 </script>

@@ -77,7 +77,7 @@ const drawTypeToLayer = {
   via: Layer.Vias,
 };
 
-export default class FieldGraph {
+export class FieldGraph {
   private data: DesignData;
   private minDrawColumn;
   private maxDrawColumn;

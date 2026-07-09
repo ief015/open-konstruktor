@@ -1,11 +1,16 @@
-import type { LevelInfo, LevelInfoPage } from '@/circuits';
+import type {
+  CircuitSimulationFactory,
+  LevelInfo,
+  LevelInfoPage,
+} from '@/circuits';
+import type { ShallowRef } from 'vue';
 
-const isOpen = ref(false);
-const page = ref(0);
-const completedAvailable = ref(false);
-
-export default function useLevelInfo() {
-  const { circuitFactory } = useCircuitSimulator();
+export default function useLevelInfo(
+  circuitFactory: ShallowRef<CircuitSimulationFactory>,
+) {
+  const isOpen = ref(false);
+  const page = ref(0);
+  const completedAvailable = ref(false);
 
   const title = computed<string>(() => {
     const { info, infoCompleted } = circuitFactory.value;

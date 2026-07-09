@@ -1,9 +1,16 @@
-import PathNode from '@/simulation/PathNode';
+import { PathNode } from '@/simulation';
 
-export default class PinNode {
+/**
+ * A pin node represents an I/O connection point for the network.
+ */
+export class PinNode {
+  /** When active, the connected path node will become high every step */
   public active: boolean;
+  /** Label for the pin */
   public label: string;
+  /** Path node connected to this pin */
   public path: PathNode;
+  /** Flag indicating if this pin is to be treated as +VCC input */
   public isVCC: boolean = false;
 
   constructor(path: PathNode, label?: string);
@@ -25,7 +32,7 @@ export default class PinNode {
 }
 
 /**
- * Assign a pin as VCC: Sets label to 'VCC' and always stays active.
+ * Mark this pin as VCC, sets label to 'VCC', and sets active.
  */
 export function assignVCC(...pins: PinNode[]) {
   for (const pin of pins) {

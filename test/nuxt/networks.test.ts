@@ -16,9 +16,9 @@ test('npn', () => {
 
   const npn = new GateNode('npn');
 
-  npn.gatedPaths.push(pathVCC);
-  npn.gatedPaths.push(pathY);
-  npn.switchingPaths.push(pathA);
+  npn.currentPaths.push(pathVCC);
+  npn.currentPaths.push(pathY);
+  npn.basePaths.push(pathA);
 
   const pinVCC = new PinNode(pathVCC, true);
   const pinA = new PinNode(pathA);
@@ -89,9 +89,9 @@ test('pnp', () => {
 
   const pnp = new GateNode('pnp');
 
-  pnp.gatedPaths.push(pathVCC);
-  pnp.gatedPaths.push(pathY);
-  pnp.switchingPaths.push(pathA);
+  pnp.currentPaths.push(pathVCC);
+  pnp.currentPaths.push(pathY);
+  pnp.basePaths.push(pathA);
 
   const network = new Network([pinVCC, pinA, pinY, pathVCC, pathA, pathY, pnp]);
 
@@ -173,13 +173,13 @@ test('sr-latch', () => {
     npn,
   ]);
 
-  npn.gatedPaths.push(pathVCC);
-  npn.gatedPaths.push(pathQ);
-  npn.switchingPaths.push(pathS);
+  npn.currentPaths.push(pathVCC);
+  npn.currentPaths.push(pathQ);
+  npn.basePaths.push(pathS);
 
-  pnp.gatedPaths.push(pathS);
-  pnp.gatedPaths.push(pathQ);
-  pnp.switchingPaths.push(pathR);
+  pnp.currentPaths.push(pathS);
+  pnp.currentPaths.push(pathQ);
+  pnp.basePaths.push(pathR);
 
   network.step();
   assertEqual(pathQ.state, false);
@@ -254,27 +254,27 @@ test('dual-fixed-freq-oscillator', () => {
 
   for (let i = 0; i < 9; i++) {
     const cur = new GateNode('npn');
-    cur.gatedPaths.push(pathVCC);
+    cur.currentPaths.push(pathVCC);
     const prev = npnOscGates[npnOscGates.length - 1];
     npnOscGates.push(cur);
     if (prev) {
       const path = new PathNode();
-      cur.gatedPaths.push(path);
-      prev.switchingPaths.push(path);
+      cur.currentPaths.push(path);
+      prev.basePaths.push(path);
       npnOscPaths.push(path);
     }
   }
 
-  npnOscGates[0].gatedPaths.push(pathPnp);
-  npnOscGates[npnOscGates.length - 1].switchingPaths.push(pathOsc);
+  npnOscGates[0].currentPaths.push(pathPnp);
+  npnOscGates[npnOscGates.length - 1].basePaths.push(pathOsc);
 
-  npnEn0.gatedPaths.push(pathEn0, pathOsc0);
-  npnEn0.switchingPaths.push(pathOsc);
-  npnEn1.gatedPaths.push(pathEn1, pathOsc1);
-  npnEn1.switchingPaths.push(pathOsc);
+  npnEn0.currentPaths.push(pathEn0, pathOsc0);
+  npnEn0.basePaths.push(pathOsc);
+  npnEn1.currentPaths.push(pathEn1, pathOsc1);
+  npnEn1.basePaths.push(pathOsc);
 
-  pnpOsc.gatedPaths.push(pathVCC, pathOsc);
-  pnpOsc.switchingPaths.push(pathPnp);
+  pnpOsc.currentPaths.push(pathVCC, pathOsc);
+  pnpOsc.basePaths.push(pathPnp);
 
   const network = new Network([
     pinVCC,
@@ -408,29 +408,29 @@ test('4-input-and-or-gate', () => {
   const pn1 = new PathNode();
   const pn2 = new PathNode();
 
-  gn1.gatedPaths.push(pathA, pn1);
-  gn1.switchingPaths.push(pathB);
+  gn1.currentPaths.push(pathA, pn1);
+  gn1.basePaths.push(pathB);
 
-  gn2.gatedPaths.push(pn1, pn2);
-  gn2.switchingPaths.push(pathC);
+  gn2.currentPaths.push(pn1, pn2);
+  gn2.basePaths.push(pathC);
 
-  gn3.gatedPaths.push(pn2, pathX);
-  gn3.switchingPaths.push(pathD);
+  gn3.currentPaths.push(pn2, pathX);
+  gn3.basePaths.push(pathD);
 
-  gp1.gatedPaths.push(pathVCC, pp1);
-  gp1.switchingPaths.push(pathA);
+  gp1.currentPaths.push(pathVCC, pp1);
+  gp1.basePaths.push(pathA);
 
-  gp2.gatedPaths.push(pp1, pp2);
-  gp2.switchingPaths.push(pathB);
+  gp2.currentPaths.push(pp1, pp2);
+  gp2.basePaths.push(pathB);
 
-  gp3.gatedPaths.push(pp2, pp3);
-  gp3.switchingPaths.push(pathC);
+  gp3.currentPaths.push(pp2, pp3);
+  gp3.basePaths.push(pathC);
 
-  gp4.gatedPaths.push(pp3, pp4);
-  gp4.switchingPaths.push(pathD);
+  gp4.currentPaths.push(pp3, pp4);
+  gp4.basePaths.push(pathD);
 
-  gp5.gatedPaths.push(pathVCC, pathY);
-  gp5.switchingPaths.push(pp4);
+  gp5.currentPaths.push(pathVCC, pathY);
+  gp5.basePaths.push(pp4);
 
   const network = new Network([
     pinVCC,
@@ -621,23 +621,23 @@ test('2-to-4 line decoder', () => {
   const gn1 = new GateNode('npn');
   const gn2 = new GateNode('npn');
 
-  gp1.gatedPaths.push(pathVCC, p1);
-  gp1.switchingPaths.push(pathA);
+  gp1.currentPaths.push(pathVCC, p1);
+  gp1.basePaths.push(pathA);
 
-  gp2.gatedPaths.push(p1, pathY0);
-  gp2.switchingPaths.push(pathB);
+  gp2.currentPaths.push(p1, pathY0);
+  gp2.basePaths.push(pathB);
 
-  gp3.gatedPaths.push(pathA, pathY1);
-  gp3.switchingPaths.push(pathB);
+  gp3.currentPaths.push(pathA, pathY1);
+  gp3.basePaths.push(pathB);
 
-  gp4.gatedPaths.push(pathVCC, p2);
-  gp4.switchingPaths.push(pathA);
+  gp4.currentPaths.push(pathVCC, p2);
+  gp4.basePaths.push(pathA);
 
-  gn1.gatedPaths.push(p2, pathY2);
-  gn1.switchingPaths.push(pathB);
+  gn1.currentPaths.push(p2, pathY2);
+  gn1.basePaths.push(pathB);
 
-  gn2.gatedPaths.push(pathA, pathY3);
-  gn2.switchingPaths.push(pathB);
+  gn2.currentPaths.push(pathA, pathY3);
+  gn2.basePaths.push(pathB);
 
   const network = new Network([
     pinVCC,

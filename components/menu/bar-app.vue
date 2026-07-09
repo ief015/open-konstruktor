@@ -67,37 +67,28 @@
 
 <script setup lang="ts">
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
-import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
+import { useWelcomeActionListener } from '@/components/welcome/welcome-events';
 import type { CircuitDesignData } from '@/serialization';
 
 const { items: menuItems } = useMenuItems();
-const { field, load: loadDesign, loadBlank: loadBlankDesign } = useFieldGraph();
-const { load: loadSim, circuitFactory } = useCircuitSimulator();
-const { getLoader } = useCircuitLoaders();
+const circuitSimulation = injectCircuitSimulationOptional();
 const { ignoreKeyShortcuts } = useToolbox();
 const designs = useSavedDesigns();
 const snippets = useSavedSnippets();
 const clipboard = inject<ReturnType<typeof useClipboard>>('clipboard');
-const showImportDialog = ref(false);
-const showExportDialog = ref(false);
+
+const menuBar = useTemplateRef('menuBar');
 const importTextArea = useTemplateRef('importTextArea');
 const exportTextArea = useTemplateRef('exportTextArea');
 const fileInputImportDesigns = useTemplateRef('fileInputImportDesigns');
 const fileInputImportSnippets = useTemplateRef('fileInputImportSnippets');
+
+const showImportDialog = ref(false);
+const showExportDialog = ref(false);
 const exportCode = ref('');
 const exportIsKOHCTPYKTOPCompatible = ref(false);
 const exportCopied = ref(false);
 const importCode = ref('');
-const menuBar = useTemplateRef('menuBar');
-
-function loadLevel(levelName: string) {
-  const loader = getLoader(levelName);
-  if (!loader) {
-    throw new Error(`Unknown loader: ${levelName}`);
-  }
-  loadBlankDesign(loader.width, loader.height, loader.pinRows);
-  loadSim(field.value, loader);
-}
 
 function onShowImportDialog() {
   importCode.value = '';
@@ -108,9 +99,13 @@ function onShowImportDialog() {
 }
 
 function onShowExportDialog() {
-  exportCode.value = field.value.toSaveString() ?? '';
+  const sim = circuitSimulation.value;
+  if (!sim) return;
+  const field = sim.field.field.value;
+  if (!field) return;
+  exportCode.value = field.toSaveString() ?? '';
   exportIsKOHCTPYKTOPCompatible.value = !!(
-    field.value.getData() as CircuitDesignData
+    field.getData() as CircuitDesignData
   ).isKOHCTPYKTOPCompatible?.();
   showExportDialog.value = true;
   exportCopied.value = false;
@@ -134,8 +129,10 @@ function onCopyExport() {
 function onImport() {
   if (!importCode.value) return;
   try {
-    loadDesign(importCode.value);
-    loadSim(field.value);
+    const sim = circuitSimulation.value;
+    if (!sim) return;
+    sim.field.load(importCode.value);
+    sim.load();
     showImportDialog.value = false;
   } catch (e: any) {
     alert(`Failed to import:\n${e.message ?? e}`);
@@ -215,10 +212,6 @@ async function onSelected(id?: string) {
       return;
     }
   }
-  if (id.startsWith('level/')) {
-    const loaderKey = id.slice('level/'.length);
-    loadLevel(loaderKey);
-  }
 }
 
 useEventListener('keydown', (e) => {
@@ -227,11 +220,8 @@ useEventListener('keydown', (e) => {
   }
 });
 
-useWelcomeDialogListener((event) => {
+useWelcomeActionListener((event) => {
   switch (event.action) {
-    case 'start-tutorial':
-      loadLevel('Tutorial 01 Introduction');
-      break;
     case 'play-levels':
       menuBar.value?.openMenu('levels');
       break;
