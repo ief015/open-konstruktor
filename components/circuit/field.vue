@@ -870,10 +870,17 @@ useEventListener('mouseup', (e) => {
   switch (e.button) {
     case 0:
       endDraw(e);
-      endSelection();
       break;
     case 2:
       endPan(e);
+      break;
+  }
+});
+
+useEventListener(canvas, 'mouseup', (e) => {
+  switch (e.button) {
+    case 0:
+      endSelection();
       break;
   }
 });
