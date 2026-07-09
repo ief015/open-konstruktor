@@ -1047,8 +1047,16 @@ export class FieldGraph {
     this.data = dest;
   }
 
-  public toSaveString(): string {
-    return encode(this.data);
+  public toSaveString(lineBreak: number = 0): string {
+    const str = encode(this.data);
+    if (lineBreak > 0) {
+      const lines = [];
+      for (let i = 0; i < str.length; i += lineBreak) {
+        lines.push(str.slice(i, i + lineBreak));
+      }
+      return lines.join('\n');
+    }
+    return str;
   }
 
   public static from(
