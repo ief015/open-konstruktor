@@ -187,9 +187,6 @@ useEventListener('keydown', (ev) => {
 });
 
 useEventListener('keyup', (ev) => {
-  if (ignoreKeyShortcuts.value) {
-    return;
-  }
   const k = ev.key.toLowerCase();
   if (k == 'shift') {
     modifiers.shift = false;
