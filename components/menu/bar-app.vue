@@ -12,7 +12,7 @@
       <div class="flex flex-col gap-2">
         <textarea
           ref="importTextArea"
-          class="max-w-sm w-[50vw] h-32 break-words text-sm"
+          class="w-[32rem] h-32 break-words text-sm font-mono"
           v-model="importCode"
           @keypress.enter="onImport"
         />
@@ -33,7 +33,7 @@
         <textarea
           readonly
           ref="exportTextArea"
-          class="max-w-sm w-[50vw] h-32 break-words text-sm"
+          class="w-[32rem] h-32 break-words text-sm font-mono"
           :value="exportCode"
         />
         <div class="flex flex-row justify-end items-center gap-2">
@@ -103,7 +103,7 @@ function onShowExportDialog() {
   if (!sim) return;
   const field = sim.field.field.value;
   if (!field) return;
-  exportCode.value = field.toSaveString() ?? '';
+  exportCode.value = field.toSaveString(64) ?? '';
   exportIsKOHCTPYKTOPCompatible.value = !!(
     field.getData() as CircuitDesignData
   ).isKOHCTPYKTOPCompatible?.();
