@@ -34,7 +34,7 @@ The following features are planned:
 
 *Custom levels, workspace UI features*
 
-⬜️ UI Overhaul: support tabbed workspaces  
+✅️ UI Overhaul: support tabbed workspaces  
 ✅️ Editable scope timings (Prerequisite for custom levels)  
 ⬜️ Custom levels and level packs  
 ⬜️ Graphical themes  

@@ -43,7 +43,7 @@ export function useRouteLoader(workspace: MaybeRef<UseWorkspaceReturn>) {
   }
 
   function buildURL(params: RouteLoaderParams) {
-    const url = new URL(window.location.host);
+    const url = new URL(window.location.origin);
     if (params.levelKey) {
       url.searchParams.set('level', params.levelKey);
     }
