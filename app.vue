@@ -60,9 +60,11 @@
             <CircuitControls class="w-full h-full" />
           </div>
         </div>
+        <div class="flex flex-col h-full justify-center items-center" v-else>
+          <Welcome class="max-w-[600px]" />
+        </div>
         <div class="absolute inset-x-0 top-0 flex flex-row justify-center">
           <DialogInfoBox class="m-2 w-[1000px]" v-if="currentSimulation" />
-          <DialogWelcome />
         </div>
       </div>
     </div>
@@ -97,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
+import { useWelcomeActionListener } from '@/components/welcome/welcome-events';
 import { useMenuBarListener } from '@/components/menu/bar-app-events';
 import type { TabBarItem } from '@/components/tab/bar-item.vue';
 import type { UseCircuitSimulationReturn } from '@/composables/use-circuit-simulation';
@@ -213,7 +215,7 @@ useMenuBarListener((event) => {
   }
 });
 
-useWelcomeDialogListener((event) => {
+useWelcomeActionListener((event) => {
   switch (event.action) {
     case 'start-tutorial':
       openNewLevel('Tutorial 01 Introduction');

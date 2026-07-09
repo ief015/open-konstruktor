@@ -56,8 +56,6 @@ export function useMenuItems() {
             { id: 'file/export-snippets', label: 'Export Snippets' },
           ],
         },
-        'divider',
-        { id: 'file/welcome', label: 'Welcome' },
       ],
     },
     {

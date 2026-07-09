@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { MenuBarActionEvent } from '@/components/menu/bar-app-events';
-import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
+import { useWelcomeActionListener } from '@/components/welcome/welcome-events';
 import type { CircuitDesignData } from '@/serialization';
 
 const { items: menuItems } = useMenuItems();
@@ -220,7 +220,7 @@ useEventListener('keydown', (e) => {
   }
 });
 
-useWelcomeDialogListener((event) => {
+useWelcomeActionListener((event) => {
   switch (event.action) {
     case 'play-levels':
       menuBar.value?.openMenu('levels');

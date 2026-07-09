@@ -1,6 +1,3 @@
-import { useWelcomeDialogListener } from '@/components/dialog/welcome/welcome-events';
-import { useMenuBarListener } from '@/components/menu/bar-app-events';
-
 export type WorkspaceAction =
   | 'simulation-created'
   | 'simulation-deleted'
