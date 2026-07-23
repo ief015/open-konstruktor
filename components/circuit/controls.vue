@@ -144,7 +144,7 @@ const {
   pause,
   resume,
   step,
-  resetProfiler,
+  timer,
 } = toShallowRefs(circuitSimulation);
 
 function useControlsState(sim: UseCircuitSimulationReturn) {
@@ -158,7 +158,7 @@ function useControlsState(sim: UseCircuitSimulationReturn) {
       if (selectedRate.value === 'custom') {
         stepRate.value = Math.max(0, rate);
       }
-      resetProfiler.value();
+      timer.value.resetProfiler();
     },
     { debounce: 500 },
   );
@@ -169,7 +169,7 @@ function useControlsState(sim: UseCircuitSimulationReturn) {
       if (selectedRate.value === 'realtime') {
         realTimeTargetFrameRate.value = Math.max(1, rate);
       }
-      resetProfiler.value();
+      timer.value.resetProfiler();
     },
     { debounce: 500 },
   );
@@ -193,7 +193,7 @@ function useControlsState(sim: UseCircuitSimulationReturn) {
           stepMode.value = 'fixed';
           break;
       }
-      resetProfiler.value();
+      timer.value.resetProfiler();
     },
     { immediate: true },
   );

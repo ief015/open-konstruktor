@@ -29,34 +29,63 @@ export function useCircuitSimulation() {
   const currentFactory = shallowRef<CircuitSimulationFactory>(defaultFactory);
   const levelInfo = useLevelInfo(currentFactory);
 
-  let lastFrameTime = 0;
-  let accumulatedTime = 0;
-  const profiler = reactive({
-    steps: 0,
-    elapsed: 0,
-  });
-  const isRunning = ref(false);
-  const isPaused = ref(false);
-  const loop = ref(false);
   const pauseOnError = ref(false);
-  const stepMode = ref<StepMode>('fixed');
-  const stepRate = ref(40);
   const currentFrame = ref(0);
-  const elapsedTime = ref(0);
-  const realTimeTargetFrameRate = ref(60);
-  const realTimeTargetFrameInterval = computed(
-    () => 1000 / realTimeTargetFrameRate.value,
-  );
-  const stepsPerSecond = computed(() => {
-    return (profiler.steps / profiler.elapsed) * 1000;
+
+  const timer = useSimulationTimer({
+    onStart() {
+      sim.value.reset();
+    },
+    onStop() {
+      sim.value.reset(false);
+    },
+    onReset() {
+      sim.value.reset();
+    },
+    onStep(cancelSteps) {
+      const vsim = sim.value;
+      let finished = vsim.step();
+      if (!finished && pauseOnError.value) {
+        const errors = vsim.findFrameVerificationErrors(
+          vsim.getCurrentFrame() - 1,
+        );
+        if (errors.length > 0) {
+          pause();
+          cancelSteps();
+        }
+      }
+      currentFrame.value = vsim.getCurrentFrame();
+      return finished;
+    },
+    onAnim() {
+      invokeStepAnimHandlers();
+    },
+    onComplete(isLooping) {
+      if (isLooping) {
+        if (currentFactory.value.regenOnLoop) {
+          regenerateSequences();
+        }
+        invokeCompleteHandlers();
+      } else {
+        const verifyResult = sim.value.verify();
+        invokeCompleteHandlers(verifyResult);
+      }
+    },
   });
-  const stepInterval = computed(() => {
-    if (stepMode.value === 'realtime') {
-      return 0;
-    } else {
-      return 1000 / stepRate.value;
-    }
-  });
+  const {
+    isRunning,
+    isPaused,
+    loop,
+    stepRate,
+    stepMode,
+    stepsPerSecond,
+    elapsedTime,
+    realTimeTargetFrameRate,
+    stop,
+    pause,
+    resume,
+    step,
+  } = timer;
 
   const handlers = {
     onStepAnim: [] as OnStepAnimHandler[],
@@ -123,119 +152,9 @@ export function useCircuitSimulation() {
     }
   }
 
-  function resetProfiler() {
-    profiler.steps = 0;
-    profiler.elapsed = 0;
-  }
-
-  function stop() {
-    isRunning.value = false;
-    isPaused.value = true;
-    accumulatedTime = 0;
-    currentFrame.value = 0;
-    sim.value.reset(false);
-  }
-
-  function pause() {
-    isPaused.value = true;
-  }
-
-  function resume() {
-    isPaused.value = false;
-    lastFrameTime = performance.now();
-  }
-
   function start(bUpdateNetwork = true) {
     if (bUpdateNetwork) updateNetwork();
-    sim.value.reset();
-    isRunning.value = true;
-    isPaused.value = false;
-    lastFrameTime = performance.now();
-    currentFrame.value = 0;
-    elapsedTime.value = 0;
-    accumulatedTime = 0;
-    resetProfiler();
-    requestAnimationFrame(onAnim);
-  }
-
-  function step(n = 1, bInvokeStepAnimHandlers = true) {
-    if (!isRunning.value) return true;
-    const vsim = sim.value;
-    let endReached = false;
-    for (let i = 0; i < n; i++) {
-      if ((endReached = vsim.step())) {
-        if (loop.value) {
-          vsim.reset();
-          invokeCompleteHandlers();
-          endReached = false;
-          if (currentFactory.value.regenOnLoop) {
-            regenerateSequences();
-          }
-        } else {
-          const verifyResult = vsim.verify();
-          invokeCompleteHandlers(verifyResult);
-          stop();
-          break;
-        }
-      } else {
-        if (pauseOnError.value) {
-          const errors = vsim.findFrameVerificationErrors(
-            vsim.getCurrentFrame() - 1,
-          );
-          if (errors.length > 0) {
-            pause();
-            endReached = true;
-            break;
-          }
-        }
-      }
-    }
-    currentFrame.value = vsim.getCurrentFrame();
-    bInvokeStepAnimHandlers && invokeStepAnimHandlers();
-    return endReached;
-  }
-
-  function onAnim(timestamp: number) {
-    if (!isRunning.value) return;
-    if (!isPaused.value) {
-      const isRealTime = stepMode.value === 'realtime';
-      const dt = timestamp - lastFrameTime;
-      lastFrameTime = timestamp;
-      elapsedTime.value += dt;
-      profiler.elapsed += dt;
-      if (isRealTime) {
-        accumulatedTime += realTimeTargetFrameInterval.value;
-      } else if (stepMode.value === 'vsync') {
-        // Always step only once per animation frame
-        accumulatedTime = stepInterval.value;
-      } else {
-        accumulatedTime += dt;
-      }
-      const interval = isRealTime ? 0 : stepInterval.value;
-      const cutoff = performance.now() + 100;
-      const willStep = accumulatedTime >= interval;
-      while (accumulatedTime >= interval) {
-        const ts = isRealTime ? performance.now() : 0;
-        profiler.steps++;
-        if (step(1, false)) {
-          break;
-        }
-        const now = performance.now();
-        if (isRealTime) {
-          const elapsed = now - ts;
-          accumulatedTime -= elapsed;
-        } else {
-          accumulatedTime -= interval;
-        }
-        if (now > cutoff) {
-          accumulatedTime = -Number.EPSILON;
-        }
-      }
-      if (willStep) {
-        invokeStepAnimHandlers();
-      }
-    }
-    requestAnimationFrame(onAnim);
+    timer.start();
   }
 
   return {
@@ -246,6 +165,7 @@ export function useCircuitSimulation() {
     network,
     circuitFactory: currentFactory,
     levelInfo,
+    timer,
     isRunning,
     isPaused,
     loop,
@@ -264,7 +184,6 @@ export function useCircuitSimulation() {
     pause,
     resume,
     step,
-    resetProfiler,
     onStepAnim,
     onComplete,
   };
