@@ -1,15 +1,16 @@
 export interface SimulationTimerEvents {
   onStart?: () => void;
-  onStep?: () => boolean;
+  onStop?: () => void;
+  onStep?: (cancelSteps: () => void) => boolean;
   onAnim?: () => void;
   onReset?: () => void;
-  onComplete?: () => void;
+  onComplete?: (isLooping: boolean) => void;
 }
 
 export type StepMode = 'fixed' | 'vsync' | 'realtime';
 
 export function useSimulationTimer(events: SimulationTimerEvents = {}) {
-  const { onStart, onStep, onAnim, onReset, onComplete } = events;
+  const { onStart, onStop, onStep, onAnim, onReset, onComplete } = events;
 
   let lastFrameTime = 0;
   let accumulatedTime = 0;
@@ -65,26 +66,28 @@ export function useSimulationTimer(events: SimulationTimerEvents = {}) {
     isRunning.value = false;
     isPaused.value = true;
     accumulatedTime = 0;
-    onReset?.();
+    onStop?.();
   }
 
-  function step(n = 1, bInvokeStepAnimHandlers = true) {
+  function step(n = 1, bInvokeAnimHandlers = true) {
     if (!isRunning.value) return true;
     let endReached = false;
+    let exitLoop = false;
+    const cancelSteps = () => (exitLoop = true);
     for (let i = 0; i < n; i++) {
-      if ((endReached = onStep?.() ?? true)) {
+      if (exitLoop) break;
+      if ((endReached = onStep?.(cancelSteps) ?? true)) {
+        onComplete?.(loop.value);
         if (loop.value) {
-          onComplete?.();
           onReset?.();
           endReached = false;
         } else {
-          onComplete?.();
           stop();
           break;
         }
       }
     }
-    bInvokeStepAnimHandlers && onAnim?.();
+    bInvokeAnimHandlers && onAnim?.();
     return endReached;
   }
 
@@ -144,5 +147,7 @@ export function useSimulationTimer(events: SimulationTimerEvents = {}) {
     stop,
     pause,
     resume,
+    step,
+    resetProfiler,
   };
 }
