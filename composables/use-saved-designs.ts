@@ -140,7 +140,7 @@ async function saveDesign(design: DesignRecord): Promise<DesignRecord> {
   const db = await getDB();
   const transaction = db.transaction('designs', 'readwrite');
   const store = transaction.objectStore('designs');
-  design.id ??= crypto.randomUUID();
+  design.id ??= generateUUID();
   const request = store.put(design);
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {
@@ -192,7 +192,7 @@ async function importDesignRecords(designs: DesignRecord[]) {
   console.log(`Importing ${designs.length} design(s)...`);
   const results = await Promise.allSettled(
     designs.map((design) => {
-      design.id ??= crypto.randomUUID();
+      design.id ??= generateUUID();
       return idbRequestToPromise(store.put(design));
     }),
   );

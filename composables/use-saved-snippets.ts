@@ -140,7 +140,7 @@ async function saveSnippet(snippet: SnippetRecord): Promise<SnippetRecord> {
   const db = await getDB();
   const transaction = db.transaction('snippets', 'readwrite');
   const store = transaction.objectStore('snippets');
-  snippet.id ??= crypto.randomUUID();
+  snippet.id ??= generateUUID();
   const request = store.put(snippet);
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {
@@ -191,7 +191,7 @@ async function importSnippetRecords(snippets: SnippetRecord[]) {
   const store = transaction.objectStore('snippets');
   const results = await Promise.allSettled(
     snippets.map((snippet) => {
-      snippet.id ??= crypto.randomUUID();
+      snippet.id ??= generateUUID();
       return idbRequestToPromise(store.put(snippet));
     }),
   );
