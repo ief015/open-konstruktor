@@ -1,9 +1,33 @@
 export interface SimulationTimerEvents {
+  /**
+   * Called when the simulation timer starts.
+   */
   onStart?: () => void;
+  /**
+   * Called when the simulation timer stops.
+   */
   onStop?: () => void;
-  onStep?: (cancelSteps: () => void) => boolean;
+  /**
+   * Called on each simulation step.
+   * Return `true` to indicate that the simulation has reached the end.
+   * @param cancelRemainingSteps
+   * Call this function to cancel the remaining steps between animation frames.
+   * Useful for pausing between frames.
+   * @returns `true` if the simulation has reached the end, `false` otherwise.
+   */
+  onStep?: (cancelRemainingSteps: () => void) => boolean;
+  /**
+   * Called on each animation frame for rendering.
+   */
   onAnim?: () => void;
+  /**
+   * Called when the simulation timer resets. The simulation should reset to its initial state.
+   */
   onReset?: () => void;
+  /**
+   * Called when the simulation reached the end.
+   * @param isLooping If `true`, the simulation is looping and will continue running.
+   */
   onComplete?: (isLooping: boolean) => void;
 }
 
@@ -73,10 +97,10 @@ export function useSimulationTimer(events: SimulationTimerEvents = {}) {
     if (!isRunning.value) return true;
     let endReached = false;
     let exitLoop = false;
-    const cancelSteps = () => (exitLoop = true);
+    const cancelRemainingSteps = () => (exitLoop = true);
     for (let i = 0; i < n; i++) {
       if (exitLoop) break;
-      if ((endReached = onStep?.(cancelSteps) ?? true)) {
+      if ((endReached = onStep?.(cancelRemainingSteps) ?? true)) {
         onComplete?.(loop.value);
         if (loop.value) {
           onReset?.();

@@ -42,16 +42,15 @@ export function useCircuitSimulation() {
     onReset() {
       sim.value.reset();
     },
-    onStep(cancelSteps) {
+    onStep(cancelRemainingSteps) {
       const vsim = sim.value;
+      const lastFrame = vsim.getCurrentFrame();
       let finished = vsim.step();
       if (!finished && pauseOnError.value) {
-        const errors = vsim.findFrameVerificationErrors(
-          vsim.getCurrentFrame() - 1,
-        );
+        const errors = vsim.findFrameVerificationErrors(lastFrame);
         if (errors.length > 0) {
           pause();
-          cancelSteps();
+          cancelRemainingSteps();
         }
       }
       currentFrame.value = vsim.getCurrentFrame();
