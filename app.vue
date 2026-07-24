@@ -95,6 +95,7 @@
         </div>
       </div>
     </template>
+    <DialogUseDialogs />
   </NuxtLayout>
 </template>
 
@@ -104,6 +105,29 @@ import { useMenuBarListener } from '@/components/menu/bar-app-events';
 import type { TabBarItem } from '@/components/tab/bar-item.vue';
 import type { UseCircuitSimulationReturn } from '@/composables/use-circuit-simulation';
 import type { ShallowRef } from 'vue';
+
+const dialog = useDialog();
+
+onMounted(() => {
+  for (let i = 0; i < 3; i++) {
+    dialog.create({
+      title: `Dialog ${i + 1}`,
+      body: `This is dialog number ${i + 1}.`,
+      ok: i !== 0,
+      cancel: i !== 1,
+      persistent: i === 1,
+      onOk() {
+        console.log(`Dialog ${i + 1}: OK`);
+      },
+      onCancel() {
+        console.log(`Dialog ${i + 1}: Cancel`);
+      },
+      onHide() {
+        console.log(`Dialog ${i + 1}: Hide`);
+      },
+    });
+  }
+});
 
 const config = useRuntimeConfig();
 const status = useStatusBar();
