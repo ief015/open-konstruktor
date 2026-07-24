@@ -1,15 +1,34 @@
 <template>
-  <DialogModal :class="isOpen ? 'block' : 'hidden'">
+  <DialogModal
+    :class="isOpen ? 'block' : 'hidden'"
+    @click-outside="onClickOutside"
+  >
     <div class="flex flex-col gap-4">
-      <slot name="title">
-        <span
-          v-if="title"
-          class="text-base font-bold"
-          :class="titleClass"
-          :style="titleStyle"
-        >
-          {{ title }}
-        </span>
+      <slot name="header">
+        <div class="flex flex-row justify-between">
+          <slot name="title">
+            <span
+              v-if="title"
+              class="text-base font-bold"
+              :class="titleClass"
+              :style="titleStyle"
+            >
+              {{ title }}
+            </span>
+          </slot>
+          <slot name="close">
+            <button
+              v-if="
+                props.closeBtn ||
+                (!props.persistent && props.closeBtn !== false)
+              "
+              @click="hide"
+              class="text-lg font-bold"
+            >
+              ×
+            </button>
+          </slot>
+        </div>
       </slot>
       <slot />
       <div v-if="!noActions" class="flex flex-row justify-end gap-2">
@@ -43,11 +62,14 @@ const props = withDefaults(
     btnCancel?: boolean | string;
     disableOk?: boolean;
     disableCancel?: boolean;
+    closeBtn?: boolean | undefined;
+    persistent?: boolean;
     noActions?: boolean;
   }>(),
   {
     btnOk: true,
     btnCancel: true,
+    closeBtn: undefined,
   },
 );
 
@@ -98,6 +120,12 @@ function onOk() {
 function onCancel() {
   emit('cancel');
   hide();
+}
+
+function onClickOutside() {
+  if (!props.persistent) {
+    hide();
+  }
 }
 
 watch(isOpen, (opened) => {
